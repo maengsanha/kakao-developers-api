@@ -7,12 +7,17 @@ import (
 )
 
 func TestAddressSearch(t *testing.T) {
-	iter := local.AddressSearch("전북 삼성동 100").
-		Analyze("similar").
-		Display(10).
-		Result(1)
+	query := "전북 삼성동 100"
+	key := "0xdeadbeef"
 
-	for resp, err := iter.Next(); iter != nil; {
-		t.Log(resp, err)
+	iter := local.AddressSearch(query).
+		AuthorizeWith(key).
+		Display(local.MaxSize).
+		Result(local.MinPage).
+		Analyze(local.Similar).
+		As(local.JSON)
+
+	for resp, err := iter.Next(); err != nil; {
+		t.Logf("response: %v", resp)
 	}
 }

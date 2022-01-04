@@ -1,6 +1,31 @@
 // Package local provides the features of the Local API.
 package local
 
+import (
+	"encoding/json"
+	"encoding/xml"
+	"errors"
+	"fmt"
+	"net/http"
+	"strings"
+)
+
+const (
+	JSON        = "json"
+	XML         = "xml"
+	KeyPrefix   = "KakaoAK "
+	Similar     = "similar"
+	Exact       = "exact"
+	DefaultPage = 1
+	MinPage     = 1
+	MaxPage     = 45
+	DefaultSize = 10
+	MinSize     = 1
+	MaxSize     = 30
+)
+
+var ErrEndPage = errors.New("page reaches the end")
+
 // Address represents a detailed information of Land-lot address.
 type Address struct {
 	AddressName       string `json:"address_name"`
@@ -34,6 +59,15 @@ type RoadAddress struct {
 	Y                string `json:"y"`
 }
 
+type Document struct {
+	AddressName string `json:"address_name"`
+	AddressType string `json:"address_type"`
+	X           string `json:"x"`
+	Y           string `json:"y"`
+	Address     `json:"address"`
+	RoadAddress `json:"road_address"`
+}
+
 // AddressSearchResponse represents a Address search response.
 type AddressSearchResponse struct {
 	Meta struct {
@@ -41,19 +75,14 @@ type AddressSearchResponse struct {
 		PageableCount int  `json:"pageable_count"`
 		IsEnd         bool `json:"is_end"`
 	} `json:"meta"`
-	Documents []struct {
-		AddressName string `json:"address_name"`
-		AddressType string `json:"address_type"`
-		X           string `json:"x"`
-		Y           string `json:"y"`
-		Address     `json:"address"`
-		RoadAddress `json:"road_address"`
-	} `json:"documents"`
+	Documents []Document `json:"documents"`
 }
 
-// AddressSearchIterator
+// AddressSearchIterator is a lazy Address search iterator.
 type AddressSearchIterator struct {
 	Query       string
+	Format      string
+	AuthKey     string
 	AnalyzeType string
 	Page        int
 	Size        int
@@ -62,28 +91,77 @@ type AddressSearchIterator struct {
 func AddressSearch(query string) *AddressSearchIterator {
 	return &AddressSearchIterator{
 		Query:       query,
-		AnalyzeType: "similar",
-		Page:        1,
-		Size:        10,
+		Format:      JSON,
+		AuthKey:     KeyPrefix,
+		AnalyzeType: Similar,
+		Page:        DefaultPage,
+		Size:        DefaultSize,
 	}
 }
 
+func (a *AddressSearchIterator) As(format string) *AddressSearchIterator {
+	if format == JSON || format == XML {
+		a.Format = format
+	}
+	return a
+}
+
+func (a *AddressSearchIterator) AuthorizeWith(key string) *AddressSearchIterator {
+	a.AuthKey = KeyPrefix + strings.TrimSpace(key)
+	return a
+}
+
 func (a *AddressSearchIterator) Analyze(typ string) *AddressSearchIterator {
-	a.AnalyzeType = typ
+	if typ == Similar || typ == Exact {
+		a.AnalyzeType = typ
+	}
 	return a
 }
 
 func (a *AddressSearchIterator) Result(page int) *AddressSearchIterator {
-	a.Page = page
+	if MinPage <= page && page <= MaxPage {
+		a.Page = page
+	}
 	return a
 }
 
 func (a *AddressSearchIterator) Display(size int) *AddressSearchIterator {
-	a.Size = size
+	if MinSize <= size && size <= MaxSize {
+		a.Size = size
+	}
 	return a
 }
 
+// Next returns the API response and proceeds the iterator to the next page.
 func (a *AddressSearchIterator) Next() (AddressSearchResponse, error) {
-	a = nil
-	return AddressSearchResponse{}, nil
+	var res AddressSearchResponse
+
+	// at first, send request to the API server
+	resp, err := http.Get(fmt.Sprintf("https://dapi.kakao.com/v2/local/search/address.%s?query=%s&analyze_type=%s&page=%d&size=%d", a.Format, a.Query, a.AnalyzeType, a.Page, a.Size))
+	if err != nil {
+		return res, err
+	}
+
+	// don't forget to close the response body
+	defer resp.Body.Close()
+
+	if a.Format == JSON {
+		if err = json.NewDecoder(resp.Body).Decode(&resp); err != nil {
+			return res, err
+		}
+	} else if a.Format == XML {
+		if err = xml.NewDecoder(resp.Body).Decode(&resp); err != nil {
+			return res, err
+		}
+	}
+
+	// if it was the last result, set the iterator to nil
+	// or increase the page number
+	if res.Meta.IsEnd {
+		return res, ErrEndPage
+	}
+
+	a.Page++
+
+	return res, nil
 }
