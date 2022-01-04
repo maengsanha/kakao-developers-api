@@ -1,8 +1,7 @@
 // Package local provides the features of the Local API.
 package local
 
-import "fmt"
-
+// Address represents a detailed information of Land-lot address.
 type Address struct {
 	AddressName       string `json:"address_name"`
 	Region1depthName  string `json:"region_1depth_name"`
@@ -19,6 +18,7 @@ type Address struct {
 	Y                 string `json:"y"`
 }
 
+// RoadAddress represents a detailed information of Road name address.
 type RoadAddress struct {
 	AddressName      string `json:"address_name"`
 	Region1depthName string `json:"region_1depth_name"`
@@ -34,70 +34,56 @@ type RoadAddress struct {
 	Y                string `json:"y"`
 }
 
+// AddressSearchResponse represents a Address search response.
 type AddressSearchResponse struct {
 	Meta struct {
 		TotalCount    int  `json:"total_count"`
 		PageableCount int  `json:"pageable_count"`
 		IsEnd         bool `json:"is_end"`
-	}
+	} `json:"meta"`
 	Documents []struct {
-		AddressName string      `json:"address_name"`
-		AddressType string      `json:"address_type"`
-		X           string      `json:"x"`
-		Y           string      `json:"y"`
-		Address     Address     `json:"address"`
-		RoadAddress RoadAddress `json:"road_address"`
-	}
+		AddressName string `json:"address_name"`
+		AddressType string `json:"address_type"`
+		X           string `json:"x"`
+		Y           string `json:"y"`
+		Address     `json:"address"`
+		RoadAddress `json:"road_address"`
+	} `json:"documents"`
 }
 
-type AddressSearcher struct {
+// AddressSearchIterator
+type AddressSearchIterator struct {
 	Query       string
 	AnalyzeType string
+	Page        int
 	Size        int
-	Format      string
-	AuthKey     string
 }
 
-func NewAddressSearcher() *AddressSearcher {
-	return &AddressSearcher{
+func AddressSearch(query string) *AddressSearchIterator {
+	return &AddressSearchIterator{
+		Query:       query,
 		AnalyzeType: "similar",
+		Page:        1,
 		Size:        10,
-		Format:      "json",
-		AuthKey:     "KakaoAK ",
 	}
 }
 
-func (as *AddressSearcher) SetQuery(query string) *AddressSearcher {
-	as.Query = query
-	return as
+func (a *AddressSearchIterator) Analyze(typ string) *AddressSearchIterator {
+	a.AnalyzeType = typ
+	return a
 }
 
-func (as *AddressSearcher) SetAnalyzeType(typ string) *AddressSearcher {
-	switch typ {
-	case "similar", "exact":
-		as.AnalyzeType = typ
-	}
-	return as
+func (a *AddressSearchIterator) Result(page int) *AddressSearchIterator {
+	a.Page = page
+	return a
 }
 
-func (as *AddressSearcher) SetSize(size int) *AddressSearcher {
-	if 1 <= size && size <= 30 {
-		as.Size = size
-	}
-	return as
+func (a *AddressSearchIterator) Display(size int) *AddressSearchIterator {
+	a.Size = size
+	return a
 }
 
-func (as *AddressSearcher) SetFormat(format string) *AddressSearcher {
-	switch format {
-	case "JSON", "json":
-		as.Format = "json"
-	case "XML", "xml":
-		as.Format = "xml"
-	}
-	return as
-}
-
-func (as *AddressSearcher) SetAuth(key string) *AddressSearcher {
-	as.AuthKey = fmt.Sprintf("KakaoAK %s", key)
-	return as
+func (a *AddressSearchIterator) Next() (AddressSearchResponse, error) {
+	a = nil
+	return AddressSearchResponse{}, nil
 }
