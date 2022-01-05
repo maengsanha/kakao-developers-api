@@ -12,12 +12,18 @@ func TestAddressSearch(t *testing.T) {
 
 	iter := local.AddressSearch(query).
 		AuthorizeWith(key).
-		Display(local.MaxSize).
-		Result(local.MinPage).
+		Result(local.DefaultPage).
+		Display(local.DefaultSize).
 		Analyze(local.Similar).
 		As(local.JSON)
 
-	for resp, err := iter.Next(); err != nil; {
-		t.Logf("response: %v", resp)
+	for page, err := iter.Next(); ; {
+		if err != nil {
+			if err != local.ErrEndPage {
+				t.Errorf("error: %v\n", err)
+			}
+			break
+		}
+		t.Logf("result: %v\n", page)
 	}
 }
