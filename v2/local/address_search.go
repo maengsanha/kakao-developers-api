@@ -61,7 +61,7 @@ type RoadAddress struct {
 	Y                string `json:"y" xml:"y"`
 }
 
-type Document struct {
+type ComplexAddress struct {
 	AddressName string      `json:"address_name" xml:"address_name"`
 	AddressType string      `json:"address_type" xml:"address_type"`
 	X           string      `json:"x" xml:"x"`
@@ -78,7 +78,7 @@ type AddressSearchResult struct {
 		PageableCount int  `json:"pageable_count" xml:"pageable_count"`
 		IsEnd         bool `json:"is_end" xml:"is_end"`
 	} `json:"meta" xml:"meta"`
-	Documents []Document `json:"documents" xml:"documents"`
+	Documents []ComplexAddress `json:"documents" xml:"documents"`
 }
 
 // AddressSearchIterator is a lazy Address search iterator.

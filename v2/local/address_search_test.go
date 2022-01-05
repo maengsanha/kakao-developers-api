@@ -18,10 +18,10 @@ func TestAddressSearch(t *testing.T) {
 		As(local.JSON)
 
 	for res, err := iter.Next(); ; {
-		t.Logf("result: %v\n", res)
+		t.Log(res)
 		if err != nil {
 			if err != local.ErrEndPage {
-				t.Errorf("error: %v\n", err)
+				t.Error(err)
 			}
 			break
 		}
