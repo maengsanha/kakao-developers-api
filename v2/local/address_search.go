@@ -7,21 +7,23 @@ import (
 	"errors"
 	"fmt"
 	"net/http"
+	"net/url"
 	"strings"
 )
 
 const (
-	JSON        = "json"
-	XML         = "xml"
-	KeyPrefix   = "KakaoAK "
-	Similar     = "similar"
-	Exact       = "exact"
-	DefaultPage = 1
-	MinPage     = 1
-	MaxPage     = 45
-	DefaultSize = 10
-	MinSize     = 1
-	MaxSize     = 30
+	JSON          = "json"
+	XML           = "xml"
+	authorization = "Authorization"
+	keyPrefix     = "KakaoAK "
+	Similar       = "similar"
+	Exact         = "exact"
+	DefaultPage   = 1
+	MinPage       = 1
+	MaxPage       = 45
+	DefaultSize   = 10
+	MinSize       = 1
+	MaxSize       = 30
 )
 
 var ErrEndPage = errors.New("page reaches the end")
@@ -68,8 +70,8 @@ type Document struct {
 	RoadAddress `json:"road_address"`
 }
 
-// AddressSearchResponse represents a Address search response.
-type AddressSearchResponse struct {
+// AddressSearchPage represents a Address search response.
+type AddressSearchPage struct {
 	Meta struct {
 		TotalCount    int  `json:"total_count"`
 		PageableCount int  `json:"pageable_count"`
@@ -90,9 +92,9 @@ type AddressSearchIterator struct {
 
 func AddressSearch(query string) *AddressSearchIterator {
 	return &AddressSearchIterator{
-		Query:       query,
+		Query:       url.QueryEscape(strings.TrimSpace(query)),
 		Format:      JSON,
-		AuthKey:     KeyPrefix,
+		AuthKey:     keyPrefix,
 		AnalyzeType: Similar,
 		Page:        DefaultPage,
 		Size:        DefaultSize,
@@ -107,7 +109,7 @@ func (a *AddressSearchIterator) As(format string) *AddressSearchIterator {
 }
 
 func (a *AddressSearchIterator) AuthorizeWith(key string) *AddressSearchIterator {
-	a.AuthKey = KeyPrefix + strings.TrimSpace(key)
+	a.AuthKey = keyPrefix + strings.TrimSpace(key)
 	return a
 }
 
@@ -133,35 +135,44 @@ func (a *AddressSearchIterator) Display(size int) *AddressSearchIterator {
 }
 
 // Next returns the API response and proceeds the iterator to the next page.
-func (a *AddressSearchIterator) Next() (AddressSearchResponse, error) {
-	var res AddressSearchResponse
-
+func (a *AddressSearchIterator) Next() (page AddressSearchPage, err error) {
 	// at first, send request to the API server
-	resp, err := http.Get(fmt.Sprintf("https://dapi.kakao.com/v2/local/search/address.%s?query=%s&analyze_type=%s&page=%d&size=%d", a.Format, a.Query, a.AnalyzeType, a.Page, a.Size))
+	client := new(http.Client)
+	req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("https://dapi.kakao.com/v2/local/search/address.%s?query=%s&analyze_type=%s&page=%d&size=%d", a.Format, a.Query, a.AnalyzeType, a.Page, a.Size), nil)
 	if err != nil {
-		return res, err
+		return
+	}
+	// don't forget to close the request for concurrent request
+	req.Close = true
+
+	// set authorization header
+	req.Header.Set(authorization, a.AuthKey)
+
+	resp, err := client.Do(req)
+	if err != nil {
+		return
 	}
 
 	// don't forget to close the response body
 	defer resp.Body.Close()
 
 	if a.Format == JSON {
-		if err = json.NewDecoder(resp.Body).Decode(&resp); err != nil {
-			return res, err
+		if err = json.NewDecoder(resp.Body).Decode(&page); err != nil {
+			return
 		}
 	} else if a.Format == XML {
-		if err = xml.NewDecoder(resp.Body).Decode(&resp); err != nil {
-			return res, err
+		if err = xml.NewDecoder(resp.Body).Decode(&page); err != nil {
+			return
 		}
 	}
 
 	// if it was the last result, set the iterator to nil
 	// or increase the page number
-	if res.Meta.IsEnd {
-		return res, ErrEndPage
+	if page.Meta.IsEnd {
+		return page, ErrEndPage
 	}
 
 	a.Page++
 
-	return res, nil
+	return
 }
