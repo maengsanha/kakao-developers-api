@@ -30,54 +30,55 @@ var ErrEndPage = errors.New("page reaches the end")
 
 // Address represents a detailed information of Land-lot address.
 type Address struct {
-	AddressName       string `json:"address_name"`
-	Region1depthName  string `json:"region_1depth_name"`
-	Region2depthName  string `json:"region_2depth_name"`
-	Region3depthName  string `json:"region_3depth_name"`
-	Region3depthHName string `json:"region_3depth_h_name"`
-	HCode             string `json:"h_code"`
-	BCode             string `json:"b_code"`
-	MountainYN        string `json:"mountain_yn"`
-	MainAddressNo     string `json:"main_address_no"`
-	SubAddressNo      string `json:"sub_address_no"`
-	ZipCode           string `json:"zip_code"`
-	X                 string `json:"x"`
-	Y                 string `json:"y"`
+	AddressName       string `json:"address_name" xml:"address_name"`
+	Region1depthName  string `json:"region_1depth_name" xml:"region_1depth_name"`
+	Region2depthName  string `json:"region_2depth_name" xml:"region_2depth_name"`
+	Region3depthName  string `json:"region_3depth_name" xml:"region_3depth_name"`
+	Region3depthHName string `json:"region_3depth_h_name" xml:"region_3depth_h_name"`
+	HCode             string `json:"h_code" xml:"h_code"`
+	BCode             string `json:"b_code" xml:"b_code"`
+	MountainYN        string `json:"mountain_yn" xml:"mountain_yn"`
+	MainAddressNo     string `json:"main_address_no" xml:"main_address_no"`
+	SubAddressNo      string `json:"sub_address_no" xml:"sub_address_no"`
+	ZipCode           string `json:"zip_code" xml:"zip_code"`
+	X                 string `json:"x" xml:"x"`
+	Y                 string `json:"y" xml:"y"`
 }
 
 // RoadAddress represents a detailed information of Road name address.
 type RoadAddress struct {
-	AddressName      string `json:"address_name"`
-	Region1depthName string `json:"region_1depth_name"`
-	Region2depthName string `json:"region_2depth_name"`
-	Region3depthName string `json:"region_3depth_name"`
-	RoadName         string `json:"road_name"`
-	UndergroundYN    string `json:"underground_yn"`
-	MainBuildingNo   string `json:"main_building_no"`
-	SubBuildingNo    string `json:"sub_building_no"`
-	BuildingName     string `json:"building_name"`
-	ZoneNo           string `json:"zone_no"`
-	X                string `json:"x"`
-	Y                string `json:"y"`
+	AddressName      string `json:"address_name" xml:"address_name"`
+	Region1depthName string `json:"region_1depth_name" xml:"region_1depth_name"`
+	Region2depthName string `json:"region_2depth_name" xml:"region_2depth_name"`
+	Region3depthName string `json:"region_3depth_name" xml:"region_3depth_name"`
+	RoadName         string `json:"road_name" xml:"road_name"`
+	UndergroundYN    string `json:"underground_yn" xml:"underground_yn"`
+	MainBuildingNo   string `json:"main_building_no" xml:"main_building_no"`
+	SubBuildingNo    string `json:"sub_building_no" xml:"sub_building_no"`
+	BuildingName     string `json:"building_name" xml:"building_name"`
+	ZoneNo           string `json:"zone_no" xml:"zone_no"`
+	X                string `json:"x" xml:"x"`
+	Y                string `json:"y" xml:"y"`
 }
 
 type Document struct {
-	AddressName string `json:"address_name"`
-	AddressType string `json:"address_type"`
-	X           string `json:"x"`
-	Y           string `json:"y"`
-	Address     `json:"address"`
-	RoadAddress `json:"road_address"`
+	AddressName string      `json:"address_name" xml:"address_name"`
+	AddressType string      `json:"address_type" xml:"address_type"`
+	X           string      `json:"x" xml:"x"`
+	Y           string      `json:"y" xml:"y"`
+	Address     Address     `json:"address" xml:"address"`
+	RoadAddress RoadAddress `json:"road_address" xml:"road_address"`
 }
 
-// AddressSearchPage represents a Address search response.
-type AddressSearchPage struct {
-	Meta struct {
-		TotalCount    int  `json:"total_count"`
-		PageableCount int  `json:"pageable_count"`
-		IsEnd         bool `json:"is_end"`
-	} `json:"meta"`
-	Documents []Document `json:"documents"`
+// AddressSearchResult represents a Address search result.
+type AddressSearchResult struct {
+	XMLName xml.Name `xml:"result"`
+	Meta    struct {
+		TotalCount    int  `json:"total_count" xml:"total_count"`
+		PageableCount int  `json:"pageable_count" xml:"pageable_count"`
+		IsEnd         bool `json:"is_end" xml:"is_end"`
+	} `json:"meta" xml:"meta"`
+	Documents []Document `json:"documents" xml:"documents"`
 }
 
 // AddressSearchIterator is a lazy Address search iterator.
@@ -134,8 +135,8 @@ func (a *AddressSearchIterator) Display(size int) *AddressSearchIterator {
 	return a
 }
 
-// Next returns the API response and proceeds the iterator to the next page.
-func (a *AddressSearchIterator) Next() (page AddressSearchPage, err error) {
+// Next returns the search result and proceeds the iterator to the next page.
+func (a *AddressSearchIterator) Next() (res AddressSearchResult, err error) {
 	// at first, send request to the API server
 	client := new(http.Client)
 	req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("https://dapi.kakao.com/v2/local/search/address.%s?query=%s&analyze_type=%s&page=%d&size=%d", a.Format, a.Query, a.AnalyzeType, a.Page, a.Size), nil)
@@ -157,19 +158,19 @@ func (a *AddressSearchIterator) Next() (page AddressSearchPage, err error) {
 	defer resp.Body.Close()
 
 	if a.Format == JSON {
-		if err = json.NewDecoder(resp.Body).Decode(&page); err != nil {
+		if err = json.NewDecoder(resp.Body).Decode(&res); err != nil {
 			return
 		}
 	} else if a.Format == XML {
-		if err = xml.NewDecoder(resp.Body).Decode(&page); err != nil {
+		if err = xml.NewDecoder(resp.Body).Decode(&res); err != nil {
 			return
 		}
 	}
 
 	// if it was the last result, set the iterator to nil
 	// or increase the page number
-	if page.Meta.IsEnd {
-		return page, ErrEndPage
+	if res.Meta.IsEnd {
+		return res, ErrEndPage
 	}
 
 	a.Page++

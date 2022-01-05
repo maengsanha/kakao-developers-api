@@ -7,8 +7,8 @@ import (
 )
 
 func TestAddressSearch(t *testing.T) {
-	query := "전북 삼성동 100"
-	key := "0xdeadbeef"
+	query := "성북구 정릉동"
+	key := ""
 
 	iter := local.AddressSearch(query).
 		AuthorizeWith(key).
@@ -17,13 +17,13 @@ func TestAddressSearch(t *testing.T) {
 		Analyze(local.Similar).
 		As(local.JSON)
 
-	for page, err := iter.Next(); ; {
+	for res, err := iter.Next(); ; {
+		t.Logf("result: %v\n", res)
 		if err != nil {
 			if err != local.ErrEndPage {
 				t.Errorf("error: %v\n", err)
 			}
 			break
 		}
-		t.Logf("result: %v\n", page)
 	}
 }
