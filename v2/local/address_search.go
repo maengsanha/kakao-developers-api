@@ -167,7 +167,7 @@ func (a *AddressSearchIterator) Next() (res AddressSearchResult, err error) {
 		}
 	}
 
-	// if it was the last result, set the iterator to nil
+	// if it was the last result, return error
 	// or increase the page number
 	if res.Meta.IsEnd {
 		return res, ErrEndPage
