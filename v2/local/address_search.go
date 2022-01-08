@@ -11,21 +11,6 @@ import (
 	"strings"
 )
 
-const (
-	JSON          = "json"
-	XML           = "xml"
-	authorization = "Authorization"
-	keyPrefix     = "KakaoAK "
-	Similar       = "similar"
-	Exact         = "exact"
-	DefaultPage   = 1
-	MinPage       = 1
-	MaxPage       = 45
-	DefaultSize   = 10
-	MinSize       = 1
-	MaxSize       = 30
-)
-
 var ErrEndPage = errors.New("page reaches the end")
 
 // Address represents a detailed information of Land-lot address.
@@ -70,7 +55,7 @@ type ComplexAddress struct {
 	RoadAddress RoadAddress `json:"road_address" xml:"road_address"`
 }
 
-// AddressSearchResult represents a Address search result.
+// AddressSearchResult represents an Address search result.
 type AddressSearchResult struct {
 	XMLName xml.Name `xml:"result"`
 	Meta    struct {
@@ -94,42 +79,48 @@ type AddressSearchIterator struct {
 func AddressSearch(query string) *AddressSearchIterator {
 	return &AddressSearchIterator{
 		Query:       url.QueryEscape(strings.TrimSpace(query)),
-		Format:      JSON,
-		AuthKey:     keyPrefix,
-		AnalyzeType: Similar,
-		Page:        DefaultPage,
-		Size:        DefaultSize,
+		Format:      "json",
+		AuthKey:     "KakaoAK ",
+		AnalyzeType: "similar",
+		Page:        1,
+		Size:        10,
 	}
 }
 
-func (a *AddressSearchIterator) As(format string) *AddressSearchIterator {
-	if format == JSON || format == XML {
-		a.Format = format
-	}
+func (a *AddressSearchIterator) FormatJSON() *AddressSearchIterator {
+	a.Format = "json"
+	return a
+}
+
+func (a *AddressSearchIterator) FormatXML() *AddressSearchIterator {
+	a.Format = "xml"
 	return a
 }
 
 func (a *AddressSearchIterator) AuthorizeWith(key string) *AddressSearchIterator {
-	a.AuthKey = keyPrefix + strings.TrimSpace(key)
+	a.AuthKey = "KakaoAK " + strings.TrimSpace(key)
 	return a
 }
 
-func (a *AddressSearchIterator) Analyze(typ string) *AddressSearchIterator {
-	if typ == Similar || typ == Exact {
-		a.AnalyzeType = typ
-	}
+func (a *AddressSearchIterator) AnalyzeSimilar() *AddressSearchIterator {
+	a.AnalyzeType = "similar"
+	return a
+}
+
+func (a *AddressSearchIterator) AnalyzeExact() *AddressSearchIterator {
+	a.AnalyzeType = "exact"
 	return a
 }
 
 func (a *AddressSearchIterator) Result(page int) *AddressSearchIterator {
-	if MinPage <= page && page <= MaxPage {
+	if 1 <= page && page <= 45 {
 		a.Page = page
 	}
 	return a
 }
 
 func (a *AddressSearchIterator) Display(size int) *AddressSearchIterator {
-	if MinSize <= size && size <= MaxSize {
+	if 1 <= size && size <= 30 {
 		a.Size = size
 	}
 	return a
@@ -147,7 +138,7 @@ func (a *AddressSearchIterator) Next() (res AddressSearchResult, err error) {
 	req.Close = true
 
 	// set authorization header
-	req.Header.Set(authorization, a.AuthKey)
+	req.Header.Set("Authorization", a.AuthKey)
 
 	resp, err := client.Do(req)
 	if err != nil {
@@ -157,11 +148,11 @@ func (a *AddressSearchIterator) Next() (res AddressSearchResult, err error) {
 	// don't forget to close the response body
 	defer resp.Body.Close()
 
-	if a.Format == JSON {
+	if a.Format == "json" {
 		if err = json.NewDecoder(resp.Body).Decode(&res); err != nil {
 			return
 		}
-	} else if a.Format == XML {
+	} else if a.Format == "xml" {
 		if err = xml.NewDecoder(resp.Body).Decode(&res); err != nil {
 			return
 		}

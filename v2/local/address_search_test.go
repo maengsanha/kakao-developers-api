@@ -6,16 +6,38 @@ import (
 	"github.com/maengsanha/kakao-developers-api/v2/local"
 )
 
-func TestAddressSearch(t *testing.T) {
+func TestAddressSearchWithJSON(t *testing.T) {
 	query := "성북구 정릉동"
 	key := ""
 
 	iter := local.AddressSearch(query).
 		AuthorizeWith(key).
-		Result(local.DefaultPage).
-		Display(local.DefaultSize).
-		Analyze(local.Similar).
-		As(local.JSON)
+		AnalyzeSimilar().
+		FormatJSON().
+		Display(20).
+		Result(1)
+
+	for res, err := iter.Next(); ; {
+		t.Log(res)
+		if err != nil {
+			if err != local.ErrEndPage {
+				t.Error(err)
+			}
+			break
+		}
+	}
+}
+
+func TestAddressSearchWithXML(t *testing.T) {
+	query := "익선동"
+	key := ""
+
+	iter := local.AddressSearch(query).
+		AuthorizeWith(key).
+		AnalyzeSimilar().
+		FormatXML().
+		Display(30).
+		Result(1)
 
 	for res, err := iter.Next(); ; {
 		t.Log(res)
