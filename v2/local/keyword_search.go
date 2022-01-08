@@ -10,21 +10,6 @@ import (
 	"strings"
 )
 
-const (
-	DefaultCategoryGroupCode = ""
-	DefaultX                 = ""
-	DefaultY                 = ""
-	DefaultRadius            = 0
-	MaxRadius                = 20000
-	MinRadius                = 0
-	DefaultRect              = ""
-	DefaultSort              = "accuracy"
-	Distance                 = "distance"
-	Accuracy                 = "accuracy"
-)
-
-//category_group_code_list := []string{"MT1", "CS2", "PS3", "SC4", "AC5", "PK6", "OL7", "SW8" ,"BK9", "CT1", "AG2", "PO3", "AT4", "AD5", "FD6", "CE7", "HP8", "PM9", ""}
-
 type SameName struct {
 	Region         []string `json:"region" xml:"region"`
 	Keyword        string   `json:"keyword" xml:"keyword"`
@@ -71,19 +56,19 @@ type KeyWordSearchInitializer struct {
 	Sort              string
 }
 
-func KeyWordSearch(query string) *KeyWordSearchInitializer {
+func KeyWordSearch(query, x, y, category_group_code, rect string) *KeyWordSearchInitializer {
 	return &KeyWordSearchInitializer{
 		Query:             url.QueryEscape(strings.TrimSpace(query)),
-		CategoryGroupCode: DefaultCategoryGroupCode,
+		CategoryGroupCode: "",
 		Format:            JSON,
 		AuthKey:           keyPrefix,
-		X:                 DefaultX,
-		Y:                 DefaultY,
-		Radius:            DefaultRadius,
-		Rect:              DefaultRect,
+		X:                 "",
+		Y:                 "",
+		Radius:            0,
+		Rect:              "",
 		Page:              1,
 		Size:              15,
-		Sort:              DefaultSort,
+		Sort:              "accuracy",
 	}
 }
 
@@ -99,31 +84,10 @@ func (k *KeyWordSearchInitializer) AuthorizeWith(key string) *KeyWordSearchIniti
 	return k
 }
 
-func (k *KeyWordSearchInitializer) SetCategoryGroupCode(code string) *KeyWordSearchInitializer {
-	k.CategoryGroupCode = code
-	return k
-}
-
-func (k *KeyWordSearchInitializer) SetX(x string) *KeyWordSearchInitializer {
-	k.X = x
-	return k
-}
-
-func (k *KeyWordSearchInitializer) SetY(y string) *KeyWordSearchInitializer {
-	k.Y = y
-	return k
-}
-
 func (k *KeyWordSearchInitializer) SetRadius(radius int) *KeyWordSearchInitializer {
-	if MinRadius <= radius && radius <= MaxRadius {
+	if 0 <= radius && radius <= 20000 {
 		k.Radius = radius
 	}
-	return k
-}
-
-func (k *KeyWordSearchInitializer) SetRect(rect string) *KeyWordSearchInitializer {
-	k.Rect = rect
-
 	return k
 }
 
@@ -142,7 +106,7 @@ func (k *KeyWordSearchInitializer) Display(size int) *KeyWordSearchInitializer {
 }
 
 func (k *KeyWordSearchInitializer) SortType(sort string) *KeyWordSearchInitializer {
-	if sort == Accuracy || sort == Distance {
+	if sort == "accuracy" || sort == "distance" {
 		k.Sort = sort
 	}
 	return k
