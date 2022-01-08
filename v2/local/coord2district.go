@@ -9,14 +9,6 @@ import (
 	"strings"
 )
 
-const (
-	WGS84      = "WGS84"
-	WCONGNAMUL = "WCONGNAMUL"
-	CONGNAMUL  = "CONGNAMUL"
-	WTM        = "WTM"
-	TM         = "TM"
-)
-
 type Region struct {
 	RegionType       string  `json:"region_type" xml:"region_type"`
 	AddressName      string  `json:"address_name" xml:"address_name"`
@@ -50,36 +42,75 @@ func Coord2District(x, y string) *Coord2DistrictInitializer {
 	return &Coord2DistrictInitializer{
 		X:           x,
 		Y:           y,
-		Format:      JSON,
-		AuthKey:     keyPrefix,
-		InputCoord:  WGS84,
-		OutputCoord: WGS84,
+		Format:      "json",
+		AuthKey:     "KakaoAK ",
+		InputCoord:  "WGS84",
+		OutputCoord: "WGS84",
 	}
 }
 
-func (c *Coord2DistrictInitializer) As(format string) *Coord2DistrictInitializer {
-	if format == JSON || format == XML {
-		c.Format = format
-	}
+func (c *Coord2DistrictInitializer) FormatJSON() *Coord2DistrictInitializer {
+	c.Format = "json"
+	return c
+}
+
+func (c *Coord2DistrictInitializer) FormatXML() *Coord2DistrictInitializer {
+	c.Format = "xml"
 	return c
 }
 
 func (c *Coord2DistrictInitializer) AuthorizeWith(key string) *Coord2DistrictInitializer {
-	c.AuthKey = keyPrefix + strings.TrimSpace(key)
+	c.AuthKey = "KakaoAK " + strings.TrimSpace(key)
 	return c
 }
 
-func (c *Coord2DistrictInitializer) Request(coord string) *Coord2DistrictInitializer {
-	if coord == WGS84 || coord == WCONGNAMUL || coord == CONGNAMUL || coord == WTM || coord == TM {
-		c.InputCoord = coord
-	}
+func (c *Coord2DistrictInitializer) RequestWGS84() *Coord2DistrictInitializer {
+	c.InputCoord = "WGS84"
 	return c
 }
 
-func (c *Coord2DistrictInitializer) Display(coord string) *Coord2DistrictInitializer {
-	if coord == WGS84 || coord == WCONGNAMUL || coord == CONGNAMUL || coord == WTM || coord == TM {
-		c.OutputCoord = coord
-	}
+func (c *Coord2DistrictInitializer) RequestWCONGNAMUL() *Coord2DistrictInitializer {
+	c.InputCoord = "WCONGNAMUL"
+	return c
+}
+
+func (c *Coord2DistrictInitializer) RequestCONGNAMUL() *Coord2DistrictInitializer {
+	c.InputCoord = "CONGNAMUL"
+	return c
+}
+
+func (c *Coord2DistrictInitializer) RequestWTM() *Coord2DistrictInitializer {
+	c.InputCoord = "WTM"
+	return c
+}
+
+func (c *Coord2DistrictInitializer) RequestTM() *Coord2DistrictInitializer {
+	c.InputCoord = "TM"
+	return c
+}
+
+func (c *Coord2DistrictInitializer) DisplayWGS84() *Coord2DistrictInitializer {
+	c.OutputCoord = "WGS84"
+	return c
+}
+
+func (c *Coord2DistrictInitializer) DisplayWCONGNAMUL() *Coord2DistrictInitializer {
+	c.OutputCoord = "WCONGNAMUL"
+	return c
+}
+
+func (c *Coord2DistrictInitializer) DisplayCONGNAMUL() *Coord2DistrictInitializer {
+	c.OutputCoord = "CONGNAMUL"
+	return c
+}
+
+func (c *Coord2DistrictInitializer) DisplayWTM() *Coord2DistrictInitializer {
+	c.OutputCoord = "WTM"
+	return c
+}
+
+func (c *Coord2DistrictInitializer) DisplayTM() *Coord2DistrictInitializer {
+	c.OutputCoord = "TM"
 	return c
 }
 
@@ -92,7 +123,7 @@ func (c *Coord2DistrictInitializer) Collect() (res Coord2DistrictResult, err err
 
 	req.Close = true
 
-	req.Header.Set(authorization, c.AuthKey)
+	req.Header.Set("Authorization", c.AuthKey)
 
 	resp, err := client.Do(req)
 	if err != nil {
@@ -101,11 +132,11 @@ func (c *Coord2DistrictInitializer) Collect() (res Coord2DistrictResult, err err
 
 	defer resp.Body.Close()
 
-	if c.Format == JSON {
+	if c.Format == "json" {
 		if err = json.NewDecoder(resp.Body).Decode(&res); err != nil {
 			return
 		}
-	} else if c.Format == XML {
+	} else if c.Format == "xml" {
 		if err = xml.NewDecoder(resp.Body).Decode(&res); err != nil {
 			return
 		}
