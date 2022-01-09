@@ -36,8 +36,8 @@ type roadAddress struct {
 }
 
 type TotalAddress struct {
-	address     `json:"address" xml:"address"`
-	roadAddress `json:"road_address" xml:"road_address"`
+	address     address     `json:"address" xml:"address"`
+	roadAddress roadAddress `json:"road_address" xml:"road_address"`
 }
 
 type CoordToAddressResult struct {
