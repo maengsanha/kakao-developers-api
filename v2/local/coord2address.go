@@ -36,8 +36,8 @@ type roadAddress struct {
 }
 
 type TotalAddress struct {
-	address     address     `json:"address" xml:"address"`
-	roadAddress roadAddress `json:"road_address" xml:"road_address"`
+	Address     address     `json:"address" xml:"address"`
+	RoadAddress roadAddress `json:"road_address" xml:"road_address"`
 }
 
 type CoordToAddressResult struct {
@@ -108,7 +108,8 @@ func (b *CoordToAddressInitializer) RequestTM() *CoordToAddressInitializer {
 
 func (b *CoordToAddressInitializer) Collect() (res CoordToAddressResult, err error) {
 	client := new(http.Client)
-	req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("https://dapi.kakao.com/v2/local/geo/coord2address%s?x=%s&y=%s&input_coord=%s", b.Format, b.X, b.Y, b.InputCoord), nil)
+
+	req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("https://dapi.kakao.com/v2/local/geo/coord2address.%s?x=%s&y=%s&input_coord=%s", b.Format, b.X, b.Y, b.InputCoord), nil)
 	if err != nil {
 		return
 	}
