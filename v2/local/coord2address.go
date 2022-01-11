@@ -18,8 +18,6 @@ type address struct {
 	MainAddressNo    string `json:"main_address_no" xml:"main_address_no"`
 	SubAddressNo     string `json:"sub_address_no" xml:"sub_address_no"`
 	ZipCode          string `json:"zip_code" xml:"zip_code"`
-	X                string `json:"x" xml:"x"`
-	Y                string `json:"y" xml:"y"`
 }
 
 type roadAddress struct {
