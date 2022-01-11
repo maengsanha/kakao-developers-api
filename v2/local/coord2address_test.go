@@ -7,8 +7,8 @@ import (
 )
 
 func TestCoord2AddressWithJSON(t *testing.T) {
-	x := "127.1086228"
-	y := "37.4012191"
+	x := "127.423084873712"
+	y := "37.0789561558879"
 	key := ""
 
 	if res, err := local.CoordToAddress(x, y).
@@ -24,8 +24,8 @@ func TestCoord2AddressWithJSON(t *testing.T) {
 }
 
 func TestCoord2AddressWithXML(t *testing.T) {
-	x := "127.1086228"
-	y := "37.4012191"
+	x := "127.423084873712"
+	y := "37.0789561558879"
 	key := ""
 
 	if res, err := local.CoordToAddress(x, y).
