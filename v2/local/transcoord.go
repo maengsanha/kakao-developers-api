@@ -35,22 +35,22 @@ func TransCoord(x, y float64) *TransCoordInitializer {
 	return &TransCoordInitializer{
 		X:           x,
 		Y:           y,
-		Format:      JSON,
-		AuthKey:     keyPrefix,
+		Format:      "json",
+		AuthKey:     "KakaoAK",
 		InputCoord:  "WGS84",
 		OutputCoord: "WGS84",
 	}
 }
 
 func (t *TransCoordInitializer) As(format string) *TransCoordInitializer {
-	if format == JSON || format == XML {
+	if format == "json" || format == "xml" {
 		t.Format = format
 	}
 	return t
 }
 
 func (t *TransCoordInitializer) AuthorizeWith(key string) *TransCoordInitializer {
-	t.AuthKey = keyPrefix + strings.TrimSpace(key)
+	t.AuthKey = "KakaoAK " + strings.TrimSpace(key)
 	return t
 }
 
@@ -77,7 +77,7 @@ func (t *TransCoordInitializer) Collect() (res TransCoordResult, err error) {
 
 	req.Close = true
 
-	req.Header.Set(authorization, t.AuthKey)
+	req.Header.Set("Authorization", t.AuthKey)
 
 	resp, err := client.Do(req)
 	if err != nil {
@@ -86,11 +86,11 @@ func (t *TransCoordInitializer) Collect() (res TransCoordResult, err error) {
 
 	defer resp.Body.Close()
 
-	if t.Format == JSON {
+	if t.Format == "json" {
 		if err = json.NewDecoder(resp.Body).Decode(&res); err != nil {
 			return
 		}
-	} else if t.Format == XML {
+	} else if t.Format == "xml" {
 		if err = xml.NewDecoder(resp.Body).Decode(&res); err != nil {
 			return
 		}

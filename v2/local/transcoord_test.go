@@ -6,7 +6,7 @@ import (
 	"github.com/maengsanha/kakao-developers-api/v2/local"
 )
 
-func TestTransCoord(t *testing.T) {
+func TestTransCoordWithJSON(t *testing.T) {
 	x := 160710.37729270622
 	y := -4388.879299157299
 	key := ""
@@ -15,9 +15,28 @@ func TestTransCoord(t *testing.T) {
 		AuthorizeWith(key).
 		Request("WTM").
 		Display("WGS84").
-		As("JSON").
+		As("json").
 		Collect(); err != nil {
 		t.Error(err)
+
+	} else {
+		t.Log(res)
+	}
+}
+
+func TestTransCoordWithXML(t *testing.T) {
+	x := 160710.37729270622
+	y := -4388.879299157299
+	key := ""
+
+	if res, err := local.TransCoord(x, y).
+		AuthorizeWith(key).
+		Request("WTM").
+		Display("WGS84").
+		As("xml").
+		Collect(); err != nil {
+		t.Error(err)
+
 	} else {
 		t.Log(res)
 	}
