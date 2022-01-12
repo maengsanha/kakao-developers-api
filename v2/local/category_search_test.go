@@ -33,23 +33,18 @@ func TestCategorySearchWithJSON(t *testing.T) {
 	radius := 2000
 	categorygroupcode := "MT1"
 
-	iter := local.CategorySearch(categorygroupcode).
+	if res, err := local.CategorySearch(categorygroupcode).
 		FormatJSON().
 		AuthorizeWith(key).
 		SetLongitude(x).
 		SetLatitude(y).
 		SetRadius(radius).
 		Display(15).
-		Result(1)
-
-	for res, err := iter.Next(); ; {
+		Result(1).
+		Collect(); err != nil {
+		t.Error(err)
+	} else {
 		t.Log(res)
-		if err != nil {
-			if err != local.ErrEndPage {
-				t.Error(err)
-			}
-			break
-		}
 	}
 
 }
@@ -59,21 +54,16 @@ func TestCategorySearchWithXML(t *testing.T) {
 	rect := "1"
 	categorygroupcode := "MT1"
 
-	iter := local.CategorySearch(categorygroupcode).
+	if res, err := local.CategorySearch(categorygroupcode).
 		FormatJSON().
 		AuthorizeWith(key).
 		SetRect(rect).
 		Display(15).
-		Result(3)
-
-	for res, err := iter.Next(); ; {
+		Result(1).
+		Collect(); err != nil {
+		t.Error(err)
+	} else {
 		t.Log(res)
-		if err != nil {
-			if err != local.ErrEndPage {
-				t.Error(err)
-			}
-			break
-		}
 	}
 
 }
