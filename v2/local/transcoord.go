@@ -36,7 +36,7 @@ func TransCoord(x, y float64) *TransCoordInitializer {
 		X:           x,
 		Y:           y,
 		Format:      "json",
-		AuthKey:     "KakaoAK",
+		AuthKey:     "KakaoAK ",
 		InputCoord:  "WGS84",
 		OutputCoord: "WGS84",
 	}
@@ -57,6 +57,27 @@ func (t *TransCoordInitializer) AuthorizeWith(key string) *TransCoordInitializer
 	return t
 }
 
+// Support Coordinate System(=coord):
+//
+// WGS84,
+//
+// WCONGNAMUL,
+//
+// CONGNAMUL,
+//
+// WTM,
+//
+// TM,
+//
+// KTM,
+//
+// UTM,
+//
+// BESSEL,
+//
+// WKTM,
+//
+// WUTM
 func (t *TransCoordInitializer) Request(coord string) *TransCoordInitializer {
 	if coord == "WGS84" || coord == "WCONGNAMUL" || coord == "CONGNAMUL" || coord == "WTM" || coord == "TM" || coord == "KTM" || coord == "UTM" || coord == " BESSEL" || coord == "WKTM" || coord == "WUTM" {
 		t.InputCoord = coord
