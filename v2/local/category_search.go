@@ -128,7 +128,7 @@ func (d *CategorySearchInitializer) SortType(sort string) *CategorySearchInitial
 	return d
 }
 
-func (d *CategorySearchInitializer) Collect() (res AddressSearchResult, err error) {
+func (d *CategorySearchInitializer) Collect() (res CategorySearchResult, err error) {
 	client := new(http.Client)
 
 	req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("https://dapi.kakao.com/v2/local/search/category.%s?category_group_code=%s&page=%d&size=%d&sort=%s&x=%s&y=%s&radius=%d&rect=%s", d.Format, d.CategoryGroupCode, d.Page, d.Size, d.Sort, d.X, d.Y, d.Radius, d.Rect), nil)
