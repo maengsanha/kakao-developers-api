@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/http"
 	"net/url"
+	"strconv"
 	"strings"
 )
 
@@ -86,31 +87,65 @@ func (k *KeywordSearchIterator) AuthorizeWith(key string) *KeywordSearchIterator
 	return k
 }
 
-func (k *KeywordSearchIterator) SetCategoryGroupCode(code string) *KeywordSearchIterator {
-	k.CategoryGroupCode = code
+// Category sets the group code of k.
+// There are few available group codes:
+//
+// MT1 : Large Supermarket
+//
+// CS2 : Convenience Store
+//
+// PS3 : Daycare Center, Kindergarten
+//
+// SC4 : School
+//
+// AC5 : Academic
+//
+// PK6 : Parking
+//
+// OL7 : Gas Station, Charging Station
+//
+// SW8 : Subway Station
+//
+// CT1 : Culture Facility
+//
+// AG2 : Brokerage
+//
+// PO3 : Public Institution
+//
+// AT4 : Tourist Attractions
+//
+// FD6 : Restaurant
+//
+// CE7 : Cafe
+//
+// HP8 : Hospital
+//
+// PM9 : Pharmacy
+//
+// BK9 : Bank
+//
+// AD5 : Accommodation
+func (k *KeywordSearchIterator) Category(groupcode string) *KeywordSearchIterator {
+	if groupcode == "MT1" || groupcode == "CS2" || groupcode == "PS3" || groupcode == "SC4" || groupcode == "AC5" || groupcode == "PK6" || groupcode == "OL7" || groupcode == "SW8" || groupcode == "CT1" || groupcode == "AG2" || groupcode == "P03" || groupcode == "AT4" || groupcode == "FD6" || groupcode == "CE7" || groupcode == "HP8" || groupcode == "PM9" || groupcode == "BK9" || groupcode == "AD5" || groupcode == "" {
+		k.CategoryGroupCode = groupcode
+	}
 	return k
 }
 
-func (k *KeywordSearchIterator) SetX(x string) *KeywordSearchIterator {
-	k.X = x
-	return k
-}
-
-func (k *KeywordSearchIterator) SetY(y string) *KeywordSearchIterator {
-	k.Y = y
-	return k
-}
-
-func (k *KeywordSearchIterator) SetRadius(radius int) *KeywordSearchIterator {
+func (k *KeywordSearchIterator) WithRadius(x, y float64, radius int) *KeywordSearchIterator {
+	k.X = strconv.FormatFloat(x, 'f', -1, 64)
+	k.Y = strconv.FormatFloat(y, 'f', -1, 64)
 	if 0 <= radius && radius <= 20000 {
 		k.Radius = radius
 	}
 	return k
 }
 
-func (k *KeywordSearchIterator) SetRect(rect string) *KeywordSearchIterator {
-	k.Rect = rect
-
+func (k *KeywordSearchIterator) WithRect(xMin, yMin, xMax, yMax float64) *KeywordSearchIterator {
+	k.Rect = strings.Join([]string{strconv.FormatFloat(xMin, 'f', -1, 64),
+		strconv.FormatFloat(yMin, 'f', -1, 64),
+		strconv.FormatFloat(xMax, 'f', -1, 64),
+		strconv.FormatFloat(yMax, 'f', -1, 64)}, ",")
 	return k
 }
 
@@ -128,9 +163,9 @@ func (k *KeywordSearchIterator) Display(size int) *KeywordSearchIterator {
 	return k
 }
 
-func (k *KeywordSearchIterator) SortType(sort string) *KeywordSearchIterator {
-	if sort == "accuracy" || sort == "distance" {
-		k.Sort = sort
+func (k *KeywordSearchIterator) SortBy(typ string) *KeywordSearchIterator {
+	if typ == "accuracy" || typ == "distance" {
+		k.Sort = typ
 	}
 	return k
 }
@@ -139,7 +174,9 @@ func (k *KeywordSearchIterator) SortType(sort string) *KeywordSearchIterator {
 func (k *KeywordSearchIterator) Next() (res KeywordSearchResult, err error) {
 	// at first, send request to the API server
 	client := new(http.Client)
-	req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("https://dapi.kakao.com/v2/local/search/keyword.%s?query=%s&category_group_code=%s&x=%s&y=%s&radius=%d&rect=%s&page=%d&size=%d&sort=%s", k.Format, k.Query, k.CategoryGroupCode, k.X, k.Y, k.Radius, k.Rect, k.Page, k.Size, k.Sort), nil)
+	req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("https://dapi.kakao.com/v2/local/search/keyword.%s?query=%s&category_group_code=%s&x=%s&y=%s&radius=%d&rect=%s&page=%d&size=%d&sort=%s", k.
+		Format, k.Query, k.CategoryGroupCode, k.X, k.Y, k.Radius, k.Rect, k.Page, k.Size, k.Sort), nil)
+
 	if err != nil {
 		return
 	}
