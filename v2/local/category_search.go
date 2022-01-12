@@ -41,7 +41,7 @@ type RegionInfo struct {
 	SelectedRegion string   `json:"selected_region" xml:"selected_region"`
 }
 
-type CategorySearchIterator struct {
+type CategorySearchInitializer struct {
 	Query             string
 	Format            string
 	AuthKey           string
@@ -55,8 +55,8 @@ type CategorySearchIterator struct {
 	Sort              string
 }
 
-func CategorySearch(category_group_code string) *CategorySearchIterator {
-	return &CategorySearchIterator{
+func CategorySearch(category_group_code string) *CategorySearchInitializer {
+	return &CategorySearchInitializer{
 		Format:            "json",
 		AuthKey:           "KakaoAK ",
 		CategoryGroupCode: category_group_code,
@@ -70,65 +70,65 @@ func CategorySearch(category_group_code string) *CategorySearchIterator {
 	}
 }
 
-func (d *CategorySearchIterator) FormatJSON() *CategorySearchIterator {
+func (d *CategorySearchInitializer) FormatJSON() *CategorySearchInitializer {
 	d.Format = "json"
 	return d
 }
 
-func (d *CategorySearchIterator) FormatXML() *CategorySearchIterator {
+func (d *CategorySearchInitializer) FormatXML() *CategorySearchInitializer {
 	d.Format = "xml"
 	return d
 }
 
-func (d *CategorySearchIterator) AuthorizeWith(key string) *CategorySearchIterator {
+func (d *CategorySearchInitializer) AuthorizeWith(key string) *CategorySearchInitializer {
 	d.AuthKey = "KakaoAK " + strings.TrimSpace(key)
 	return d
 }
 
-func (d *CategorySearchIterator) SetLongitude(x string) *CategorySearchIterator {
+func (d *CategorySearchInitializer) SetLongitude(x string) *CategorySearchInitializer {
 	d.X = x
 	return d
 }
 
-func (d *CategorySearchIterator) SetLatitude(y string) *CategorySearchIterator {
+func (d *CategorySearchInitializer) SetLatitude(y string) *CategorySearchInitializer {
 	d.Y = y
 	return d
 }
 
-func (d *CategorySearchIterator) SetRadius(radius int) *CategorySearchIterator {
+func (d *CategorySearchInitializer) SetRadius(radius int) *CategorySearchInitializer {
 	if 0 <= radius && radius <= 20000 {
 		d.Radius = radius
 	}
 	return d
 }
 
-func (d *CategorySearchIterator) SetRect(rect string) *CategorySearchIterator {
+func (d *CategorySearchInitializer) SetRect(rect string) *CategorySearchInitializer {
 	d.Rect = rect
 	return d
 }
 
-func (d *CategorySearchIterator) Result(page int) *CategorySearchIterator {
+func (d *CategorySearchInitializer) Result(page int) *CategorySearchInitializer {
 	if 1 <= page && page <= 45 {
 		d.Page = page
 	}
 	return d
 }
 
-func (d *CategorySearchIterator) Display(size int) *CategorySearchIterator {
+func (d *CategorySearchInitializer) Display(size int) *CategorySearchInitializer {
 	if 1 <= size && size <= 15 {
 		d.Size = size
 	}
 	return d
 }
 
-func (d *CategorySearchIterator) SortType(sort string) *CategorySearchIterator {
+func (d *CategorySearchInitializer) SortType(sort string) *CategorySearchInitializer {
 	if sort == "accuracy" || sort == "distance" {
 		d.Sort = sort
 	}
 	return d
 }
 
-func (d *CategorySearchIterator) Next() (res AddressSearchResult, err error) {
+func (d *CategorySearchInitializer) Collect() (res AddressSearchResult, err error) {
 	client := new(http.Client)
 
 	req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("https://dapi.kakao.com/v2/local/search/category.%s?category_group_code=%s&page=%d&size=%d&sort=%s&x=%s&y=%s&radius=%d&rect=%s", d.Format, d.CategoryGroupCode, d.Page, d.Size, d.Sort, d.X, d.Y, d.Radius, d.Rect), nil)
@@ -156,12 +156,6 @@ func (d *CategorySearchIterator) Next() (res AddressSearchResult, err error) {
 			return
 		}
 	}
-
-	if res.Meta.IsEnd {
-		return res, ErrEndPage
-	}
-
-	d.Page++
 
 	return
 }
