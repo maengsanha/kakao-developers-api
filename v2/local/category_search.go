@@ -41,7 +41,7 @@ type RegionInfo struct {
 	SelectedRegion string   `json:"selected_region" xml:"selected_region"`
 }
 
-type CategorySearchInitializer struct {
+type CategorySearchIterator struct {
 	Query             string
 	Format            string
 	AuthKey           string
@@ -55,8 +55,8 @@ type CategorySearchInitializer struct {
 	Sort              string
 }
 
-func CategorySearch(category_group_code string) *CategorySearchInitializer {
-	return &CategorySearchInitializer{
+func CategorySearch(category_group_code string) *CategorySearchIterator {
+	return &CategorySearchIterator{
 		Format:            "json",
 		AuthKey:           "KakaoAK ",
 		CategoryGroupCode: category_group_code,
@@ -70,75 +70,75 @@ func CategorySearch(category_group_code string) *CategorySearchInitializer {
 	}
 }
 
-func (d *CategorySearchInitializer) FormatJSON() *CategorySearchInitializer {
-	d.Format = "json"
-	return d
+func (c *CategorySearchIterator) FormatJSON() *CategorySearchIterator {
+	c.Format = "json"
+	return c
 }
 
-func (d *CategorySearchInitializer) FormatXML() *CategorySearchInitializer {
-	d.Format = "xml"
-	return d
+func (c *CategorySearchIterator) FormatXML() *CategorySearchIterator {
+	c.Format = "xml"
+	return c
 }
 
-func (d *CategorySearchInitializer) AuthorizeWith(key string) *CategorySearchInitializer {
-	d.AuthKey = "KakaoAK " + strings.TrimSpace(key)
-	return d
+func (c *CategorySearchIterator) AuthorizeWith(key string) *CategorySearchIterator {
+	c.AuthKey = "KakaoAK " + strings.TrimSpace(key)
+	return c
 }
 
-func (d *CategorySearchInitializer) SetLongitude(x string) *CategorySearchInitializer {
-	d.X = x
-	return d
+func (c *CategorySearchIterator) SetLongitude(x string) *CategorySearchIterator {
+	c.X = x
+	return c
 }
 
-func (d *CategorySearchInitializer) SetLatitude(y string) *CategorySearchInitializer {
-	d.Y = y
-	return d
+func (c *CategorySearchIterator) SetLatitude(y string) *CategorySearchIterator {
+	c.Y = y
+	return c
 }
 
-func (d *CategorySearchInitializer) SetRadius(radius int) *CategorySearchInitializer {
+func (c *CategorySearchIterator) SetRadius(radius int) *CategorySearchIterator {
 	if 0 <= radius && radius <= 20000 {
-		d.Radius = radius
+		c.Radius = radius
 	}
-	return d
+	return c
 }
 
-func (d *CategorySearchInitializer) SetRect(rect string) *CategorySearchInitializer {
-	d.Rect = rect
-	return d
+func (c *CategorySearchIterator) SetRect(rect string) *CategorySearchIterator {
+	c.Rect = rect
+	return c
 }
 
-func (d *CategorySearchInitializer) Result(page int) *CategorySearchInitializer {
+func (c *CategorySearchIterator) Result(page int) *CategorySearchIterator {
 	if 1 <= page && page <= 45 {
-		d.Page = page
+		c.Page = page
 	}
-	return d
+	return c
 }
 
-func (d *CategorySearchInitializer) Display(size int) *CategorySearchInitializer {
+func (c *CategorySearchIterator) Display(size int) *CategorySearchIterator {
 	if 1 <= size && size <= 15 {
-		d.Size = size
+		c.Size = size
 	}
-	return d
+	return c
 }
 
-func (d *CategorySearchInitializer) SortType(sort string) *CategorySearchInitializer {
+func (c *CategorySearchIterator) SortType(sort string) *CategorySearchIterator {
 	if sort == "accuracy" || sort == "distance" {
-		d.Sort = sort
+		c.Sort = sort
 	}
-	return d
+	return c
 }
 
-func (d *CategorySearchInitializer) Collect() (res CategorySearchResult, err error) {
+func (c *CategorySearchIterator) Next() (res CategorySearchResult, err error) {
 	client := new(http.Client)
 
-	req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("https://dapi.kakao.com/v2/local/search/category.%s?category_group_code=%s&page=%d&size=%d&sort=%s&x=%s&y=%s&radius=%d&rect=%s", d.Format, d.CategoryGroupCode, d.Page, d.Size, d.Sort, d.X, d.Y, d.Radius, d.Rect), nil)
+	req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("https://dapi.kakao.com/v2/local/search/category.%s?category_group_code=%s&page=%d&size=%d&sort=%s&x=%s&y=%s&radius=%d&rect=%s", c.Format, c.CategoryGroupCode, c.Page, c.Size, c.Sort, c.X, c.Y, c.Radius, c.Rect), nil)
 	if err != nil {
 		return
 	}
 
 	req.Close = true
 
-	req.Header.Set("Authorization", d.AuthKey)
+	req.Header.Set("Authorization", c.AuthKey)
 
 	resp, err := client.Do(req)
 	if err != nil {
@@ -147,15 +147,21 @@ func (d *CategorySearchInitializer) Collect() (res CategorySearchResult, err err
 
 	defer resp.Body.Close()
 
-	if d.Format == "json" {
+	if c.Format == "json" {
 		if err = json.NewDecoder(resp.Body).Decode(&res); err != nil {
 			return
 		}
-	} else if d.Format == "xml" {
+	} else if c.Format == "xml" {
 		if err = xml.NewDecoder(resp.Body).Decode(&res); err != nil {
 			return
 		}
 	}
+
+	if res.Meta.IsEnd {
+		return res, ErrEndPage
+	}
+
+	c.Page++
 
 	return
 }
