@@ -27,7 +27,7 @@ import (
 // PM9	약국
 
 func TestCategorySearchWithJSON(t *testing.T) {
-	key := ""
+	key := "e822b7f47b6b01317e771361317d2c38"
 	x := "127.06283102249932"
 	y := "37.514322572335935"
 	radius := 2000
@@ -50,12 +50,12 @@ func TestCategorySearchWithJSON(t *testing.T) {
 }
 
 func TestCategorySearchWithXML(t *testing.T) {
-	key := ""
+	key := "e822b7f47b6b01317e771361317d2c38"
 	rect := "1"
 	categorygroupcode := "MT1"
 
 	if res, err := local.CategorySearch(categorygroupcode).
-		FormatJSON().
+		FormatXML().
 		AuthorizeWith(key).
 		SetRect(rect).
 		Display(15).
