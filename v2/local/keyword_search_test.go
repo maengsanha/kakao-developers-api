@@ -15,8 +15,8 @@ func TestKeywordSearchWithJSON(t *testing.T) {
 	radius := 20000
 	sort := "accuracy"
 	rect := ""
-	if res, err := local.KeywordSearch(query).
-		As("json").
+	iter := local.KeywordSearch(query).
+		FormatJSON().
 		AuthorizeWith(key).
 		SetRadius(radius).
 		Result(1).
@@ -25,13 +25,17 @@ func TestKeywordSearchWithJSON(t *testing.T) {
 		SetX(x).
 		SetY(y).
 		SetRect(rect).
-		SortType(sort).
-		Collect(); err != nil {
-		t.Error(err)
-	} else {
-		t.Log(res)
-	}
+		SortType(sort)
 
+	for res, err := iter.Next(); ; res, err = iter.Next() {
+		t.Log(res)
+		if err != nil {
+			if err != local.ErrEndPage {
+				t.Error(err)
+			}
+			break
+		}
+	}
 }
 
 func TestKeywordSearchWithXML(t *testing.T) {
@@ -43,8 +47,8 @@ func TestKeywordSearchWithXML(t *testing.T) {
 	radius := 20000
 	sort := "accuracy"
 	rect := ""
-	if res, err := local.KeywordSearch(query).
-		As("xml").
+	iter := local.KeywordSearch(query).
+		FormatXML().
 		AuthorizeWith(key).
 		SetRadius(radius).
 		Result(1).
@@ -53,11 +57,15 @@ func TestKeywordSearchWithXML(t *testing.T) {
 		SetX(x).
 		SetY(y).
 		SetRect(rect).
-		SortType(sort).
-		Collect(); err != nil {
-		t.Error(err)
-	} else {
-		t.Log(res)
-	}
+		SortType(sort)
 
+	for res, err := iter.Next(); ; res, err = iter.Next() {
+		t.Log(res)
+		if err != nil {
+			if err != local.ErrEndPage {
+				t.Error(err)
+			}
+			break
+		}
+	}
 }

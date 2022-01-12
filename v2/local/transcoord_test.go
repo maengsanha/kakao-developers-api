@@ -15,7 +15,7 @@ func TestTransCoordWithJSON(t *testing.T) {
 		AuthorizeWith(key).
 		Request("WTM").
 		Display("WGS84").
-		As("json").
+		FormatJSON().
 		Collect(); err != nil {
 		t.Error(err)
 
@@ -33,7 +33,7 @@ func TestTransCoordWithXML(t *testing.T) {
 		AuthorizeWith(key).
 		Request("WTM").
 		Display("WGS84").
-		As("xml").
+		FormatXML().
 		Collect(); err != nil {
 		t.Error(err)
 
