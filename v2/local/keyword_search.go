@@ -33,15 +33,15 @@ type Place struct {
 type KeywordSearchResult struct {
 	XMLName xml.Name `xml:"result"`
 	Meta    struct {
-		TotalCount    int  `json:"total_count" xml:"total_count"`
-		PageableCount int  `json:"pageable_count" xml:"pageable_count"`
-		IsEnd         bool `json:"is_end" xml:"is_end"`
-		RegionInfo    `json:"same_name" xml:"same_name"`
+		TotalCount    int        `json:"total_count" xml:"total_count"`
+		PageableCount int        `json:"pageable_count" xml:"pageable_count"`
+		IsEnd         bool       `json:"is_end" xml:"is_end"`
+		SameName      RegionInfo `json:"same_name" xml:"same_name"`
 	} `json:"meta" xml:"meta"`
 	Documents []Place `json:"documents" xml:"documents"`
 }
 
-type KeywordSearchInitializer struct {
+type KeywordSearchIterator struct {
 	Query             string
 	CategoryGroupCode string
 	Format            string
@@ -55,8 +55,8 @@ type KeywordSearchInitializer struct {
 	Sort              string
 }
 
-func KeywordSearch(query string) *KeywordSearchInitializer {
-	return &KeywordSearchInitializer{
+func KeywordSearch(query string) *KeywordSearchIterator {
+	return &KeywordSearchIterator{
 		Query:             url.QueryEscape(strings.TrimSpace(query)),
 		CategoryGroupCode: "",
 		Format:            "json",
@@ -71,61 +71,64 @@ func KeywordSearch(query string) *KeywordSearchInitializer {
 	}
 }
 
-func (k *KeywordSearchInitializer) As(format string) *KeywordSearchInitializer {
-	if format == "json" || format == "xml" {
-		k.Format = format
-	}
+func (k *KeywordSearchIterator) FormatJSON() *KeywordSearchIterator {
+	k.Format = "json"
 	return k
 }
 
-func (k *KeywordSearchInitializer) AuthorizeWith(key string) *KeywordSearchInitializer {
+func (k *KeywordSearchIterator) FormatXML() *KeywordSearchIterator {
+	k.Format = "xml"
+	return k
+}
+
+func (k *KeywordSearchIterator) AuthorizeWith(key string) *KeywordSearchIterator {
 	k.AuthKey = "KakaoAK " + strings.TrimSpace(key)
 	return k
 }
 
-func (k *KeywordSearchInitializer) SetCategoryGroupCode(code string) *KeywordSearchInitializer {
+func (k *KeywordSearchIterator) SetCategoryGroupCode(code string) *KeywordSearchIterator {
 	k.CategoryGroupCode = code
 	return k
 }
 
-func (k *KeywordSearchInitializer) SetX(x string) *KeywordSearchInitializer {
+func (k *KeywordSearchIterator) SetX(x string) *KeywordSearchIterator {
 	k.X = x
 	return k
 }
 
-func (k *KeywordSearchInitializer) SetY(y string) *KeywordSearchInitializer {
+func (k *KeywordSearchIterator) SetY(y string) *KeywordSearchIterator {
 	k.Y = y
 	return k
 }
 
-func (k *KeywordSearchInitializer) SetRadius(radius int) *KeywordSearchInitializer {
+func (k *KeywordSearchIterator) SetRadius(radius int) *KeywordSearchIterator {
 	if 0 <= radius && radius <= 20000 {
 		k.Radius = radius
 	}
 	return k
 }
 
-func (k *KeywordSearchInitializer) SetRect(rect string) *KeywordSearchInitializer {
+func (k *KeywordSearchIterator) SetRect(rect string) *KeywordSearchIterator {
 	k.Rect = rect
 
 	return k
 }
 
-func (k *KeywordSearchInitializer) Result(page int) *KeywordSearchInitializer {
+func (k *KeywordSearchIterator) Result(page int) *KeywordSearchIterator {
 	if 1 <= page && page <= 45 {
 		k.Page = page
 	}
 	return k
 }
 
-func (k *KeywordSearchInitializer) Display(size int) *KeywordSearchInitializer {
+func (k *KeywordSearchIterator) Display(size int) *KeywordSearchIterator {
 	if 1 <= size && size <= 45 {
 		k.Size = size
 	}
 	return k
 }
 
-func (k *KeywordSearchInitializer) SortType(sort string) *KeywordSearchInitializer {
+func (k *KeywordSearchIterator) SortType(sort string) *KeywordSearchIterator {
 	if sort == "accuracy" || sort == "distance" {
 		k.Sort = sort
 	}
@@ -133,7 +136,7 @@ func (k *KeywordSearchInitializer) SortType(sort string) *KeywordSearchInitializ
 }
 
 // Next returns the search result and proceeds the iterator to the next page.
-func (k *KeywordSearchInitializer) Collect() (res KeywordSearchResult, err error) {
+func (k *KeywordSearchIterator) Next() (res KeywordSearchResult, err error) {
 	// at first, send request to the API server
 	client := new(http.Client)
 	req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("https://dapi.kakao.com/v2/local/search/keyword.%s?query=%s&category_group_code=%s&x=%s&y=%s&radius=%d&rect=%s&page=%d&size=%d&sort=%s", k.Format, k.Query, k.CategoryGroupCode, k.X, k.Y, k.Radius, k.Rect, k.Page, k.Size, k.Sort), nil)
@@ -163,6 +166,12 @@ func (k *KeywordSearchInitializer) Collect() (res KeywordSearchResult, err error
 			return
 		}
 	}
+
+	if res.Meta.IsEnd {
+		return res, ErrEndPage
+	}
+
+	k.Page++
 
 	return
 }

@@ -42,10 +42,13 @@ func TransCoord(x, y float64) *TransCoordInitializer {
 	}
 }
 
-func (t *TransCoordInitializer) As(format string) *TransCoordInitializer {
-	if format == "json" || format == "xml" {
-		t.Format = format
-	}
+func (t *TransCoordInitializer) FormatJSON() *TransCoordInitializer {
+	t.Format = "json"
+	return t
+}
+
+func (t *TransCoordInitializer) FormatXML() *TransCoordInitializer {
+	t.Format = "xml"
 	return t
 }
 
