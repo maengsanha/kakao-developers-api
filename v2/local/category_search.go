@@ -6,6 +6,7 @@ import (
 	"encoding/xml"
 	"fmt"
 	"net/http"
+	"strconv"
 	"strings"
 )
 
@@ -55,11 +56,11 @@ type CategorySearchIterator struct {
 	Sort              string
 }
 
-func CategorySearch(category_group_code string) *CategorySearchIterator {
+func PlaceSearchByCategory(groupcode string) *CategorySearchIterator {
 	return &CategorySearchIterator{
 		Format:            "json",
 		AuthKey:           "KakaoAK ",
-		CategoryGroupCode: category_group_code,
+		CategoryGroupCode: groupcode,
 		X:                 "",
 		Y:                 "",
 		Radius:            0,
@@ -85,25 +86,23 @@ func (c *CategorySearchIterator) AuthorizeWith(key string) *CategorySearchIterat
 	return c
 }
 
-func (c *CategorySearchIterator) SetLongitude(x string) *CategorySearchIterator {
-	c.X = x
-	return c
-}
+func (c *CategorySearchIterator) WithRadius(x, y float64, radius int) *CategorySearchIterator {
 
-func (c *CategorySearchIterator) SetLatitude(y string) *CategorySearchIterator {
-	c.Y = y
-	return c
-}
-
-func (c *CategorySearchIterator) SetRadius(radius int) *CategorySearchIterator {
-	if 0 <= radius && radius <= 20000 {
+	if 0 <= c.Radius && c.Radius <= 20000 {
+		c.X = strconv.FormatFloat(x, 'f', -1, 64)
+		c.Y = strconv.FormatFloat(y, 'f', -1, 64)
 		c.Radius = radius
 	}
+
 	return c
 }
 
-func (c *CategorySearchIterator) SetRect(rect string) *CategorySearchIterator {
-	c.Rect = rect
+func (c *CategorySearchIterator) WithRect(xMin, yMin, xMax, yMax float64) *CategorySearchIterator {
+	c.Rect = strings.Join([]string{
+		strconv.FormatFloat(xMin, 'f', -1, 64),
+		strconv.FormatFloat(yMin, 'f', -1, 64),
+		strconv.FormatFloat(xMax, 'f', -1, 64),
+		strconv.FormatFloat(yMax, 'f', -1, 64)}, ",")
 	return c
 }
 
@@ -121,9 +120,9 @@ func (c *CategorySearchIterator) Display(size int) *CategorySearchIterator {
 	return c
 }
 
-func (c *CategorySearchIterator) SortType(sort string) *CategorySearchIterator {
-	if sort == "accuracy" || sort == "distance" {
-		c.Sort = sort
+func (c *CategorySearchIterator) SortBy(typ string) *CategorySearchIterator {
+	if typ == "accuracy" || typ == "distance" {
+		c.Sort = typ
 	}
 	return c
 }
