@@ -56,6 +56,45 @@ type CategorySearchIterator struct {
 	Sort              string
 }
 
+// Category sets the group code of k.
+// There are few available group codes:
+//
+// MT1 : Large Supermarket
+//
+// CS2 : Convenience Store
+//
+// PS3 : Daycare Center, Kindergarten
+//
+// SC4 : School
+//
+// AC5 : Academic
+//
+// PK6 : Parking
+//
+// OL7 : Gas Station, Charging Station
+//
+// SW8 : Subway Station
+//
+// CT1 : Culture Facility
+//
+// AG2 : Brokerage
+//
+// PO3 : Public Institution
+//
+// AT4 : Tourist Attractions
+//
+// FD6 : Restaurant
+//
+// CE7 : Cafe
+//
+// HP8 : Hospital
+//
+// PM9 : Pharmacy
+//
+// BK9 : Bank
+//
+// AD5 : Accommodation
+
 func PlaceSearchByCategory(groupcode string) *CategorySearchIterator {
 	return &CategorySearchIterator{
 		Format:            "json",

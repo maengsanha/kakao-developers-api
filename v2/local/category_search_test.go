@@ -27,7 +27,7 @@ import (
 // PM9	약국
 
 func TestCategorySearchWithJSON(t *testing.T) {
-	key := "e822b7f47b6b01317e771361317d2c38"
+	key := ""
 	var x float64 = 127.06283102249932
 	var y float64 = 37.514322572335935
 	radius := 2000
@@ -52,7 +52,7 @@ func TestCategorySearchWithJSON(t *testing.T) {
 }
 
 func TestCategorySearchWithXML(t *testing.T) {
-	key := "e822b7f47b6b01317e771361317d2c38"
+	key := ""
 	groupcode := "CS2"
 	xmin := 127.05897078335246
 	ymin := 37.506051888130386
