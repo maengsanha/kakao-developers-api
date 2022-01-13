@@ -28,17 +28,15 @@ import (
 
 func TestCategorySearchWithJSON(t *testing.T) {
 	key := "e822b7f47b6b01317e771361317d2c38"
-	x := "127.06283102249932"
-	y := "37.514322572335935"
+	var x float64 = 127.06283102249932
+	var y float64 = 37.514322572335935
 	radius := 2000
-	categorygroupcode := "MT1"
+	groupcode := "MT1"
 
-	iter := local.CategorySearch(categorygroupcode).
+	iter := local.PlaceSearchByCategory(groupcode).
 		FormatJSON().
 		AuthorizeWith(key).
-		SetLongitude(x).
-		SetLatitude(y).
-		SetRadius(radius).
+		WithRadius(x, y, radius).
 		Display(15).
 		Result(1)
 
@@ -55,13 +53,16 @@ func TestCategorySearchWithJSON(t *testing.T) {
 
 func TestCategorySearchWithXML(t *testing.T) {
 	key := "e822b7f47b6b01317e771361317d2c38"
-	rect := "1"
-	categorygroupcode := "MT1"
+	groupcode := "CS2"
+	xmin := 127.05897078335246
+	ymin := 37.506051888130386
+	xmax := 128.05897078335276
+	ymax := 38.506051888130406
 
-	iter := local.CategorySearch(categorygroupcode).
+	iter := local.PlaceSearchByCategory(groupcode).
 		FormatXML().
 		AuthorizeWith(key).
-		SetRect(rect).
+		WithRect(xmin, ymin, xmax, ymax).
 		Display(15).
 		Result(1)
 
