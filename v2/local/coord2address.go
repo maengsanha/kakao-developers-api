@@ -64,44 +64,26 @@ func CoordToAddress(x, y string) *CoordToAddressInitializer {
 	}
 }
 
-func (b *CoordToAddressInitializer) FormatJSON() *CoordToAddressInitializer {
-	b.Format = "json"
-	return b
+func (c *CoordToAddressInitializer) FormatJSON() *CoordToAddressInitializer {
+	c.Format = "json"
+	return c
 }
 
-func (b *CoordToAddressInitializer) FormatXML() *CoordToAddressInitializer {
-	b.Format = "xml"
-	return b
+func (c *CoordToAddressInitializer) FormatXML() *CoordToAddressInitializer {
+	c.Format = "xml"
+	return c
 }
 
-func (b *CoordToAddressInitializer) AuthorizeWith(key string) *CoordToAddressInitializer {
-	b.AuthKey = "KakaoAK " + strings.TrimSpace(key)
-	return b
+func (c *CoordToAddressInitializer) AuthorizeWith(key string) *CoordToAddressInitializer {
+	c.AuthKey = "KakaoAK " + strings.TrimSpace(key)
+	return c
 }
 
-func (b *CoordToAddressInitializer) RequestWGS84() *CoordToAddressInitializer {
-	b.InputCoord = "WGS84"
-	return b
-}
-
-func (b *CoordToAddressInitializer) RequestWCONGNAMUL() *CoordToAddressInitializer {
-	b.InputCoord = "WCONGNAMUL"
-	return b
-}
-
-func (b *CoordToAddressInitializer) RequestCONGNAMUL() *CoordToAddressInitializer {
-	b.InputCoord = "CONGNAMUL"
-	return b
-}
-
-func (b *CoordToAddressInitializer) RequestWTM() *CoordToAddressInitializer {
-	b.InputCoord = "WTM"
-	return b
-}
-
-func (b *CoordToAddressInitializer) RequestTM() *CoordToAddressInitializer {
-	b.InputCoord = "TM"
-	return b
+func (c *CoordToAddressInitializer) Input(coord string) *CoordToAddressInitializer {
+	if coord == "WGS84" || coord == "WCONGNAMUL" || coord == "CONGNAMUL" || coord == "WTM" || coord == "TM" {
+		c.InputCoord = coord
+	}
+	return c
 }
 
 func (b *CoordToAddressInitializer) Collect() (res CoordToAddressResult, err error) {
