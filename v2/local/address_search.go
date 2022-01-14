@@ -4,55 +4,46 @@ package local
 import (
 	"encoding/json"
 	"encoding/xml"
-	"errors"
 	"fmt"
 	"net/http"
 	"net/url"
 	"strings"
 )
 
-var ErrEndPage = errors.New("page reaches the end")
-
-// Address represents a detailed information of Land-lot address.
-type Address struct {
-	AddressName       string `json:"address_name" xml:"address_name"`
-	Region1depthName  string `json:"region_1depth_name" xml:"region_1depth_name"`
-	Region2depthName  string `json:"region_2depth_name" xml:"region_2depth_name"`
-	Region3depthName  string `json:"region_3depth_name" xml:"region_3depth_name"`
-	Region3depthHName string `json:"region_3depth_h_name" xml:"region_3depth_h_name"`
-	HCode             string `json:"h_code" xml:"h_code"`
-	BCode             string `json:"b_code" xml:"b_code"`
-	MountainYN        string `json:"mountain_yn" xml:"mountain_yn"`
-	MainAddressNo     string `json:"main_address_no" xml:"main_address_no"`
-	SubAddressNo      string `json:"sub_address_no" xml:"sub_address_no"`
-	ZipCode           string `json:"zip_code" xml:"zip_code"`
-	X                 string `json:"x" xml:"x"`
-	Y                 string `json:"y" xml:"y"`
-}
-
-// RoadAddress represents a detailed information of Road name address.
-type RoadAddress struct {
-	AddressName      string `json:"address_name" xml:"address_name"`
-	Region1depthName string `json:"region_1depth_name" xml:"region_1depth_name"`
-	Region2depthName string `json:"region_2depth_name" xml:"region_2depth_name"`
-	Region3depthName string `json:"region_3depth_name" xml:"region_3depth_name"`
-	RoadName         string `json:"road_name" xml:"road_name"`
-	UndergroundYN    string `json:"underground_yn" xml:"underground_yn"`
-	MainBuildingNo   string `json:"main_building_no" xml:"main_building_no"`
-	SubBuildingNo    string `json:"sub_building_no" xml:"sub_building_no"`
-	BuildingName     string `json:"building_name" xml:"building_name"`
-	ZoneNo           string `json:"zone_no" xml:"zone_no"`
-	X                string `json:"x" xml:"x"`
-	Y                string `json:"y" xml:"y"`
-}
-
 type ComplexAddress struct {
-	AddressName string      `json:"address_name" xml:"address_name"`
-	AddressType string      `json:"address_type" xml:"address_type"`
-	X           string      `json:"x" xml:"x"`
-	Y           string      `json:"y" xml:"y"`
-	Address     Address     `json:"address" xml:"address"`
-	RoadAddress RoadAddress `json:"road_address" xml:"road_address"`
+	AddressName string `json:"address_name" xml:"address_name"`
+	AddressType string `json:"address_type" xml:"address_type"`
+	X           string `json:"x" xml:"x"`
+	Y           string `json:"y" xml:"y"`
+	Address     struct {
+		AddressName       string `json:"address_name" xml:"address_name"`
+		Region1depthName  string `json:"region_1depth_name" xml:"region_1depth_name"`
+		Region2depthName  string `json:"region_2depth_name" xml:"region_2depth_name"`
+		Region3depthName  string `json:"region_3depth_name" xml:"region_3depth_name"`
+		Region3depthHName string `json:"region_3depth_h_name" xml:"region_3depth_h_name"`
+		HCode             string `json:"h_code" xml:"h_code"`
+		BCode             string `json:"b_code" xml:"b_code"`
+		MountainYN        string `json:"mountain_yn" xml:"mountain_yn"`
+		MainAddressNo     string `json:"main_address_no" xml:"main_address_no"`
+		SubAddressNo      string `json:"sub_address_no" xml:"sub_address_no"`
+		ZipCode           string `json:"zip_code" xml:"zip_code"`
+		X                 string `json:"x" xml:"x"`
+		Y                 string `json:"y" xml:"y"`
+	} `json:"address" xml:"address"`
+	RoadAddress struct {
+		AddressName      string `json:"address_name" xml:"address_name"`
+		Region1depthName string `json:"region_1depth_name" xml:"region_1depth_name"`
+		Region2depthName string `json:"region_2depth_name" xml:"region_2depth_name"`
+		Region3depthName string `json:"region_3depth_name" xml:"region_3depth_name"`
+		RoadName         string `json:"road_name" xml:"road_name"`
+		UndergroundYN    string `json:"underground_yn" xml:"underground_yn"`
+		MainBuildingNo   string `json:"main_building_no" xml:"main_building_no"`
+		SubBuildingNo    string `json:"sub_building_no" xml:"sub_building_no"`
+		BuildingName     string `json:"building_name" xml:"building_name"`
+		ZoneNo           string `json:"zone_no" xml:"zone_no"`
+		X                string `json:"x" xml:"x"`
+		Y                string `json:"y" xml:"y"`
+	} `json:"road_address" xml:"road_address"`
 }
 
 // AddressSearchResult represents an Address search result.

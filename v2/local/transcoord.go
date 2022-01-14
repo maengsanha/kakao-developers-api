@@ -1,4 +1,3 @@
-// Package local provides the features of the Local API.
 package local
 
 import (
@@ -36,16 +35,19 @@ func TransCoord(x, y float64) *TransCoordInitializer {
 		X:           x,
 		Y:           y,
 		Format:      "json",
-		AuthKey:     "KakaoAK",
+		AuthKey:     "KakaoAK ",
 		InputCoord:  "WGS84",
 		OutputCoord: "WGS84",
 	}
 }
 
-func (t *TransCoordInitializer) As(format string) *TransCoordInitializer {
-	if format == "json" || format == "xml" {
-		t.Format = format
-	}
+func (t *TransCoordInitializer) FormatJSON() *TransCoordInitializer {
+	t.Format = "json"
+	return t
+}
+
+func (t *TransCoordInitializer) FormatXML() *TransCoordInitializer {
+	t.Format = "xml"
 	return t
 }
 
@@ -54,6 +56,27 @@ func (t *TransCoordInitializer) AuthorizeWith(key string) *TransCoordInitializer
 	return t
 }
 
+// Support Coordinate System(=coord):
+//
+// WGS84,
+//
+// WCONGNAMUL,
+//
+// CONGNAMUL,
+//
+// WTM,
+//
+// TM,
+//
+// KTM,
+//
+// UTM,
+//
+// BESSEL,
+//
+// WKTM,
+//
+// WUTM
 func (t *TransCoordInitializer) Request(coord string) *TransCoordInitializer {
 	if coord == "WGS84" || coord == "WCONGNAMUL" || coord == "CONGNAMUL" || coord == "WTM" || coord == "TM" || coord == "KTM" || coord == "UTM" || coord == " BESSEL" || coord == "WKTM" || coord == "WUTM" {
 		t.InputCoord = coord

@@ -17,7 +17,7 @@ func TestAddressSearchWithJSON(t *testing.T) {
 		Display(20).
 		Result(1)
 
-	for res, err := iter.Next(); ; {
+	for res, err := iter.Next(); ; res, err = iter.Next() {
 		t.Log(res)
 		if err != nil {
 			if err != local.ErrEndPage {
@@ -39,7 +39,7 @@ func TestAddressSearchWithXML(t *testing.T) {
 		Display(30).
 		Result(1)
 
-	for res, err := iter.Next(); ; {
+	for res, err := iter.Next(); ; res, err = iter.Next() {
 		t.Log(res)
 		if err != nil {
 			if err != local.ErrEndPage {
