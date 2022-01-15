@@ -12,7 +12,7 @@ func TestAddressSearchWithJSON(t *testing.T) {
 
 	iter := local.AddressSearch(query).
 		AuthorizeWith(key).
-		AnalyzeSimilar().
+		Analyze("similar").
 		FormatJSON().
 		Display(20).
 		Result(1)
@@ -34,7 +34,7 @@ func TestAddressSearchWithXML(t *testing.T) {
 
 	iter := local.AddressSearch(query).
 		AuthorizeWith(key).
-		AnalyzeSimilar().
+		Analyze("similar").
 		FormatXML().
 		Display(30).
 		Result(1)

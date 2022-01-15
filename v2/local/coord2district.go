@@ -9,6 +9,7 @@ import (
 	"strings"
 )
 
+// Region represents a document of a coordinate conversion result.
 type Region struct {
 	RegionType       string  `json:"region_type" xml:"region_type"`
 	AddressName      string  `json:"address_name" xml:"address_name"`
@@ -21,7 +22,8 @@ type Region struct {
 	Y                float64 `json:"y" xml:"y"`
 }
 
-type Coord2DistrictResult struct {
+// CoordToDistrictResult represents a coordinate conversion result.
+type CoordToDistrictResult struct {
 	XMLName xml.Name `xml:"result"`
 	Meta    struct {
 		TotalCount int `json:"total_count" xml:"total_count"`
@@ -29,7 +31,8 @@ type Coord2DistrictResult struct {
 	Documents []Region `json:"documents" xml:"documents"`
 }
 
-type Coord2DistrictInitializer struct {
+// CoordToDistrictInitializer is a lazy coordinate converter.
+type CoordToDistrictInitializer struct {
 	X           string
 	Y           string
 	Format      string
@@ -38,8 +41,12 @@ type Coord2DistrictInitializer struct {
 	OutputCoord string
 }
 
-func Coord2District(x, y string) *Coord2DistrictInitializer {
-	return &Coord2DistrictInitializer{
+// CoordToDistrict converts the coordinates of @x and @y in the selected coordinate system
+// into the administrative and legal-status area information.
+//
+// See https://developers.kakao.com/docs/latest/ko/local/dev-guide#coord-to-district for more details.
+func CoordToDistrict(x, y string) *CoordToDistrictInitializer {
+	return &CoordToDistrictInitializer{
 		X:           x,
 		Y:           y,
 		Format:      "json",
@@ -49,74 +56,71 @@ func Coord2District(x, y string) *Coord2DistrictInitializer {
 	}
 }
 
-func (c *Coord2DistrictInitializer) FormatJSON() *Coord2DistrictInitializer {
+func (c *CoordToDistrictInitializer) FormatJSON() *CoordToDistrictInitializer {
 	c.Format = "json"
 	return c
 }
 
-func (c *Coord2DistrictInitializer) FormatXML() *Coord2DistrictInitializer {
+func (c *CoordToDistrictInitializer) FormatXML() *CoordToDistrictInitializer {
 	c.Format = "xml"
 	return c
 }
 
-func (c *Coord2DistrictInitializer) AuthorizeWith(key string) *Coord2DistrictInitializer {
+// AuthorizeWith sets the authorization key to @key.
+func (c *CoordToDistrictInitializer) AuthorizeWith(key string) *CoordToDistrictInitializer {
 	c.AuthKey = "KakaoAK " + strings.TrimSpace(key)
 	return c
 }
 
-func (c *Coord2DistrictInitializer) RequestWGS84() *Coord2DistrictInitializer {
-	c.InputCoord = "WGS84"
+// Input sets the input coordinate system of c to @coord.
+//
+// There are a few supported coordinate systems:
+//
+// WGS84
+//
+// WCONGNAMUL
+//
+// CONGNAMUL
+//
+// WTM
+//
+// TM
+func (c *CoordToDistrictInitializer) Input(coord string) *CoordToDistrictInitializer {
+	switch coord {
+	case "WGS84", "WCONGNAMUL", "CONGNAMUL", "WTM", "TM":
+		c.InputCoord = coord
+	}
 	return c
 }
 
-func (c *Coord2DistrictInitializer) RequestWCONGNAMUL() *Coord2DistrictInitializer {
-	c.InputCoord = "WCONGNAMUL"
+// Output sets the output coordinate system of c to @coord.
+//
+// There are a few supported coordinate systems:
+//
+// WGS84
+//
+// WCONGNAMUL
+//
+// CONGNAMUL
+//
+// WTM
+//
+// TM
+func (c *CoordToDistrictInitializer) Output(coord string) *CoordToDistrictInitializer {
+	switch coord {
+	case "WGS84", "WCONGNAMUL", "CONGNAMUL", "WTM", "TM":
+		c.OutputCoord = coord
+	}
 	return c
 }
 
-func (c *Coord2DistrictInitializer) RequestCONGNAMUL() *Coord2DistrictInitializer {
-	c.InputCoord = "CONGNAMUL"
-	return c
-}
-
-func (c *Coord2DistrictInitializer) RequestWTM() *Coord2DistrictInitializer {
-	c.InputCoord = "WTM"
-	return c
-}
-
-func (c *Coord2DistrictInitializer) RequestTM() *Coord2DistrictInitializer {
-	c.InputCoord = "TM"
-	return c
-}
-
-func (c *Coord2DistrictInitializer) DisplayWGS84() *Coord2DistrictInitializer {
-	c.OutputCoord = "WGS84"
-	return c
-}
-
-func (c *Coord2DistrictInitializer) DisplayWCONGNAMUL() *Coord2DistrictInitializer {
-	c.OutputCoord = "WCONGNAMUL"
-	return c
-}
-
-func (c *Coord2DistrictInitializer) DisplayCONGNAMUL() *Coord2DistrictInitializer {
-	c.OutputCoord = "CONGNAMUL"
-	return c
-}
-
-func (c *Coord2DistrictInitializer) DisplayWTM() *Coord2DistrictInitializer {
-	c.OutputCoord = "WTM"
-	return c
-}
-
-func (c *Coord2DistrictInitializer) DisplayTM() *Coord2DistrictInitializer {
-	c.OutputCoord = "TM"
-	return c
-}
-
-func (c *Coord2DistrictInitializer) Collect() (res Coord2DistrictResult, err error) {
+// Collect returns the coordinate conversion result.
+func (c *CoordToDistrictInitializer) Collect() (res CoordToDistrictResult, err error) {
 	client := new(http.Client)
-	req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("https://dapi.kakao.com/v2/local/geo/coord2regioncode.%s?x=%s&y=%s&input_coord=%s&output_coord=%s", c.Format, c.X, c.Y, c.InputCoord, c.OutputCoord), nil)
+	req, err := http.NewRequest(http.MethodGet,
+		fmt.Sprintf("https://dapi.kakao.com/v2/local/geo/coord2regioncode.%s?x=%s&y=%s&input_coord=%s&output_coord=%s",
+			c.Format, c.X, c.Y, c.InputCoord, c.OutputCoord), nil)
+
 	if err != nil {
 		return
 	}

@@ -6,15 +6,15 @@ import (
 	"github.com/maengsanha/kakao-developers-api/v2/local"
 )
 
-func TestCoord2DistrictWithJSON(t *testing.T) {
+func TestCoordToDistrictWithJSON(t *testing.T) {
 	x := "127.1086228"
 	y := "37.4012191"
 	key := ""
 
-	if res, err := local.Coord2District(x, y).
+	if res, err := local.CoordToDistrict(x, y).
 		AuthorizeWith(key).
-		RequestWGS84().
-		DisplayWGS84().
+		Input("WGS84").
+		Output("WGS84").
 		FormatJSON().
 		Collect(); err != nil {
 		t.Error(err)
@@ -23,15 +23,15 @@ func TestCoord2DistrictWithJSON(t *testing.T) {
 	}
 }
 
-func TestCoord2DistrictWithXML(t *testing.T) {
+func TestCoordToDistrictWithXML(t *testing.T) {
 	x := "127.1086228"
 	y := "37.4012191"
 	key := ""
 
-	if res, err := local.Coord2District(x, y).
+	if res, err := local.CoordToDistrict(x, y).
 		AuthorizeWith(key).
-		RequestWGS84().
-		DisplayCONGNAMUL().
+		Input("WGS84").
+		Output("CONGNAMUL").
 		FormatXML().
 		Collect(); err != nil {
 		t.Error(err)

@@ -10,6 +10,7 @@ import (
 	"strings"
 )
 
+// KeywordSearchResult ...
 type KeywordSearchResult struct {
 	XMLName xml.Name `xml:"result"`
 	Meta    struct {
@@ -21,6 +22,7 @@ type KeywordSearchResult struct {
 	Documents []Place `json:"documents" xml:"documents"`
 }
 
+// KeywordSearchIterator ...
 type KeywordSearchIterator struct {
 	Query             string
 	CategoryGroupCode string
@@ -35,6 +37,7 @@ type KeywordSearchIterator struct {
 	Sort              string
 }
 
+// KeywordSearch ...
 func KeywordSearch(query string) *KeywordSearchIterator {
 	return &KeywordSearchIterator{
 		Query:             url.QueryEscape(strings.TrimSpace(query)),
@@ -61,49 +64,50 @@ func (k *KeywordSearchIterator) FormatXML() *KeywordSearchIterator {
 	return k
 }
 
+// AuthorizeWith ...
 func (k *KeywordSearchIterator) AuthorizeWith(key string) *KeywordSearchIterator {
 	k.AuthKey = "KakaoAK " + strings.TrimSpace(key)
 	return k
 }
 
-// Category sets the group code of k.
-// There are few available group codes:
+// Category sets the category group code of k.
+// There are a few available category group codes:
 //
-// MT1 : Large Supermarket
+// MT1: Large Supermarket
 //
-// CS2 : Convenience Store
+// CS2: Convenience Store
 //
-// PS3 : Daycare Center, Kindergarten
+// PS3: Daycare Center, Kindergarten
 //
-// SC4 : School
+// SC4: School
 //
-// AC5 : Academic
+// AC5: Academic
 //
-// PK6 : Parking
+// PK6: Parking
 //
-// OL7 : Gas Station, Charging Station
+// OL7: Gas Station, Charging Station
 //
-// SW8 : Subway Station
+// SW8: Subway Station
 //
-// CT1 : Culture Facility
+// CT1: Culture Facility
 //
-// AG2 : Brokerage
+// AG2: Brokerage
 //
-// PO3 : Public Institution
+// PO3: Public Institution
 //
-// AT4 : Tourist Attractions
+// AT4: Tourist Attractions
 //
-// FD6 : Restaurant
+// FD6: Restaurant
 //
-// CE7 : Cafe
+// CE7: Cafe
 //
-// HP8 : Hospital
+// HP8: Hospital
 //
-// PM9 : Pharmacy
+// PM9: Pharmacy
 //
-// BK9 : Bank
+// BK9: Bank
 //
-// AD5 : Accommodation
+// AD5: Accommodation
 func (k *KeywordSearchIterator) Category(groupcode string) *KeywordSearchIterator {
 	if groupcode == "MT1" || groupcode == "CS2" || groupcode == "PS3" || groupcode == "SC4" || groupcode == "AC5" || groupcode == "PK6" || groupcode == "OL7" || groupcode == "SW8" || groupcode == "CT1" || groupcode == "AG2" || groupcode == "P03" || groupcode == "AT4" || groupcode == "FD6" || groupcode == "CE7" || groupcode == "HP8" || groupcode == "PM9" || groupcode == "BK9" || groupcode == "AD5" {
 		k.CategoryGroupCode = groupcode
@@ -111,6 +115,7 @@ func (k *KeywordSearchIterator) Category(groupcode string) *KeywordSearchIterato
 	return k
 }
 
+// WithRadius ...
 func (k *KeywordSearchIterator) WithRadius(x, y float64, radius int) *KeywordSearchIterator {
 	k.X = strconv.FormatFloat(x, 'f', -1, 64)
 	k.Y = strconv.FormatFloat(y, 'f', -1, 64)
@@ -120,6 +125,7 @@ func (k *KeywordSearchIterator) WithRadius(x, y float64, radius int) *KeywordSea
 	return k
 }
 
+// WithRect ...
 func (k *KeywordSearchIterator) WithRect(xMin, yMin, xMax, yMax float64) *KeywordSearchIterator {
 	k.Rect = strings.Join([]string{strconv.FormatFloat(xMin, 'f', -1, 64),
 		strconv.FormatFloat(yMin, 'f', -1, 64),
@@ -142,6 +148,7 @@ func (k *KeywordSearchIterator) Display(size int) *KeywordSearchIterator {
 	return k
 }
 
+// SortBy ...
 func (k *KeywordSearchIterator) SortBy(typ string) *KeywordSearchIterator {
 	if typ == "accuracy" || typ == "distance" {
 		k.Sort = typ
@@ -149,7 +156,7 @@ func (k *KeywordSearchIterator) SortBy(typ string) *KeywordSearchIterator {
 	return k
 }
 
-// Next returns the search result and proceeds the iterator to the next page.
+// Next returns the keyword search result and proceeds the iterator to the next page.
 func (k *KeywordSearchIterator) Next() (res KeywordSearchResult, err error) {
 	// at first, send request to the API server
 	client := new(http.Client)
