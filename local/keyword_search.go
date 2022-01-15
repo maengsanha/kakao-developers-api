@@ -131,10 +131,10 @@ func (k *KeywordSearchIterator) Coordinates(x, y float64) *KeywordSearchIterator
 	return k
 }
 
-// Distance is used to search places around a specific area along with x and y (center coordinates).
+// RadiusDistance is used to search places around a specific area along with x and y (center coordinates).
 //
 // @radius : The distance from the center coordinates to an axis of rotation in meters. (between 0 and 20000)
-func (k *KeywordSearchIterator) Distance(radius int) *KeywordSearchIterator {
+func (k *KeywordSearchIterator) RadiusDistance(radius int) *KeywordSearchIterator {
 	if 0 <= radius && radius <= 20000 {
 		k.Radius = radius
 	}

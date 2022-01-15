@@ -19,7 +19,7 @@ func TestKeywordSearchWithJSON(t *testing.T) {
 		FormatJSON().
 		AuthorizeWith(key).
 		Coordinates(x, y).
-		Distance(radius).
+		RadiusDistance(radius).
 		Result(1).
 		Display(15).
 		Category(groupcode).
@@ -53,7 +53,7 @@ func TestKeywordSearchWithXML(t *testing.T) {
 		FormatXML().
 		AuthorizeWith(key).
 		Coordinates(x, y).
-		Distance(radius).
+		RadiusDistance(radius).
 		Rectangle(xMin, yMin, xMax, yMax).
 		Result(1).
 		Display(15).
