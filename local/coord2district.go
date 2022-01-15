@@ -6,6 +6,7 @@ import (
 	"encoding/xml"
 	"fmt"
 	"net/http"
+	"strconv"
 	"strings"
 )
 
@@ -45,10 +46,10 @@ type CoordToDistrictInitializer struct {
 // into the administrative and legal-status area information.
 //
 // See https://developers.kakao.com/docs/latest/ko/local/dev-guide#coord-to-district for more details.
-func CoordToDistrict(x, y string) *CoordToDistrictInitializer {
+func CoordToDistrict(x, y float64) *CoordToDistrictInitializer {
 	return &CoordToDistrictInitializer{
-		X:           x,
-		Y:           y,
+		X:           strconv.FormatFloat(x, 'f', -1, 64),
+		Y:           strconv.FormatFloat(y, 'f', -1, 64),
 		Format:      "json",
 		AuthKey:     "KakaoAK ",
 		InputCoord:  "WGS84",

@@ -3,12 +3,12 @@ package local_test
 import (
 	"testing"
 
-	"github.com/maengsanha/kakao-developers-api/v2/local"
+	"github.com/maengsanha/kakao-developers-api/local"
 )
 
 func TestCoordToDistrictWithJSON(t *testing.T) {
-	x := "127.1086228"
-	y := "37.4012191"
+	x := 127.1086228
+	y := 37.4012191
 	key := ""
 
 	if res, err := local.CoordToDistrict(x, y).
@@ -24,8 +24,8 @@ func TestCoordToDistrictWithJSON(t *testing.T) {
 }
 
 func TestCoordToDistrictWithXML(t *testing.T) {
-	x := "127.1086228"
-	y := "37.4012191"
+	x := 127.1086228
+	y := 37.4012191
 	key := ""
 
 	if res, err := local.CoordToDistrict(x, y).
