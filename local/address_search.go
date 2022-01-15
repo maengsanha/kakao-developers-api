@@ -10,6 +10,7 @@ import (
 	"strings"
 )
 
+// ComplexAddress represents a document of address search.
 type ComplexAddress struct {
 	AddressName string `json:"address_name" xml:"address_name"`
 	AddressType string `json:"address_type" xml:"address_type"`
@@ -46,7 +47,7 @@ type ComplexAddress struct {
 	} `json:"road_address" xml:"road_address"`
 }
 
-// AddressSearchResult represents an Address search result.
+// AddressSearchResult represents an address search result.
 type AddressSearchResult struct {
 	XMLName xml.Name `xml:"result"`
 	Meta    struct {
@@ -57,7 +58,7 @@ type AddressSearchResult struct {
 	Documents []ComplexAddress `json:"documents" xml:"documents"`
 }
 
-// AddressSearchIterator is a lazy Address search iterator.
+// AddressSearchIterator is a lazy address search iterator.
 type AddressSearchIterator struct {
 	Query       string
 	Format      string
@@ -67,6 +68,9 @@ type AddressSearchIterator struct {
 	Size        int
 }
 
+// AddressSearch provides the coordinates of the requested address with @query.
+//
+// See https://developers.kakao.com/docs/latest/ko/local/dev-guide#address-coord for more details.
 func AddressSearch(query string) *AddressSearchIterator {
 	return &AddressSearchIterator{
 		Query:       url.QueryEscape(strings.TrimSpace(query)),
@@ -88,18 +92,24 @@ func (a *AddressSearchIterator) FormatXML() *AddressSearchIterator {
 	return a
 }
 
+// AuthorizeWith sets the authorization key to @key.
 func (a *AddressSearchIterator) AuthorizeWith(key string) *AddressSearchIterator {
 	a.AuthKey = "KakaoAK " + strings.TrimSpace(key)
 	return a
 }
 
-func (a *AddressSearchIterator) AnalyzeSimilar() *AddressSearchIterator {
-	a.AnalyzeType = "similar"
-	return a
-}
-
-func (a *AddressSearchIterator) AnalyzeExact() *AddressSearchIterator {
-	a.AnalyzeType = "exact"
+// Analyze sets the analyze type to @typ.
+//
+// There are a few supported analyze types:
+//
+// similar
+//
+// exact
+func (a *AddressSearchIterator) Analyze(typ string) *AddressSearchIterator {
+	switch typ {
+	case "similar", "exact":
+		a.AnalyzeType = typ
+	}
 	return a
 }
 
@@ -117,11 +127,14 @@ func (a *AddressSearchIterator) Display(size int) *AddressSearchIterator {
 	return a
 }
 
-// Next returns the search result and proceeds the iterator to the next page.
+// Next returns the address search result and proceeds the iterator to the next page.
 func (a *AddressSearchIterator) Next() (res AddressSearchResult, err error) {
 	// at first, send request to the API server
 	client := new(http.Client)
-	req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("https://dapi.kakao.com/v2/local/search/address.%s?query=%s&analyze_type=%s&page=%d&size=%d", a.Format, a.Query, a.AnalyzeType, a.Page, a.Size), nil)
+	req, err := http.NewRequest(http.MethodGet,
+		fmt.Sprintf("https://dapi.kakao.com/v2/local/search/address.%s?query=%s&analyze_type=%s&page=%d&size=%d",
+			a.Format, a.Query, a.AnalyzeType, a.Page, a.Size), nil)
+
 	if err != nil {
 		return
 	}

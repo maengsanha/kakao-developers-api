@@ -3,7 +3,7 @@ package local_test
 import (
 	"testing"
 
-	"github.com/maengsanha/kakao-developers-api/v2/local"
+	"github.com/maengsanha/kakao-developers-api/local"
 )
 
 func TestTransCoordWithJSON(t *testing.T) {
@@ -13,8 +13,8 @@ func TestTransCoordWithJSON(t *testing.T) {
 
 	if res, err := local.TransCoord(x, y).
 		AuthorizeWith(key).
-		Request("WTM").
-		Display("WGS84").
+		Input("WTM").
+		Output("WGS84").
 		FormatJSON().
 		Collect(); err != nil {
 		t.Error(err)
@@ -31,8 +31,8 @@ func TestTransCoordWithXML(t *testing.T) {
 
 	if res, err := local.TransCoord(x, y).
 		AuthorizeWith(key).
-		Request("WTM").
-		Display("WGS84").
+		Input("WTM").
+		Output("WGS84").
 		FormatXML().
 		Collect(); err != nil {
 		t.Error(err)

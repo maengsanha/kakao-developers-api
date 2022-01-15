@@ -8,11 +8,13 @@ import (
 	"strings"
 )
 
+// Coord ...
 type Coord struct {
 	X float64 `json:"x" xml:"x"`
 	Y float64 `json:"y" xml:"y"`
 }
 
+// TransCoordInitializer ...
 type TransCoordInitializer struct {
 	X           float64
 	Y           float64
@@ -22,6 +24,7 @@ type TransCoordInitializer struct {
 	OutputCoord string
 }
 
+// TransCoordResult ...
 type TransCoordResult struct {
 	XMLName xml.Name `xml:"result"`
 	Meta    struct {
@@ -30,6 +33,7 @@ type TransCoordResult struct {
 	Documents []Coord `json:"documents" xml:"documents"`
 }
 
+// TransCoord ...
 func TransCoord(x, y float64) *TransCoordInitializer {
 	return &TransCoordInitializer{
 		X:           x,
@@ -51,49 +55,37 @@ func (t *TransCoordInitializer) FormatXML() *TransCoordInitializer {
 	return t
 }
 
+// AuthorizeWith ...
 func (t *TransCoordInitializer) AuthorizeWith(key string) *TransCoordInitializer {
 	t.AuthKey = "KakaoAK " + strings.TrimSpace(key)
 	return t
 }
 
-// Support Coordinate System(=coord):
-//
-// WGS84,
-//
-// WCONGNAMUL,
-//
-// CONGNAMUL,
-//
-// WTM,
-//
-// TM,
-//
-// KTM,
-//
-// UTM,
-//
-// BESSEL,
-//
-// WKTM,
-//
-// WUTM
-func (t *TransCoordInitializer) Request(coord string) *TransCoordInitializer {
-	if coord == "WGS84" || coord == "WCONGNAMUL" || coord == "CONGNAMUL" || coord == "WTM" || coord == "TM" || coord == "KTM" || coord == "UTM" || coord == " BESSEL" || coord == "WKTM" || coord == "WUTM" {
+// Input ...
+func (t *TransCoordInitializer) Input(coord string) *TransCoordInitializer {
+	switch coord {
+	case "WGS84", "WCONGNAMUL", "CONGNAMUL", "WTM", "TM", "KTM", "UTM", "BESSEL", "WKTM", "WUTM":
 		t.InputCoord = coord
 	}
 	return t
 }
 
-func (t *TransCoordInitializer) Display(coord string) *TransCoordInitializer {
-	if coord == "WGS84" || coord == "WCONGNAMUL" || coord == "CONGNAMUL" || coord == "WTM" || coord == "TM" || coord == "KTM" || coord == "UTM" || coord == " BESSEL" || coord == "WKTM" || coord == "WUTM" {
+// Output ...
+func (t *TransCoordInitializer) Output(coord string) *TransCoordInitializer {
+	switch coord {
+	case "WGS84", "WCONGNAMUL", "CONGNAMUL", "WTM", "TM", "KTM", "UTM", "BESSEL", "WKTM", "WUTM":
 		t.OutputCoord = coord
 	}
 	return t
 }
 
+// Collect ...
 func (t *TransCoordInitializer) Collect() (res TransCoordResult, err error) {
 	client := new(http.Client)
-	req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("https://dapi.kakao.com/v2/local/geo/transcoord.%s?x=%f&y=%f&input_coord=%s&output_coord=%s", t.Format, t.X, t.Y, t.InputCoord, t.OutputCoord), nil)
+	req, err := http.NewRequest(http.MethodGet,
+		fmt.Sprintf("https://dapi.kakao.com/v2/local/geo/transcoord.%s?x=%f&y=%f&input_coord=%s&output_coord=%s",
+			t.Format, t.X, t.Y, t.InputCoord, t.OutputCoord), nil)
+
 	if err != nil {
 		return
 	}
