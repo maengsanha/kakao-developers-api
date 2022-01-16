@@ -9,13 +9,13 @@ import (
 	"strings"
 )
 
-// Coord represents X and Y coordinates of Local APIs.
+// Coord represents a document of coordinate transformation result.
 type Coord struct {
 	X float64 `json:"x" xml:"x"`
 	Y float64 `json:"y" xml:"y"`
 }
 
-// TransCoordInitializer initializes parameters that used in transform coordinate.
+// TransCoordInitializer initializes parameters used for coordinate transformation.
 type TransCoordInitializer struct {
 	X           string
 	Y           string
@@ -25,7 +25,7 @@ type TransCoordInitializer struct {
 	OutputCoord string
 }
 
-// TransCoordResult represents a converted result.
+// TransCoordResult represents a coordinate transformation result.
 type TransCoordResult struct {
 	XMLName xml.Name `xml:"result"`
 	Meta    struct {
@@ -34,11 +34,10 @@ type TransCoordResult struct {
 	Documents []Coord `json:"documents" xml:"documents"`
 }
 
-// TransCoord converts the specified X and Y coordinates ​​in a coordinate system
-// to another X and Y coordinates in the designated coordinate system.
+// TransCoord converts @x and @y coordinates to another X and Y coordinates in the designated coordinate system.
 //
 // Details can be referred to
-// https://developers.kakao.com/docs/latest/ko/local/dev-guide#trans-coord
+// https://developers.kakao.com/docs/latest/ko/local/dev-guide#trans-coord.
 func TransCoord(x, y float64) *TransCoordInitializer {
 	return &TransCoordInitializer{
 		X:           strconv.FormatFloat(x, 'f', -1, 64),
@@ -66,9 +65,9 @@ func (t *TransCoordInitializer) AuthorizeWith(key string) *TransCoordInitializer
 	return t
 }
 
-// Input specifies Coordinate system of the requested x and y.
+// Input sets the type of input coordinate system.
 //
-// There are a few supported coordinate systems(@coord):
+// There are a few supported coordinate systems:
 //
 // WGS84
 //
@@ -97,9 +96,9 @@ func (t *TransCoordInitializer) Input(coord string) *TransCoordInitializer {
 	return t
 }
 
-// Output specifies type of coordinate system to be converted from the input coordinate system.
+// Output sets the type of output coordinate system.
 //
-// There are a few supported coordinate systems(@coord):
+// There are a few supported coordinate systems:
 //
 // WGS84
 //
@@ -128,8 +127,7 @@ func (t *TransCoordInitializer) Output(coord string) *TransCoordInitializer {
 	return t
 }
 
-// Collect sends a GET request and
-// returns the result of the coordinate system conversion.
+// Collect returns the coordinate system conversion result.
 func (t *TransCoordInitializer) Collect() (res TransCoordResult, err error) {
 	// at first, send request to the API server
 	client := new(http.Client)
