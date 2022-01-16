@@ -13,17 +13,16 @@ func TestKeywordSearchWithJSON(t *testing.T) {
 	x := 127.06283102249932
 	y := 37.514322572335935
 	radius := 10000
-	order := "accuracy"
+	typ := "accuracy"
 
 	iter := local.KeywordSearch(query).
 		FormatJSON().
 		AuthorizeWith(key).
-		Coordinates(x, y).
-		RadiusDistance(radius).
+		WithRadius(x, y, radius).
 		Result(1).
 		Display(15).
 		Category(groupcode).
-		Sorting(order)
+		SortBy(typ)
 
 	for res, err := iter.Next(); ; res, err = iter.Next() {
 		t.Log(res)
@@ -43,7 +42,7 @@ func TestKeywordSearchWithXML(t *testing.T) {
 	x := 127.06283102249932
 	y := 37.514322572335935
 	radius := 15000
-	order := "distance"
+	typ := "distance"
 	xMin := 126.92839423213
 	yMin := 37.412341512321
 	xMax := 126.943241321321
@@ -52,13 +51,12 @@ func TestKeywordSearchWithXML(t *testing.T) {
 	iter := local.KeywordSearch(query).
 		FormatXML().
 		AuthorizeWith(key).
-		Coordinates(x, y).
-		RadiusDistance(radius).
-		Rectangle(xMin, yMin, xMax, yMax).
+		WithRadius(x, y, radius).
+		WithRect(xMin, yMin, xMax, yMax).
 		Result(1).
 		Display(15).
 		Category(groupcode).
-		Sorting(order)
+		SortBy(typ)
 
 	for res, err := iter.Next(); ; res, err = iter.Next() {
 		t.Log(res)

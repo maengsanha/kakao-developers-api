@@ -10,7 +10,7 @@ import (
 	"strings"
 )
 
-// KeywordSearchIterator initializes parameters that used in keyword search.
+// KeywordSearchIterator is a lazy keyword search iterator.
 type KeywordSearchIterator struct {
 	Query             string
 	CategoryGroupCode string
@@ -74,8 +74,6 @@ func (k *KeywordSearchIterator) AuthorizeWith(key string) *KeywordSearchIterator
 	return k
 }
 
-// Category group code is used if you want to filter results into categories.
-//
 // Category sets the category group code of k.
 // There are a few available category group codes:
 //
@@ -123,28 +121,22 @@ func (k *KeywordSearchIterator) Category(groupcode string) *KeywordSearchIterato
 	return k
 }
 
-// Coorinates set X coordinate (longitude) of the center and Y coordinate (latitude) of the center.
-// Used to search places around a specific area along with radius.
-func (k *KeywordSearchIterator) Coordinates(x, y float64) *KeywordSearchIterator {
-	k.X = strconv.FormatFloat(x, 'f', -1, 64)
-	k.Y = strconv.FormatFloat(y, 'f', -1, 64)
-	return k
-}
-
-// RadiusDistance is used to search places around a specific area along with x and y (center coordinates).
+// WithRadius is used to search places around a specific area along with x and y (center coordinates).
 //
 // @radius : The distance from the center coordinates to an axis of rotation in meters. (between 0 and 20000)
-func (k *KeywordSearchIterator) RadiusDistance(radius int) *KeywordSearchIterator {
+func (k *KeywordSearchIterator) WithRadius(x, y float64, radius int) *KeywordSearchIterator {
+	k.X = strconv.FormatFloat(x, 'f', -1, 64)
+	k.Y = strconv.FormatFloat(y, 'f', -1, 64)
 	if 0 <= radius && radius <= 20000 {
 		k.Radius = radius
 	}
 	return k
 }
 
-// Rectangle is used to limit search area, such as when searching places within the map screen.
+// WithRect is used to limit search area, such as when searching places within the map screen.
 //
 // In the coordinates of left X(@xMin), left Y(@yMin), right X(@xMax), right Y(@yMax) format.
-func (k *KeywordSearchIterator) Rectangle(xMin, yMin, xMax, yMax float64) *KeywordSearchIterator {
+func (k *KeywordSearchIterator) WithRect(xMin, yMin, xMax, yMax float64) *KeywordSearchIterator {
 	k.Rect = strings.Join([]string{strconv.FormatFloat(xMin, 'f', -1, 64),
 		strconv.FormatFloat(yMin, 'f', -1, 64),
 		strconv.FormatFloat(xMax, 'f', -1, 64),
@@ -170,10 +162,10 @@ func (k *KeywordSearchIterator) Display(size int) *KeywordSearchIterator {
 //
 // Sorting order(@order) can be accuracy or distance. (Default: accuracy).
 // In the case of distance, x and y values are required as a reference coordinates.
-func (k *KeywordSearchIterator) Sorting(order string) *KeywordSearchIterator {
-	switch order {
+func (k *KeywordSearchIterator) SortBy(typ string) *KeywordSearchIterator {
+	switch typ {
 	case "accuracy", "distance":
-		k.Sort = order
+		k.Sort = typ
 	}
 	return k
 }
