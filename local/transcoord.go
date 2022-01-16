@@ -15,7 +15,7 @@ type Coord struct {
 	Y float64 `json:"y" xml:"y"`
 }
 
-// TransCoordInitializer initializes parameters that used in transform coordinate.
+// TransCoordInitializer initializes parameters used for coordinate transformation.
 type TransCoordInitializer struct {
 	X           string
 	Y           string
@@ -25,7 +25,7 @@ type TransCoordInitializer struct {
 	OutputCoord string
 }
 
-// TransCoordResult represents a converted result.
+// TransCoordResult represents a coordination transformation result.
 type TransCoordResult struct {
 	XMLName xml.Name `xml:"result"`
 	Meta    struct {
@@ -128,8 +128,7 @@ func (t *TransCoordInitializer) Output(coord string) *TransCoordInitializer {
 	return t
 }
 
-// Collect sends a GET request and
-// returns the result of the coordinate system conversion.
+// Collect returns the result of the coordinate system conversion.
 func (t *TransCoordInitializer) Collect() (res TransCoordResult, err error) {
 	// at first, send request to the API server
 	client := new(http.Client)
