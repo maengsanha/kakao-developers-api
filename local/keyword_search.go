@@ -10,19 +10,7 @@ import (
 	"strings"
 )
 
-// KeywordSearchResult ...
-type KeywordSearchResult struct {
-	XMLName xml.Name `xml:"result"`
-	Meta    struct {
-		TotalCount    int        `json:"total_count" xml:"total_count"`
-		PageableCount int        `json:"pageable_count" xml:"pageable_count"`
-		IsEnd         bool       `json:"is_end" xml:"is_end"`
-		SameName      RegionInfo `json:"same_name" xml:"same_name"`
-	} `json:"meta" xml:"meta"`
-	Documents []Place `json:"documents" xml:"documents"`
-}
-
-// KeywordSearchIterator ...
+// KeywordSearchIterator is a lazy keyword search iterator.
 type KeywordSearchIterator struct {
 	Query             string
 	CategoryGroupCode string
@@ -37,7 +25,23 @@ type KeywordSearchIterator struct {
 	Sort              string
 }
 
-// KeywordSearch ...
+// KeywordSearchResult represents a keyword search result.
+type KeywordSearchResult struct {
+	XMLName xml.Name `xml:"result"`
+	Meta    struct {
+		TotalCount    int        `json:"total_count" xml:"total_count"`
+		PageableCount int        `json:"pageable_count" xml:"pageable_count"`
+		IsEnd         bool       `json:"is_end" xml:"is_end"`
+		SameName      RegionInfo `json:"same_name" xml:"same_name"`
+	} `json:"meta" xml:"meta"`
+	Documents []Place `json:"documents" xml:"documents"`
+}
+
+// KeywordSearch provides the search results for places that match @query
+// in the specified sorting order.
+//
+// Details can be referred to
+// https://developers.kakao.com/docs/latest/ko/local/dev-guide#search-by-keyword
 func KeywordSearch(query string) *KeywordSearchIterator {
 	return &KeywordSearchIterator{
 		Query:             url.QueryEscape(strings.TrimSpace(query)),
@@ -64,7 +68,7 @@ func (k *KeywordSearchIterator) FormatXML() *KeywordSearchIterator {
 	return k
 }
 
-// AuthorizeWith ...
+// AuthorizeWith sets the authorization key to @key.
 func (k *KeywordSearchIterator) AuthorizeWith(key string) *KeywordSearchIterator {
 	k.AuthKey = "KakaoAK " + strings.TrimSpace(key)
 	return k
@@ -109,13 +113,17 @@ func (k *KeywordSearchIterator) AuthorizeWith(key string) *KeywordSearchIterator
 //
 // AD5: Accommodation
 func (k *KeywordSearchIterator) Category(groupcode string) *KeywordSearchIterator {
-	if groupcode == "MT1" || groupcode == "CS2" || groupcode == "PS3" || groupcode == "SC4" || groupcode == "AC5" || groupcode == "PK6" || groupcode == "OL7" || groupcode == "SW8" || groupcode == "CT1" || groupcode == "AG2" || groupcode == "P03" || groupcode == "AT4" || groupcode == "FD6" || groupcode == "CE7" || groupcode == "HP8" || groupcode == "PM9" || groupcode == "BK9" || groupcode == "AD5" {
+	switch groupcode {
+	case "MT1", "CS2", "PS3", "SC4", "AC5", "PK6", "OL7", "SW8", "CT1",
+		"AG2", "PO3", "AT4", "FD6", "CE7", "HP8", "PM9", "BK9", "AD5":
 		k.CategoryGroupCode = groupcode
 	}
 	return k
 }
 
-// WithRadius ...
+// WithRadius is used to search places around a specific area along with x and y (center coordinates).
+//
+// @radius : The distance from the center coordinates to an axis of rotation in meters. (between 0 and 20000)
 func (k *KeywordSearchIterator) WithRadius(x, y float64, radius int) *KeywordSearchIterator {
 	k.X = strconv.FormatFloat(x, 'f', -1, 64)
 	k.Y = strconv.FormatFloat(y, 'f', -1, 64)
@@ -125,7 +133,9 @@ func (k *KeywordSearchIterator) WithRadius(x, y float64, radius int) *KeywordSea
 	return k
 }
 
-// WithRect ...
+// WithRect is used to limit search area, such as when searching places within the map screen.
+//
+// In the coordinates of left X(@xMin), left Y(@yMin), right X(@xMax), right Y(@yMax) format.
 func (k *KeywordSearchIterator) WithRect(xMin, yMin, xMax, yMax float64) *KeywordSearchIterator {
 	k.Rect = strings.Join([]string{strconv.FormatFloat(xMin, 'f', -1, 64),
 		strconv.FormatFloat(yMin, 'f', -1, 64),
@@ -148,15 +158,20 @@ func (k *KeywordSearchIterator) Display(size int) *KeywordSearchIterator {
 	return k
 }
 
-// SortBy ...
+// Sorting specifies sorting order of the document results.
+//
+// Sorting order(@order) can be accuracy or distance. (Default: accuracy).
+// In the case of distance, x and y values are required as a reference coordinates.
 func (k *KeywordSearchIterator) SortBy(typ string) *KeywordSearchIterator {
-	if typ == "accuracy" || typ == "distance" {
+	switch typ {
+	case "accuracy", "distance":
 		k.Sort = typ
 	}
 	return k
 }
 
-// Next returns the keyword search result and proceeds the iterator to the next page.
+// Next sends a GET request and
+// returns the keyword search result and proceeds the iterator to the next page.
 func (k *KeywordSearchIterator) Next() (res KeywordSearchResult, err error) {
 	// at first, send request to the API server
 	client := new(http.Client)
