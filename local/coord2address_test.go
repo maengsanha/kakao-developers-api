@@ -3,7 +3,7 @@ package local_test
 import (
 	"testing"
 
-	"github.com/maengsanha/kakao-developers-api/v2/local"
+	"github.com/maengsanha/kakao-developers-api/local"
 )
 
 func TestCoord2AddressWithJSON(t *testing.T) {

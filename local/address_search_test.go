@@ -3,7 +3,7 @@ package local_test
 import (
 	"testing"
 
-	"github.com/maengsanha/kakao-developers-api/v2/local"
+	"github.com/maengsanha/kakao-developers-api/local"
 )
 
 func TestAddressSearchWithJSON(t *testing.T) {
@@ -12,7 +12,7 @@ func TestAddressSearchWithJSON(t *testing.T) {
 
 	iter := local.AddressSearch(query).
 		AuthorizeWith(key).
-		AnalyzeSimilar().
+		Analyze("similar").
 		FormatJSON().
 		Display(20).
 		Result(1)
@@ -34,7 +34,7 @@ func TestAddressSearchWithXML(t *testing.T) {
 
 	iter := local.AddressSearch(query).
 		AuthorizeWith(key).
-		AnalyzeSimilar().
+		Analyze("similar").
 		FormatXML().
 		Display(30).
 		Result(1)

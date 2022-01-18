@@ -10,6 +10,7 @@ import (
 	"strings"
 )
 
+// CategorySearchResult ...
 type CategorySearchResult struct {
 	XMLName xml.Name `xml:"result"`
 	Meta    struct {
@@ -21,6 +22,7 @@ type CategorySearchResult struct {
 	Documents []Place `json:"documents" xml:"documents"`
 }
 
+// CategorySearchIterator ...
 type CategorySearchIterator struct {
 	Query             string
 	Format            string
@@ -35,44 +37,7 @@ type CategorySearchIterator struct {
 	Sort              string
 }
 
-// Category sets the group code of k.
-// There are few available group codes:
-//
-// MT1 : Large Supermarket
-//
-// CS2 : Convenience Store
-//
-// PS3 : Daycare Center, Kindergarten
-//
-// SC4 : School
-//
-// AC5 : Academic
-//
-// PK6 : Parking
-//
-// OL7 : Gas Station, Charging Station
-//
-// SW8 : Subway Station
-//
-// CT1 : Culture Facility
-//
-// AG2 : Brokerage
-//
-// PO3 : Public Institution
-//
-// AT4 : Tourist Attractions
-//
-// FD6 : Restaurant
-//
-// CE7 : Cafe
-//
-// HP8 : Hospital
-//
-// PM9 : Pharmacy
-//
-// BK9 : Bank
-//
-// AD5 : Accommodation
+// PlaceSearchByCategory ...
 func PlaceSearchByCategory(groupcode string) *CategorySearchIterator {
 	return &CategorySearchIterator{
 		Format:            "json",
@@ -98,13 +63,14 @@ func (c *CategorySearchIterator) FormatXML() *CategorySearchIterator {
 	return c
 }
 
+// Authorization ...
 func (c *CategorySearchIterator) AuthorizeWith(key string) *CategorySearchIterator {
 	c.AuthKey = "KakaoAK " + strings.TrimSpace(key)
 	return c
 }
 
+// WithRadius ...
 func (c *CategorySearchIterator) WithRadius(x, y float64, radius int) *CategorySearchIterator {
-
 	if 0 <= c.Radius && c.Radius <= 20000 {
 		c.X = strconv.FormatFloat(x, 'f', -1, 64)
 		c.Y = strconv.FormatFloat(y, 'f', -1, 64)
@@ -114,6 +80,7 @@ func (c *CategorySearchIterator) WithRadius(x, y float64, radius int) *CategoryS
 	return c
 }
 
+// WithRect ...
 func (c *CategorySearchIterator) WithRect(xMin, yMin, xMax, yMax float64) *CategorySearchIterator {
 	c.Rect = strings.Join([]string{
 		strconv.FormatFloat(xMin, 'f', -1, 64),
@@ -137,6 +104,7 @@ func (c *CategorySearchIterator) Display(size int) *CategorySearchIterator {
 	return c
 }
 
+// SortBy ...
 func (c *CategorySearchIterator) SortBy(typ string) *CategorySearchIterator {
 	if typ == "accuracy" || typ == "distance" {
 		c.Sort = typ
@@ -144,10 +112,14 @@ func (c *CategorySearchIterator) SortBy(typ string) *CategorySearchIterator {
 	return c
 }
 
+// Next ...
 func (c *CategorySearchIterator) Next() (res CategorySearchResult, err error) {
 	client := new(http.Client)
 
-	req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("https://dapi.kakao.com/v2/local/search/category.%s?category_group_code=%s&page=%d&size=%d&sort=%s&x=%s&y=%s&radius=%d&rect=%s", c.Format, c.CategoryGroupCode, c.Page, c.Size, c.Sort, c.X, c.Y, c.Radius, c.Rect), nil)
+	req, err := http.NewRequest(http.MethodGet,
+		fmt.Sprintf("https://dapi.kakao.com/v2/local/search/category.%s?category_group_code=%s&page=%d&size=%d&sort=%s&x=%s&y=%s&radius=%d&rect=%s",
+			c.Format, c.CategoryGroupCode, c.Page, c.Size, c.Sort, c.X, c.Y, c.Radius, c.Rect), nil)
+
 	if err != nil {
 		return
 	}
