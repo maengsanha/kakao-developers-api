@@ -6,26 +6,27 @@ import (
 	"encoding/xml"
 	"fmt"
 	"net/http"
+	"strconv"
 	"strings"
 )
 
-// Coord ...
+// Coord represents a document of coordinate transformation result.
 type Coord struct {
 	X float64 `json:"x" xml:"x"`
 	Y float64 `json:"y" xml:"y"`
 }
 
-// TransCoordInitializer ...
+// TransCoordInitializer initializes parameters used for coordinate transformation.
 type TransCoordInitializer struct {
-	X           float64
-	Y           float64
+	X           string
+	Y           string
 	Format      string
 	AuthKey     string
 	InputCoord  string
 	OutputCoord string
 }
 
-// TransCoordResult ...
+// TransCoordResult represents a coordinate transformation result.
 type TransCoordResult struct {
 	XMLName xml.Name `xml:"result"`
 	Meta    struct {
@@ -34,11 +35,14 @@ type TransCoordResult struct {
 	Documents []Coord `json:"documents" xml:"documents"`
 }
 
-// TransCoord ...
+// TransCoord converts @x and @y coordinates to another X and Y coordinates in the designated coordinate system.
+//
+// Details can be referred to
+// https://developers.kakao.com/docs/latest/ko/local/dev-guide#trans-coord.
 func TransCoord(x, y float64) *TransCoordInitializer {
 	return &TransCoordInitializer{
-		X:           x,
-		Y:           y,
+		X:           strconv.FormatFloat(x, 'f', -1, 64),
+		Y:           strconv.FormatFloat(y, 'f', -1, 64),
 		Format:      "json",
 		AuthKey:     "KakaoAK ",
 		InputCoord:  "WGS84",
@@ -56,13 +60,35 @@ func (t *TransCoordInitializer) FormatXML() *TransCoordInitializer {
 	return t
 }
 
-// AuthorizeWith ...
+// AuthorizeWith sets the authorization key to @key.
 func (t *TransCoordInitializer) AuthorizeWith(key string) *TransCoordInitializer {
 	t.AuthKey = "KakaoAK " + strings.TrimSpace(key)
 	return t
 }
 
-// Input ...
+// Input sets the type of input coordinate system.
+//
+// There are a few supported coordinate systems:
+//
+// WGS84
+//
+// WCONGNAMUL
+//
+// CONGNAMUL
+//
+// WTM
+//
+// TM
+//
+// KTM
+//
+// UTM
+//
+// BESSEL
+//
+// WKTM
+//
+// WUTM
 func (t *TransCoordInitializer) Input(coord string) *TransCoordInitializer {
 	switch coord {
 	case "WGS84", "WCONGNAMUL", "CONGNAMUL", "WTM", "TM", "KTM", "UTM", "BESSEL", "WKTM", "WUTM":
@@ -71,7 +97,29 @@ func (t *TransCoordInitializer) Input(coord string) *TransCoordInitializer {
 	return t
 }
 
-// Output ...
+// Output sets the type of output coordinate system.
+//
+// There are a few supported coordinate systems:
+//
+// WGS84
+//
+// WCONGNAMUL
+//
+// CONGNAMUL
+//
+// WTM
+//
+// TM
+//
+// KTM
+//
+// UTM
+//
+// BESSEL
+//
+// WKTM
+//
+// WUTM
 func (t *TransCoordInitializer) Output(coord string) *TransCoordInitializer {
 	switch coord {
 	case "WGS84", "WCONGNAMUL", "CONGNAMUL", "WTM", "TM", "KTM", "UTM", "BESSEL", "WKTM", "WUTM":
@@ -80,26 +128,28 @@ func (t *TransCoordInitializer) Output(coord string) *TransCoordInitializer {
 	return t
 }
 
-// Collect ...
+// Collect returns the coordinate system conversion result.
 func (t *TransCoordInitializer) Collect() (res TransCoordResult, err error) {
+	// at first, send request to the API server
 	client := new(http.Client)
 	req, err := http.NewRequest(http.MethodGet,
-		fmt.Sprintf("https://dapi.kakao.com/v2/local/geo/transcoord.%s?x=%f&y=%f&input_coord=%s&output_coord=%s",
+		fmt.Sprintf("https://dapi.kakao.com/v2/local/geo/transcoord.%s?x=%s&y=%s&input_coord=%s&output_coord=%s",
 			t.Format, t.X, t.Y, t.InputCoord, t.OutputCoord), nil)
 
 	if err != nil {
 		return
 	}
-
+	// don't forget to close the request for concurrent request
 	req.Close = true
 
+	// set authorization header
 	req.Header.Set("Authorization", t.AuthKey)
 
 	resp, err := client.Do(req)
 	if err != nil {
 		return
 	}
-
+	// don't forget to close the response body
 	defer resp.Body.Close()
 
 	if t.Format == "json" {
