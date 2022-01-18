@@ -3,7 +3,7 @@ package local
 
 // Place represents a place information of Local APIs.
 type Place struct {
-	ID                string `json:"id" xml:"id"`
+	Id                string `json:"id" xml:"id"`
 	PlaceName         string `json:"place_name" xml:"place_name"`
 	CategoryName      string `json:"category_name" xml:"category_name"`
 	CategoryGroupCode string `json:"category_group_code" xml:"category_group_code"`
