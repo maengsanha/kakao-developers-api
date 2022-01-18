@@ -14,7 +14,7 @@ func TestTransCoordWithJSON(t *testing.T) {
 	if res, err := local.TransCoord(x, y).
 		AuthorizeWith(key).
 		Input("WTM").
-		Output("WGS84").
+		Output("WCONGNAMUL").
 		FormatJSON().
 		Collect(); err != nil {
 		t.Error(err)
@@ -32,7 +32,7 @@ func TestTransCoordWithXML(t *testing.T) {
 	if res, err := local.TransCoord(x, y).
 		AuthorizeWith(key).
 		Input("WTM").
-		Output("WGS84").
+		Output("WCONGNAMUL").
 		FormatXML().
 		Collect(); err != nil {
 		t.Error(err)
