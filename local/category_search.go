@@ -10,7 +10,7 @@ import (
 	"strings"
 )
 
-// CategorySearchResult ...
+// CategorySearchResult represents category search results
 type CategorySearchResult struct {
 	XMLName xml.Name `xml:"result"`
 	Meta    struct {
@@ -22,7 +22,7 @@ type CategorySearchResult struct {
 	Documents []Place `json:"documents" xml:"documents"`
 }
 
-// CategorySearchIterator ...
+// CategorySearchIterator initialize parameters of http request
 type CategorySearchIterator struct {
 	Query             string
 	Format            string
@@ -37,7 +37,55 @@ type CategorySearchIterator struct {
 	Sort              string
 }
 
-// PlaceSearchByCategory ...
+// PlaceSearchByCategory provides the search results for place by group code in the specified order.
+//
+// This api provides two search option.
+//
+// option 1. Search with @x, @y coordinates and @radius that distance from center coordinate.
+//
+// option 2. Search with @rect that coordinates of left X, left Y, right X, right Y.
+//
+//
+// Category code list
+//
+// MT1	Large supermarket
+//
+// CS2	Convenience store
+//
+// PS3	Kindergarten
+//
+// SC4	School
+//
+// AC5	Academic
+//
+// PK6	Parking
+//
+// OL7	Gas station, Charging Station
+//
+// SW8	Subway station
+//
+// BK9	Bank
+//
+// CT1	Cultural facility
+//
+// AG2	Brokerage
+//
+// PO3	Public institution
+//
+// AT4	Tourist attraction
+//
+// AD5	Accommodation
+//
+// FD6	Restaurant
+//
+// CE7	Cafe
+//
+// HP8	Hospital
+//
+// PM9	Pharmacys
+//
+// Details can be referred to
+// https://developers.kakao.com/docs/latest/en/local/dev-guide#search-by-category
 func PlaceSearchByCategory(groupcode string) *CategorySearchIterator {
 	return &CategorySearchIterator{
 		Format:            "json",
@@ -63,13 +111,13 @@ func (c *CategorySearchIterator) FormatXML() *CategorySearchIterator {
 	return c
 }
 
-// Authorization ...
+// Authorization sets the authorization key to @key.
 func (c *CategorySearchIterator) AuthorizeWith(key string) *CategorySearchIterator {
 	c.AuthKey = "KakaoAK " + strings.TrimSpace(key)
 	return c
 }
 
-// WithRadius ...
+// WithRadius used to search place around a specific area along with @x and @y(center coordinates).
 func (c *CategorySearchIterator) WithRadius(x, y float64, radius int) *CategorySearchIterator {
 	if 0 <= c.Radius && c.Radius <= 20000 {
 		c.X = strconv.FormatFloat(x, 'f', -1, 64)
@@ -80,7 +128,7 @@ func (c *CategorySearchIterator) WithRadius(x, y float64, radius int) *CategoryS
 	return c
 }
 
-// WithRect ...
+// WithRect used to search limit area, such as when searching place within the map screen.
 func (c *CategorySearchIterator) WithRect(xMin, yMin, xMax, yMax float64) *CategorySearchIterator {
 	c.Rect = strings.Join([]string{
 		strconv.FormatFloat(xMin, 'f', -1, 64),
@@ -104,15 +152,23 @@ func (c *CategorySearchIterator) Display(size int) *CategorySearchIterator {
 	return c
 }
 
-// SortBy ...
+// SortBy sets ordering type to @typ.
+//
+// There are folloing options
+//
+// accuracy
+//
+// distance
 func (c *CategorySearchIterator) SortBy(typ string) *CategorySearchIterator {
-	if typ == "accuracy" || typ == "distance" {
+	switch typ {
+	case "accuracy", "distance":
 		c.Sort = typ
 	}
 	return c
 }
 
-// Next ...
+// Next sends a http GET request
+// and returns the category search result
 func (c *CategorySearchIterator) Next() (res CategorySearchResult, err error) {
 	client := new(http.Client)
 
