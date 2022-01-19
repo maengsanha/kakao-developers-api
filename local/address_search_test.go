@@ -3,7 +3,7 @@ package local_test
 import (
 	"testing"
 
-	"github.com/maengsanha/kakao-developers-api/local"
+	"github.com/maengsanha/kakao-developers-client/local"
 )
 
 func TestAddressSearchWithJSON(t *testing.T) {
