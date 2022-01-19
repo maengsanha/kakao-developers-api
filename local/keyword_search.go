@@ -128,14 +128,14 @@ func (k *KeywordSearchIterator) Category(groupcode string) *KeywordSearchIterato
 	return k
 }
 
-// WithCoordinates sets the x and y coordinates of k.
+// WithCoordinates sets the X and Y coordinates of k.
 func (k *KeywordSearchIterator) WithCoordinates(x, y float64) *KeywordSearchIterator {
 	k.X = strconv.FormatFloat(x, 'f', -1, 64)
 	k.Y = strconv.FormatFloat(y, 'f', -1, 64)
 	return k
 }
 
-// WithRadius searches places around a specific area along with @x and @y (center coordinates).
+// WithRadius searches places around a specific area along with @x and @y.
 //
 // @radius is the distance (a value between 0 and 20000) from the center coordinates to an axis of rotation in meters.
 func (k *KeywordSearchIterator) WithRadius(radius int) *KeywordSearchIterator {
