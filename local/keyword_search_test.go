@@ -15,10 +15,11 @@ func TestKeywordSearchWithJSON(t *testing.T) {
 	radius := 10000
 	typ := "accuracy"
 
-	iter := local.KeywordSearch(query).
+	iter := local.PlaceSearchByKeyword(query).
 		FormatJSON().
 		AuthorizeWith(key).
-		WithRadius(x, y, radius).
+		WithCoordinates(x, y).
+		WithRadius(radius).
 		Result(1).
 		Display(15).
 		Category(groupcode).
@@ -48,10 +49,11 @@ func TestKeywordSearchWithXML(t *testing.T) {
 	xMax := 126.943241321321
 	yMax := 37.5904321012312
 
-	iter := local.KeywordSearch(query).
+	iter := local.PlaceSearchByKeyword(query).
 		FormatXML().
 		AuthorizeWith(key).
-		WithRadius(x, y, radius).
+		WithCoordinates(x, y).
+		WithRadius(radius).
 		WithRect(xMin, yMin, xMax, yMax).
 		Result(1).
 		Display(15).

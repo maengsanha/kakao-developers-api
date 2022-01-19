@@ -38,12 +38,12 @@ type KeywordSearchIterator struct {
 	Sort              string
 }
 
-// KeywordSearch provides the search results for places that match @query
+// PlaceSearchByKeyword provides the search results for places that match @query
 // in the specified sorting order.
 //
 // Details can be referred to
 // https://developers.kakao.com/docs/latest/ko/local/dev-guide#search-by-keyword.
-func KeywordSearch(query string) *KeywordSearchIterator {
+func PlaceSearchByKeyword(query string) *KeywordSearchIterator {
 	return &KeywordSearchIterator{
 		Query:             url.QueryEscape(strings.TrimSpace(query)),
 		CategoryGroupCode: "",
@@ -122,13 +122,18 @@ func (k *KeywordSearchIterator) Category(groupcode string) *KeywordSearchIterato
 	return k
 }
 
+// WithCoordinates sets the x and y coordinates of k.
+func (k *KeywordSearchIterator) WithCoordinates(x, y float64) *KeywordSearchIterator {
+	k.X = strconv.FormatFloat(x, 'f', -1, 64)
+	k.Y = strconv.FormatFloat(y, 'f', -1, 64)
+	return k
+}
+
 // WithRadius searches places around a specific area along with @x and @y (center coordinates).
 //
 // @radius is the distance (a value between 0 and 20000) from the center coordinates to an axis of rotation in meters.
-func (k *KeywordSearchIterator) WithRadius(x, y float64, radius int) *KeywordSearchIterator {
+func (k *KeywordSearchIterator) WithRadius(radius int) *KeywordSearchIterator {
 	if 0 <= radius && radius <= 20000 {
-		k.X = strconv.FormatFloat(x, 'f', -1, 64)
-		k.Y = strconv.FormatFloat(y, 'f', -1, 64)
 		k.Radius = radius
 	}
 	return k
