@@ -153,13 +153,13 @@ func (c *CategorySearchIterator) Display(size int) *CategorySearchIterator {
 	return c
 }
 
-// SortBy sets the ordering type of c to @typ.
+// SortBy sets the ordering type of c to @order.
 //
-// @typ can be accuracy or distance. (default is accuracy)
-func (c *CategorySearchIterator) SortBy(typ string) *CategorySearchIterator {
-	switch typ {
+// @order can be accuracy or distance. (default is accuracy)
+func (c *CategorySearchIterator) SortBy(order string) *CategorySearchIterator {
+	switch order {
 	case "accuracy", "distance":
-		c.Sort = typ
+		c.Sort = order
 	}
 	return c
 }
