@@ -15,7 +15,7 @@ func TestCoordToDistrictWithJSON(t *testing.T) {
 		AuthorizeWith(key).
 		Input("WGS84").
 		Output("WGS84").
-		FormatJSON().
+		FormatAs("json").
 		Collect(); err != nil {
 		t.Error(err)
 	} else {
@@ -32,7 +32,7 @@ func TestCoordToDistrictWithXML(t *testing.T) {
 		AuthorizeWith(key).
 		Input("WGS84").
 		Output("CONGNAMUL").
-		FormatXML().
+		FormatAs("xml").
 		Collect(); err != nil {
 		t.Error(err)
 	} else {
