@@ -4,7 +4,9 @@ package local
 import (
 	"encoding/json"
 	"encoding/xml"
+	"errors"
 	"fmt"
+	"log"
 	"net/http"
 	"net/url"
 	"strconv"
@@ -59,13 +61,17 @@ func PlaceSearchByKeyword(query string) *KeywordSearchIterator {
 	}
 }
 
-func (k *KeywordSearchIterator) FormatJSON() *KeywordSearchIterator {
-	k.Format = "json"
-	return k
-}
-
-func (k *KeywordSearchIterator) FormatXML() *KeywordSearchIterator {
-	k.Format = "xml"
+// FormatAs sets the request format to @format (json or xml).
+func (k *KeywordSearchIterator) FormatAs(format string) *KeywordSearchIterator {
+	switch format {
+	case "json", "xml":
+		k.Format = format
+	default:
+		panic(ErrUnsupportedFormat)
+	}
+	if r := recover(); r != nil {
+		log.Println(r)
+	}
 	return k
 }
 
@@ -135,6 +141,11 @@ func (k *KeywordSearchIterator) WithCoordinates(x, y float64) *KeywordSearchIter
 func (k *KeywordSearchIterator) WithRadius(radius int) *KeywordSearchIterator {
 	if 0 <= radius && radius <= 20000 {
 		k.Radius = radius
+	} else {
+		panic(ErrRadiusOutOfBound)
+	}
+	if r := recover(); r != nil {
+		log.Println(r)
 	}
 	return k
 }
@@ -149,29 +160,41 @@ func (k *KeywordSearchIterator) WithRect(xMin, yMin, xMax, yMax float64) *Keywor
 	return k
 }
 
+// Result sets the result page number (a value between 1 and 45).
 func (k *KeywordSearchIterator) Result(page int) *KeywordSearchIterator {
 	if 1 <= page && page <= 45 {
 		k.Page = page
+	} else {
+		panic(ErrPageOutOfBound)
+	}
+	if r := recover(); r != nil {
+		log.Println(r)
 	}
 	return k
 }
 
+// Display sets the number of documents displayed on a single page (a value between 1 and 45).
 func (k *KeywordSearchIterator) Display(size int) *KeywordSearchIterator {
 	if 1 <= size && size <= 45 {
 		k.Size = size
+	} else {
+		panic(errors.New("size must be between 1 and 45"))
+	}
+	if r := recover(); r != nil {
+		log.Println(r)
 	}
 	return k
 }
 
-// SortBy sets the sorting order of the document results to @typ.
+// SortBy sets the sorting order of the document results to @order.
 //
-// @typ can be accuracy or distance. (default is accuracy)
+// @order can be accuracy or distance. (default is accuracy)
 //
-// In the case of distance, x and y are required as a reference coordinates.
-func (k *KeywordSearchIterator) SortBy(typ string) *KeywordSearchIterator {
-	switch typ {
+// In the case of distance, X and Y coordinates are required as a reference coordinates.
+func (k *KeywordSearchIterator) SortBy(order string) *KeywordSearchIterator {
+	switch order {
 	case "accuracy", "distance":
-		k.Sort = typ
+		k.Sort = order
 	}
 	return k
 }
