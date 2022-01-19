@@ -16,7 +16,7 @@ func TestKeywordSearchWithJSON(t *testing.T) {
 	typ := "accuracy"
 
 	iter := local.PlaceSearchByKeyword(query).
-		FormatJSON().
+		FormatAs("json").
 		AuthorizeWith(key).
 		WithCoordinates(x, y).
 		WithRadius(radius).
@@ -50,7 +50,7 @@ func TestKeywordSearchWithXML(t *testing.T) {
 	yMax := 37.5904321012312
 
 	iter := local.PlaceSearchByKeyword(query).
-		FormatXML().
+		FormatAs("xml").
 		AuthorizeWith(key).
 		WithCoordinates(x, y).
 		WithRadius(radius).
