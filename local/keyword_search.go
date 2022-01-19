@@ -122,7 +122,7 @@ func (k *KeywordSearchIterator) Category(groupcode string) *KeywordSearchIterato
 	return k
 }
 
-// WithRadius searches places around a specific area along with @x and @y (center coordinates).
+// WithRadius searches places around a specific area along with @x and @y.
 //
 // @radius is the distance (a value between 0 and 20000) from the center coordinates to an axis of rotation in meters.
 func (k *KeywordSearchIterator) WithRadius(x, y float64, radius int) *KeywordSearchIterator {

@@ -9,7 +9,7 @@ import (
 	"strings"
 )
 
-// TotalAddress represents documents array's element of response.
+// TotalAddress represents a document of CoordToAddressResult.
 type TotalAddress struct {
 	Address struct {
 		AddressName      string `json:"address_name" xml:"address_name"`
@@ -35,7 +35,7 @@ type TotalAddress struct {
 	} `json:"road_address" xml:"road_address"`
 }
 
-// CoordToAddressResult represents CoordToAddress result.
+// CoordToAddressResult represents a CoordToAddress result.
 type CoordToAddressResult struct {
 	XMLName xml.Name `xml:"result"`
 	Meta    struct {
@@ -44,7 +44,7 @@ type CoordToAddressResult struct {
 	Documents []TotalAddress `json:"documents" xml:"documents"`
 }
 
-// CoordToAddressInitializer initialize parameters for coord to address convert.
+// CoordToAddressInitializer is a lazy coord to address converter.
 type CoordToAddressInitializer struct {
 	X          string
 	Y          string
@@ -54,10 +54,10 @@ type CoordToAddressInitializer struct {
 }
 
 // CoordToAddress converts the @x and @y coordinates of location in the selected coordinate system
-// to land-lot number address(with post number) and road name address
+// to land-lot number address(with post number) and road name address.
 //
 // Details can be referred to
-// https://developers.kakao.com/docs/latest/ko/local/dev-guide#coord-to-address
+// https://developers.kakao.com/docs/latest/ko/local/dev-guide#coord-to-address.
 func CoordToAddress(x, y string) *CoordToAddressInitializer {
 	return &CoordToAddressInitializer{
 		X:          x,
@@ -84,9 +84,9 @@ func (c *CoordToAddressInitializer) AuthorizeWith(key string) *CoordToAddressIni
 	return c
 }
 
-// Input sets the coordinate system of request
+// Input sets the coordinate system of request.
 //
-// There are following coordinate system exist
+// There are following coordinate system exist:
 //
 // WGS84
 //
@@ -105,7 +105,7 @@ func (c *CoordToAddressInitializer) Input(coord string) *CoordToAddressInitializ
 	return c
 }
 
-// Collect returns the land-lot number address(with post number) and road name address
+// Collect returns the land-lot number address(with post number) and road name address.
 func (c *CoordToAddressInitializer) Collect() (res CoordToAddressResult, err error) {
 	client := new(http.Client)
 
