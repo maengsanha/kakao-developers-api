@@ -16,7 +16,7 @@ type Coord struct {
 	Y float64 `json:"y" xml:"y"`
 }
 
-// TransCoordInitializer initializes parameters used for coordinate transformation.
+// TransCoordInitializer is a lazy coordinate converter.
 type TransCoordInitializer struct {
 	X           string
 	Y           string

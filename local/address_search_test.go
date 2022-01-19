@@ -7,45 +7,33 @@ import (
 )
 
 func TestAddressSearchWithJSON(t *testing.T) {
-	query := "성북구 정릉동"
+	query := "을지로"
 	key := ""
 
 	iter := local.AddressSearch(query).
 		AuthorizeWith(key).
 		Analyze("similar").
-		FormatJSON().
+		FormatAs("json").
 		Display(20).
 		Result(1)
 
-	for res, err := iter.Next(); ; res, err = iter.Next() {
+	for res, err := iter.Next(); err == nil; res, err = iter.Next() {
 		t.Log(res)
-		if err != nil {
-			if err != local.ErrEndPage {
-				t.Error(err)
-			}
-			break
-		}
 	}
 }
 
 func TestAddressSearchWithXML(t *testing.T) {
-	query := "익선동"
+	query := "을지로"
 	key := ""
 
 	iter := local.AddressSearch(query).
 		AuthorizeWith(key).
 		Analyze("similar").
-		FormatXML().
+		FormatAs("xml").
 		Display(30).
 		Result(1)
 
-	for res, err := iter.Next(); ; res, err = iter.Next() {
+	for res, err := iter.Next(); err == nil; res, err = iter.Next() {
 		t.Log(res)
-		if err != nil {
-			if err != local.ErrEndPage {
-				t.Error(err)
-			}
-			break
-		}
 	}
 }

@@ -4,7 +4,9 @@ package local
 import (
 	"encoding/json"
 	"encoding/xml"
+	"errors"
 	"fmt"
+	"log"
 	"net/http"
 	"net/url"
 	"strings"
@@ -47,6 +49,12 @@ type ComplexAddress struct {
 	} `json:"road_address" xml:"road_address"`
 }
 
+// String implements fmt.Stringer.
+func (c ComplexAddress) String() string {
+	// TODO
+	return fmt.Sprintf("address_name: %s\n", c.AddressName)
+}
+
 // AddressSearchResult represents an address search result.
 type AddressSearchResult struct {
 	XMLName xml.Name `xml:"result"`
@@ -58,6 +66,19 @@ type AddressSearchResult struct {
 	Documents []ComplexAddress `json:"documents" xml:"documents"`
 }
 
+// String implements fmt.Stringer.
+func (a AddressSearchResult) String() string {
+	// TODO
+	return fmt.Sprintf("\ntotal_count: %d\npageable_count: %d\nis_end: %t\n%v", a.Meta.TotalCount, a.Meta.PageableCount, a.Meta.IsEnd, a.Documents)
+}
+
+type AddressSearchResults []AddressSearchResult
+
+func (a AddressSearchResults) SaveAs(filename string) error {
+	// TODO
+	return nil
+}
+
 // AddressSearchIterator is a lazy address search iterator.
 type AddressSearchIterator struct {
 	Query       string
@@ -66,6 +87,7 @@ type AddressSearchIterator struct {
 	AnalyzeType string
 	Page        int
 	Size        int
+	end         bool
 }
 
 // AddressSearch provides the coordinates of the requested address with @query.
@@ -79,16 +101,21 @@ func AddressSearch(query string) *AddressSearchIterator {
 		AnalyzeType: "similar",
 		Page:        1,
 		Size:        10,
+		end:         false,
 	}
 }
 
-func (a *AddressSearchIterator) FormatJSON() *AddressSearchIterator {
-	a.Format = "json"
-	return a
-}
-
-func (a *AddressSearchIterator) FormatXML() *AddressSearchIterator {
-	a.Format = "xml"
+// FormatAs sets the request format to @format (json or xml).
+func (a *AddressSearchIterator) FormatAs(format string) *AddressSearchIterator {
+	switch format {
+	case "json", "xml":
+		a.Format = format
+	default:
+		panic(ErrUnsupportedFormat)
+	}
+	if r := recover(); r != nil {
+		log.Println(r)
+	}
 	return a
 }
 
@@ -109,26 +136,48 @@ func (a *AddressSearchIterator) Analyze(typ string) *AddressSearchIterator {
 	switch typ {
 	case "similar", "exact":
 		a.AnalyzeType = typ
+	default:
+		panic(errors.New("analyze type must be either similar or exact"))
+	}
+	if r := recover(); r != nil {
+		log.Println(r)
 	}
 	return a
 }
 
+// Result sets the result page number (a value between 1 and 45).
 func (a *AddressSearchIterator) Result(page int) *AddressSearchIterator {
 	if 1 <= page && page <= 45 {
 		a.Page = page
+	} else {
+		panic(ErrPageOutOfBound)
+	}
+	if r := recover(); r != nil {
+		log.Println(r)
 	}
 	return a
 }
 
+// Display sets the number of documents displayed on a single page (a value between 1 and 30).
 func (a *AddressSearchIterator) Display(size int) *AddressSearchIterator {
 	if 1 <= size && size <= 30 {
 		a.Size = size
+	} else {
+		panic(errors.New("size must be between 1 and 30"))
+	}
+	if r := recover(); r != nil {
+		log.Println(r)
 	}
 	return a
 }
 
 // Next returns the address search result and proceeds the iterator to the next page.
 func (a *AddressSearchIterator) Next() (res AddressSearchResult, err error) {
+	// if there is no more result, return error
+	if a.end {
+		return res, ErrEndPage
+	}
+
 	// at first, send request to the API server
 	client := new(http.Client)
 	req, err := http.NewRequest(http.MethodGet,
@@ -162,11 +211,7 @@ func (a *AddressSearchIterator) Next() (res AddressSearchResult, err error) {
 		}
 	}
 
-	// if it was the last result, return error
-	// or increase the page number
-	if res.Meta.IsEnd {
-		return res, ErrEndPage
-	}
+	a.end = res.Meta.IsEnd
 
 	a.Page++
 
