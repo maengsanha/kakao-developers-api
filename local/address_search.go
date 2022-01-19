@@ -137,7 +137,7 @@ func (a *AddressSearchIterator) Analyze(typ string) *AddressSearchIterator {
 	case "similar", "exact":
 		a.AnalyzeType = typ
 	default:
-		panic(errors.New("typ must be either similar or exact"))
+		panic(errors.New("analyze type must be either similar or exact"))
 	}
 	if r := recover(); r != nil {
 		log.Println(r)
