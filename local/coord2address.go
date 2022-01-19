@@ -44,7 +44,7 @@ type CoordToAddressResult struct {
 	Documents []TotalAddress `json:"documents" xml:"documents"`
 }
 
-// CoordToAddressInitializer initialize parameters of http request
+// CoordToAddressInitializer initialize parameters for coord to address convert.
 type CoordToAddressInitializer struct {
 	X          string
 	Y          string
@@ -54,7 +54,7 @@ type CoordToAddressInitializer struct {
 }
 
 // CoordToAddress converts the @x and @y coordinates of location in the selected coordinate system
-// to land-lot number address and road name address
+// to land-lot number address(with post number) and road name address
 //
 // Details can be referred to
 // https://developers.kakao.com/docs/latest/ko/local/dev-guide#coord-to-address
@@ -105,8 +105,7 @@ func (c *CoordToAddressInitializer) Input(coord string) *CoordToAddressInitializ
 	return c
 }
 
-// Collect sends a http GET request
-// and returns the land-lot number address and road name address
+// Collect returns the land-lot number address(with post number) and road name address
 func (c *CoordToAddressInitializer) Collect() (res CoordToAddressResult, err error) {
 	client := new(http.Client)
 
