@@ -49,12 +49,6 @@ type ComplexAddress struct {
 	} `json:"road_address" xml:"road_address"`
 }
 
-// String implements fmt.Stringer.
-func (c ComplexAddress) String() string {
-	// TODO
-	return ""
-}
-
 // AddressSearchResult represents an address search result.
 type AddressSearchResult struct {
 	XMLName xml.Name `xml:"result"`
@@ -68,7 +62,9 @@ type AddressSearchResult struct {
 
 // String implements fmt.Stringer.
 func (ar AddressSearchResult) String() string {
-	// TODO
+	if s, err := json.MarshalIndent(ar, "", "  "); err == nil {
+		return string(s)
+	}
 	return ""
 }
 
@@ -78,7 +74,6 @@ type AddressSearchResults []AddressSearchResult
 //
 // The file extension could be either .json or .xml.
 func (ars AddressSearchResults) SaveAs(filename string) error {
-	// TODO
 	return nil
 }
 

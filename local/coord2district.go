@@ -25,12 +25,6 @@ type Region struct {
 	Y                float64 `json:"y" xml:"y"`
 }
 
-// String implements fmt.Stringer.
-func (r Region) String() string {
-	// TODO
-	return ""
-}
-
 // CoordToDistrictResult represents a coordinate conversion result.
 type CoordToDistrictResult struct {
 	XMLName xml.Name `xml:"result"`
@@ -42,7 +36,9 @@ type CoordToDistrictResult struct {
 
 // String implements fmt.Stringer.
 func (cr CoordToDistrictResult) String() string {
-	// TODO
+	if s, err := json.MarshalIndent(cr, "", "  "); err == nil {
+		return string(s)
+	}
 	return ""
 }
 
@@ -52,7 +48,6 @@ type CoordToDistrictResults []CoordToDistrictResult
 //
 // The file extension could be either .json or .xml.
 func (crs CoordToDistrictResults) SaveAs(filename string) error {
-	// TODO
 	return nil
 }
 
