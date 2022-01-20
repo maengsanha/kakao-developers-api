@@ -6,6 +6,7 @@ import (
 	"encoding/xml"
 	"errors"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"net/url"
@@ -62,10 +63,8 @@ type AddressSearchResult struct {
 
 // String implements fmt.Stringer.
 func (ar AddressSearchResult) String() string {
-	if s, err := json.MarshalIndent(ar, "", "  "); err == nil {
-		return string(s)
-	}
-	return ""
+	bs, _ := json.MarshalIndent(ar, "", "  ")
+	return string(bs)
 }
 
 type AddressSearchResults []AddressSearchResult
@@ -74,7 +73,22 @@ type AddressSearchResults []AddressSearchResult
 //
 // The file extension could be either .json or .xml.
 func (ars AddressSearchResults) SaveAs(filename string) error {
-	return nil
+	switch ns := strings.Split(filename, "."); ns[len(ns)-1] {
+	case "json":
+		if bs, err := json.MarshalIndent(ars, "", "  "); err != nil {
+			return err
+		} else {
+			return ioutil.WriteFile(filename, bs, 0644)
+		}
+	case "xml":
+		if bs, err := xml.MarshalIndent(ars, "", "  "); err != nil {
+			return err
+		} else {
+			return ioutil.WriteFile(filename, bs, 0644)
+		}
+	default:
+		return ErrUnsupportedFormat
+	}
 }
 
 // AddressSearchIterator is a lazy address search iterator.

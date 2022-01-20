@@ -6,6 +6,7 @@ import (
 	"encoding/xml"
 	"errors"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"strconv"
@@ -36,19 +37,30 @@ type CoordToDistrictResult struct {
 
 // String implements fmt.Stringer.
 func (cr CoordToDistrictResult) String() string {
-	if s, err := json.MarshalIndent(cr, "", "  "); err == nil {
-		return string(s)
-	}
-	return ""
+	bs, _ := json.MarshalIndent(cr, "", "  ")
+	return string(bs)
 }
 
-type CoordToDistrictResults []CoordToDistrictResult
-
-// SaveAs saves crs to @filename.
+// SaveAs saves cr to @filename.
 //
 // The file extension could be either .json or .xml.
-func (crs CoordToDistrictResults) SaveAs(filename string) error {
-	return nil
+func (cr CoordToDistrictResult) SaveAs(filename string) error {
+	switch ns := strings.Split(filename, "."); ns[len(ns)-1] {
+	case "json":
+		if bs, err := json.MarshalIndent(cr, "", "  "); err != nil {
+			return err
+		} else {
+			return ioutil.WriteFile(filename, bs, 0644)
+		}
+	case "xml":
+		if bs, err := xml.MarshalIndent(cr, "", "  "); err != nil {
+			return err
+		} else {
+			return ioutil.WriteFile(filename, bs, 0644)
+		}
+	default:
+		return ErrUnsupportedFormat
+	}
 }
 
 // CoordToDistrictInitializer is a lazy coordinate converter.

@@ -17,8 +17,14 @@ func TestAddressSearchWithJSON(t *testing.T) {
 		Display(20).
 		Result(1)
 
-	for res, err := iter.Next(); err == nil; res, err = iter.Next() {
-		t.Log(res)
+	ars := local.AddressSearchResults{}
+
+	for ar, err := iter.Next(); err == nil; ar, err = iter.Next() {
+		ars = append(ars, ar)
+	}
+
+	if err := ars.SaveAs("address_search_test.json"); err != nil {
+		t.Error(err)
 	}
 }
 
@@ -33,7 +39,13 @@ func TestAddressSearchWithXML(t *testing.T) {
 		Display(30).
 		Result(1)
 
-	for res, err := iter.Next(); err == nil; res, err = iter.Next() {
-		t.Log(res)
+	ars := local.AddressSearchResults{}
+
+	for ar, err := iter.Next(); err == nil; ar, err = iter.Next() {
+		ars = append(ars, ar)
+	}
+
+	if err := ars.SaveAs("address_search_test.xml"); err != nil {
+		t.Error(err)
 	}
 }

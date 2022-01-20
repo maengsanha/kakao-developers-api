@@ -11,15 +11,15 @@ func TestCoordToDistrictWithJSON(t *testing.T) {
 	y := 37.4012191
 	key := ""
 
-	if res, err := local.CoordToDistrict(x, y).
+	if cr, err := local.CoordToDistrict(x, y).
 		AuthorizeWith(key).
 		Input("WGS84").
 		Output("WGS84").
 		FormatAs("json").
 		Collect(); err != nil {
 		t.Error(err)
-	} else {
-		t.Log(res)
+	} else if err = cr.SaveAs("coord2district_test.json"); err != nil {
+		t.Error(err)
 	}
 }
 
@@ -28,14 +28,14 @@ func TestCoordToDistrictWithXML(t *testing.T) {
 	y := 37.4012191
 	key := ""
 
-	if res, err := local.CoordToDistrict(x, y).
+	if cr, err := local.CoordToDistrict(x, y).
 		AuthorizeWith(key).
 		Input("WGS84").
 		Output("CONGNAMUL").
 		FormatAs("xml").
 		Collect(); err != nil {
 		t.Error(err)
-	} else {
-		t.Log(res)
+	} else if err = cr.SaveAs("coord2district_test.xml"); err != nil {
+		t.Error(err)
 	}
 }
