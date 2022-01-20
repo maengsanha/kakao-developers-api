@@ -52,7 +52,7 @@ type ComplexAddress struct {
 
 // AddressSearchResult represents an address search result.
 type AddressSearchResult struct {
-	XMLName xml.Name `xml:"result"`
+	XMLName xml.Name `json:"-" xml:"result"`
 	Meta    struct {
 		TotalCount    int  `json:"total_count" xml:"total_count"`
 		PageableCount int  `json:"pageable_count" xml:"pageable_count"`
@@ -73,7 +73,7 @@ type AddressSearchResults []AddressSearchResult
 //
 // The file extension could be either .json or .xml.
 func (ars AddressSearchResults) SaveAs(filename string) error {
-	switch ns := strings.Split(filename, "."); ns[len(ns)-1] {
+	switch tokens := strings.Split(filename, "."); tokens[len(tokens)-1] {
 	case "json":
 		if bs, err := json.MarshalIndent(ars, "", "  "); err != nil {
 			return err

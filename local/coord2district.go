@@ -28,7 +28,7 @@ type Region struct {
 
 // CoordToDistrictResult represents a coordinate conversion result.
 type CoordToDistrictResult struct {
-	XMLName xml.Name `xml:"result"`
+	XMLName xml.Name `json:"-" xml:"result"`
 	Meta    struct {
 		TotalCount int `json:"total_count" xml:"total_count"`
 	} `json:"meta" xml:"meta"`
@@ -45,7 +45,7 @@ func (cr CoordToDistrictResult) String() string {
 //
 // The file extension could be either .json or .xml.
 func (cr CoordToDistrictResult) SaveAs(filename string) error {
-	switch ns := strings.Split(filename, "."); ns[len(ns)-1] {
+	switch tokens := strings.Split(filename, "."); tokens[len(tokens)-1] {
 	case "json":
 		if bs, err := json.MarshalIndent(cr, "", "  "); err != nil {
 			return err
