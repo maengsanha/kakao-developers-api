@@ -8,22 +8,21 @@ import (
 
 func TestKeywordSearchWithJSON(t *testing.T) {
 	query := "카카오"
-	key := ""
 	groupcode := "PK6"
 	x := 127.06283102249932
 	y := 37.514322572335935
 	radius := 10000
-	typ := "accuracy"
+	order := "accuracy"
 
 	iter := local.PlaceSearchByKeyword(query).
 		FormatAs("json").
-		AuthorizeWith(key).
+		AuthorizeWith(local.REST_API_KEY).
 		WithCoordinates(x, y).
 		WithRadius(radius).
 		Result(1).
 		Display(15).
 		Category(groupcode).
-		SortBy(typ)
+		SortBy(order)
 
 	for res, err := iter.Next(); ; res, err = iter.Next() {
 		t.Log(res)
@@ -38,12 +37,11 @@ func TestKeywordSearchWithJSON(t *testing.T) {
 
 func TestKeywordSearchWithXML(t *testing.T) {
 	query := "카카오"
-	key := ""
 	groupcode := ""
 	x := 127.06283102249932
 	y := 37.514322572335935
 	radius := 15000
-	typ := "distance"
+	order := "distance"
 	xMin := 126.92839423213
 	yMin := 37.412341512321
 	xMax := 126.943241321321
@@ -51,14 +49,14 @@ func TestKeywordSearchWithXML(t *testing.T) {
 
 	iter := local.PlaceSearchByKeyword(query).
 		FormatAs("xml").
-		AuthorizeWith(key).
+		AuthorizeWith(local.REST_API_KEY).
 		WithCoordinates(x, y).
 		WithRadius(radius).
 		WithRect(xMin, yMin, xMax, yMax).
 		Result(1).
 		Display(15).
 		Category(groupcode).
-		SortBy(typ)
+		SortBy(order)
 
 	for res, err := iter.Next(); ; res, err = iter.Next() {
 		t.Log(res)

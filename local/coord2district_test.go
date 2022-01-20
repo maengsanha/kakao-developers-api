@@ -9,10 +9,9 @@ import (
 func TestCoordToDistrictWithJSON(t *testing.T) {
 	x := 127.1086228
 	y := 37.4012191
-	key := ""
 
 	if cr, err := local.CoordToDistrict(x, y).
-		AuthorizeWith(key).
+		AuthorizeWith(local.REST_API_KEY).
 		Input("WGS84").
 		Output("WGS84").
 		FormatAs("json").
@@ -26,10 +25,9 @@ func TestCoordToDistrictWithJSON(t *testing.T) {
 func TestCoordToDistrictWithXML(t *testing.T) {
 	x := 127.1086228
 	y := 37.4012191
-	key := ""
 
 	if cr, err := local.CoordToDistrict(x, y).
-		AuthorizeWith(key).
+		AuthorizeWith(local.REST_API_KEY).
 		Input("WGS84").
 		Output("CONGNAMUL").
 		FormatAs("xml").

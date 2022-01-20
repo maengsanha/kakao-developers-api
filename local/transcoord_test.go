@@ -9,16 +9,14 @@ import (
 func TestTransCoordWithJSON(t *testing.T) {
 	x := 160710.37729270622
 	y := -4388.879299157299
-	key := ""
 
 	if res, err := local.TransCoord(x, y).
-		AuthorizeWith(key).
+		AuthorizeWith(local.REST_API_KEY).
 		Input("WTM").
 		Output("WCONGNAMUL").
 		FormatJSON().
 		Collect(); err != nil {
 		t.Error(err)
-
 	} else {
 		t.Log(res)
 	}
@@ -27,16 +25,14 @@ func TestTransCoordWithJSON(t *testing.T) {
 func TestTransCoordWithXML(t *testing.T) {
 	x := 160710.37729270622
 	y := -4388.879299157299
-	key := ""
 
 	if res, err := local.TransCoord(x, y).
-		AuthorizeWith(key).
+		AuthorizeWith(local.REST_API_KEY).
 		Input("WTM").
 		Output("WCONGNAMUL").
 		FormatXML().
 		Collect(); err != nil {
 		t.Error(err)
-
 	} else {
 		t.Log(res)
 	}
