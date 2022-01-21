@@ -38,6 +38,7 @@ type KeywordSearchIterator struct {
 	Page              int
 	Size              int
 	Sort              string
+	end               bool
 }
 
 // PlaceSearchByKeyword provides the search results for places that match @query
@@ -201,6 +202,11 @@ func (k *KeywordSearchIterator) SortBy(order string) *KeywordSearchIterator {
 
 // Next returns the keyword search result and proceeds the iterator to the next page.
 func (k *KeywordSearchIterator) Next() (res KeywordSearchResult, err error) {
+	// if there is no more result, return error
+	if k.end {
+		return res, ErrEndPage
+	}
+
 	// at first, send request to the API server
 	client := new(http.Client)
 
@@ -235,9 +241,7 @@ func (k *KeywordSearchIterator) Next() (res KeywordSearchResult, err error) {
 		}
 	}
 
-	if res.Meta.IsEnd {
-		return res, ErrEndPage
-	}
+	k.end = res.Meta.IsEnd
 
 	k.Page++
 
