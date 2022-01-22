@@ -9,7 +9,7 @@ import (
 	"strings"
 )
 
-// TotalAddress ...
+// TotalAddress represents a document of CoordToAddressResult.
 type TotalAddress struct {
 	Address struct {
 		AddressName      string `json:"address_name" xml:"address_name"`
@@ -35,7 +35,7 @@ type TotalAddress struct {
 	} `json:"road_address" xml:"road_address"`
 }
 
-// CoordToAddressResult ...
+// CoordToAddressResult represents a CoordToAddress result.
 type CoordToAddressResult struct {
 	XMLName xml.Name `xml:"result"`
 	Meta    struct {
@@ -44,7 +44,7 @@ type CoordToAddressResult struct {
 	Documents []TotalAddress `json:"documents" xml:"documents"`
 }
 
-// CoordToAddressInitializer ...
+// CoordToAddressInitializer is a lazy coord to address converter.
 type CoordToAddressInitializer struct {
 	X          string
 	Y          string
@@ -53,7 +53,11 @@ type CoordToAddressInitializer struct {
 	InputCoord string
 }
 
-// CoordToAddress ...
+// CoordToAddress converts the @x and @y coordinates of location in the selected coordinate system
+// to land-lot number address(with post number) and road name address.
+//
+// Details can be referred to
+// https://developers.kakao.com/docs/latest/ko/local/dev-guide#coord-to-address.
 func CoordToAddress(x, y string) *CoordToAddressInitializer {
 	return &CoordToAddressInitializer{
 		X:          x,
@@ -74,21 +78,34 @@ func (c *CoordToAddressInitializer) FormatXML() *CoordToAddressInitializer {
 	return c
 }
 
-// AuthorizeWith ...
+// AuthorizeWith sets the authorization key to @key.
 func (c *CoordToAddressInitializer) AuthorizeWith(key string) *CoordToAddressInitializer {
 	c.AuthKey = "KakaoAK " + strings.TrimSpace(key)
 	return c
 }
 
-// Input ...
+// Input sets the coordinate system of request.
+//
+// There are following coordinate system exist:
+//
+// WGS84
+//
+// WCONGNAMUL
+//
+// CONGNAMUL
+//
+// WTM
+//
+// TM
 func (c *CoordToAddressInitializer) Input(coord string) *CoordToAddressInitializer {
-	if coord == "WGS84" || coord == "WCONGNAMUL" || coord == "CONGNAMUL" || coord == "WTM" || coord == "TM" {
+	switch coord {
+	case "WGS84", "WCONAMUL", "CONGNAMUL", "WTM", "TM":
 		c.InputCoord = coord
 	}
 	return c
 }
 
-// Collect ...
+// Collect returns the land-lot number address(with post number) and road name address.
 func (c *CoordToAddressInitializer) Collect() (res CoordToAddressResult, err error) {
 	client := new(http.Client)
 

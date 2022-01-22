@@ -6,6 +6,7 @@ import (
 	"encoding/xml"
 	"errors"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"net/url"
@@ -49,15 +50,9 @@ type ComplexAddress struct {
 	} `json:"road_address" xml:"road_address"`
 }
 
-// String implements fmt.Stringer.
-func (c ComplexAddress) String() string {
-	// TODO
-	return fmt.Sprintf("address_name: %s\n", c.AddressName)
-}
-
 // AddressSearchResult represents an address search result.
 type AddressSearchResult struct {
-	XMLName xml.Name `xml:"result"`
+	XMLName xml.Name `json:"-" xml:"result"`
 	Meta    struct {
 		TotalCount    int  `json:"total_count" xml:"total_count"`
 		PageableCount int  `json:"pageable_count" xml:"pageable_count"`
@@ -67,16 +62,33 @@ type AddressSearchResult struct {
 }
 
 // String implements fmt.Stringer.
-func (a AddressSearchResult) String() string {
-	// TODO
-	return fmt.Sprintf("\ntotal_count: %d\npageable_count: %d\nis_end: %t\n%v", a.Meta.TotalCount, a.Meta.PageableCount, a.Meta.IsEnd, a.Documents)
+func (ar AddressSearchResult) String() string {
+	bs, _ := json.MarshalIndent(ar, "", "  ")
+	return string(bs)
 }
 
 type AddressSearchResults []AddressSearchResult
 
-func (a AddressSearchResults) SaveAs(filename string) error {
-	// TODO
-	return nil
+// SaveAs saves ars to @filename.
+//
+// The file extension could be either .json or .xml.
+func (ars AddressSearchResults) SaveAs(filename string) error {
+	switch tokens := strings.Split(filename, "."); tokens[len(tokens)-1] {
+	case "json":
+		if bs, err := json.MarshalIndent(ars, "", "  "); err != nil {
+			return err
+		} else {
+			return ioutil.WriteFile(filename, bs, 0644)
+		}
+	case "xml":
+		if bs, err := xml.MarshalIndent(ars, "", "  "); err != nil {
+			return err
+		} else {
+			return ioutil.WriteFile(filename, bs, 0644)
+		}
+	default:
+		return ErrUnsupportedFormat
+	}
 }
 
 // AddressSearchIterator is a lazy address search iterator.
@@ -106,75 +118,69 @@ func AddressSearch(query string) *AddressSearchIterator {
 }
 
 // FormatAs sets the request format to @format (json or xml).
-func (a *AddressSearchIterator) FormatAs(format string) *AddressSearchIterator {
+func (ai *AddressSearchIterator) FormatAs(format string) *AddressSearchIterator {
 	switch format {
 	case "json", "xml":
-		a.Format = format
+		ai.Format = format
 	default:
 		panic(ErrUnsupportedFormat)
 	}
 	if r := recover(); r != nil {
 		log.Println(r)
 	}
-	return a
+	return ai
 }
 
 // AuthorizeWith sets the authorization key to @key.
-func (a *AddressSearchIterator) AuthorizeWith(key string) *AddressSearchIterator {
-	a.AuthKey = "KakaoAK " + strings.TrimSpace(key)
-	return a
+func (ai *AddressSearchIterator) AuthorizeWith(key string) *AddressSearchIterator {
+	ai.AuthKey = "KakaoAK " + strings.TrimSpace(key)
+	return ai
 }
 
-// Analyze sets the analyze type to @typ.
-//
-// There are a few supported analyze types:
-//
-// similar
-//
-// exact
-func (a *AddressSearchIterator) Analyze(typ string) *AddressSearchIterator {
+// Analyze sets the analyze type to @typ (similar or exact).
+func (ai *AddressSearchIterator) Analyze(typ string) *AddressSearchIterator {
 	switch typ {
 	case "similar", "exact":
-		a.AnalyzeType = typ
+		ai.AnalyzeType = typ
 	default:
 		panic(errors.New("analyze type must be either similar or exact"))
 	}
 	if r := recover(); r != nil {
 		log.Println(r)
 	}
-	return a
+	return ai
 }
 
 // Result sets the result page number (a value between 1 and 45).
-func (a *AddressSearchIterator) Result(page int) *AddressSearchIterator {
+func (ai *AddressSearchIterator) Result(page int) *AddressSearchIterator {
 	if 1 <= page && page <= 45 {
-		a.Page = page
+		ai.Page = page
 	} else {
 		panic(ErrPageOutOfBound)
 	}
 	if r := recover(); r != nil {
 		log.Println(r)
 	}
-	return a
+	return ai
 }
 
 // Display sets the number of documents displayed on a single page (a value between 1 and 30).
-func (a *AddressSearchIterator) Display(size int) *AddressSearchIterator {
+func (ai *AddressSearchIterator) Display(size int) *AddressSearchIterator {
 	if 1 <= size && size <= 30 {
-		a.Size = size
+		ai.Size = size
 	} else {
 		panic(errors.New("size must be between 1 and 30"))
 	}
 	if r := recover(); r != nil {
 		log.Println(r)
 	}
-	return a
+	return ai
 }
 
 // Next returns the address search result and proceeds the iterator to the next page.
-func (a *AddressSearchIterator) Next() (res AddressSearchResult, err error) {
+func (ai *AddressSearchIterator) Next() (res AddressSearchResult, err error) {
 	// if there is no more result, return error
-	if a.end {
+	if ai.end {
 		return res, ErrEndPage
 	}
 
@@ -182,7 +188,7 @@ func (a *AddressSearchIterator) Next() (res AddressSearchResult, err error) {
 	client := new(http.Client)
 	req, err := http.NewRequest(http.MethodGet,
 		fmt.Sprintf("https://dapi.kakao.com/v2/local/search/address.%s?query=%s&analyze_type=%s&page=%d&size=%d",
-			a.Format, a.Query, a.AnalyzeType, a.Page, a.Size), nil)
+			ai.Format, ai.Query, ai.AnalyzeType, ai.Page, ai.Size), nil)
 
 	if err != nil {
 		return
@@ -191,7 +197,7 @@ func (a *AddressSearchIterator) Next() (res AddressSearchResult, err error) {
 	req.Close = true
 
 	// set authorization header
-	req.Header.Set("Authorization", a.AuthKey)
+	req.Header.Set("Authorization", ai.AuthKey)
 
 	resp, err := client.Do(req)
 	if err != nil {
@@ -201,19 +207,19 @@ func (a *AddressSearchIterator) Next() (res AddressSearchResult, err error) {
 	// don't forget to close the response body
 	defer resp.Body.Close()
 
-	if a.Format == "json" {
+	if ai.Format == "json" {
 		if err = json.NewDecoder(resp.Body).Decode(&res); err != nil {
 			return
 		}
-	} else if a.Format == "xml" {
+	} else if ai.Format == "xml" {
 		if err = xml.NewDecoder(resp.Body).Decode(&res); err != nil {
 			return
 		}
 	}
 
-	a.end = res.Meta.IsEnd
+	ai.end = res.Meta.IsEnd
 
-	a.Page++
+	ai.Page++
 
 	return
 }

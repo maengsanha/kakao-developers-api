@@ -4,7 +4,10 @@ package local
 import (
 	"encoding/json"
 	"encoding/xml"
+	"errors"
 	"fmt"
+	"io/ioutil"
+	"log"
 	"net/http"
 	"strconv"
 	"strings"
@@ -28,11 +31,39 @@ type TransCoordInitializer struct {
 
 // TransCoordResult represents a coordinate transformation result.
 type TransCoordResult struct {
-	XMLName xml.Name `xml:"result"`
+	XMLName xml.Name `json:"-" xml:"result"`
 	Meta    struct {
 		TotalCount int `json:"total_count" xml:"total_count"`
 	} `json:"meta" xml:"meta"`
 	Documents []Coord `json:"documents" xml:"documents"`
+}
+
+// String implements fmt.Stringer.
+func (tr TransCoordResult) String() string {
+	bs, _ := json.MarshalIndent(tr, "", "  ")
+	return string(bs)
+}
+
+// SaveAs saves tr to @filename.
+//
+// The file extension could be either .json or .xml.
+func (tr TransCoordResult) SaveAs(filename string) error {
+	switch tokens := strings.Split(filename, "."); tokens[len(tokens)-1] {
+	case "json":
+		if bs, err := json.MarshalIndent(tr, "", "  "); err != nil {
+			return err
+		} else {
+			return ioutil.WriteFile(filename, bs, 0644)
+		}
+	case "xml":
+		if bs, err := xml.MarshalIndent(tr, "", "  "); err != nil {
+			return err
+		} else {
+			return ioutil.WriteFile(filename, bs, 0644)
+		}
+	default:
+		return ErrUnsupportedFormat
+	}
 }
 
 // TransCoord converts @x and @y coordinates to another X and Y coordinates in the designated coordinate system.
@@ -50,20 +81,24 @@ func TransCoord(x, y float64) *TransCoordInitializer {
 	}
 }
 
-func (t *TransCoordInitializer) FormatJSON() *TransCoordInitializer {
-	t.Format = "json"
-	return t
-}
-
-func (t *TransCoordInitializer) FormatXML() *TransCoordInitializer {
-	t.Format = "xml"
-	return t
+// FormatAs sets the request format to @format (json or xml).
+func (ti *TransCoordInitializer) FormatAs(format string) *TransCoordInitializer {
+	switch format {
+	case "json", "xml":
+		ti.Format = format
+	default:
+		panic(ErrUnsupportedFormat)
+	}
+	if r := recover(); r != nil {
+		log.Println(r)
+	}
+	return ti
 }
 
 // AuthorizeWith sets the authorization key to @key.
-func (t *TransCoordInitializer) AuthorizeWith(key string) *TransCoordInitializer {
-	t.AuthKey = "KakaoAK " + strings.TrimSpace(key)
-	return t
+func (ti *TransCoordInitializer) AuthorizeWith(key string) *TransCoordInitializer {
+	ti.AuthKey = "KakaoAK " + strings.TrimSpace(key)
+	return ti
 }
 
 // Input sets the type of input coordinate system.
@@ -89,12 +124,17 @@ func (t *TransCoordInitializer) AuthorizeWith(key string) *TransCoordInitializer
 // WKTM
 //
 // WUTM
-func (t *TransCoordInitializer) Input(coord string) *TransCoordInitializer {
+func (ti *TransCoordInitializer) Input(coord string) *TransCoordInitializer {
 	switch coord {
 	case "WGS84", "WCONGNAMUL", "CONGNAMUL", "WTM", "TM", "KTM", "UTM", "BESSEL", "WKTM", "WUTM":
-		t.InputCoord = coord
+		ti.InputCoord = coord
+	default:
+		panic(errors.New("input coordinate system must be either WGS84, WCONGNAMUL, CONGNAMUL, WTM, TM, KTM, UTM, BESSEL, WKTM, WUTM"))
 	}
-	return t
+	if r := recover(); r != nil {
+		log.Println(r)
+	}
+	return ti
 }
 
 // Output sets the type of output coordinate system.
@@ -120,21 +160,26 @@ func (t *TransCoordInitializer) Input(coord string) *TransCoordInitializer {
 // WKTM
 //
 // WUTM
-func (t *TransCoordInitializer) Output(coord string) *TransCoordInitializer {
+func (ti *TransCoordInitializer) Output(coord string) *TransCoordInitializer {
 	switch coord {
 	case "WGS84", "WCONGNAMUL", "CONGNAMUL", "WTM", "TM", "KTM", "UTM", "BESSEL", "WKTM", "WUTM":
-		t.OutputCoord = coord
+		ti.OutputCoord = coord
+	default:
+		panic(errors.New("output coordinate system must be either WGS84, WCONGNAMUL, CONGNAMUL, WTM, TM, KTM, UTM, BESSEL, WKTM, WUTM"))
 	}
-	return t
+	if r := recover(); r != nil {
+		log.Println(r)
+	}
+	return ti
 }
 
 // Collect returns the coordinate system conversion result.
-func (t *TransCoordInitializer) Collect() (res TransCoordResult, err error) {
+func (ti *TransCoordInitializer) Collect() (res TransCoordResult, err error) {
 	// at first, send request to the API server
 	client := new(http.Client)
 	req, err := http.NewRequest(http.MethodGet,
 		fmt.Sprintf("https://dapi.kakao.com/v2/local/geo/transcoord.%s?x=%s&y=%s&input_coord=%s&output_coord=%s",
-			t.Format, t.X, t.Y, t.InputCoord, t.OutputCoord), nil)
+			ti.Format, ti.X, ti.Y, ti.InputCoord, ti.OutputCoord), nil)
 
 	if err != nil {
 		return
@@ -143,7 +188,7 @@ func (t *TransCoordInitializer) Collect() (res TransCoordResult, err error) {
 	req.Close = true
 
 	// set authorization header
-	req.Header.Set("Authorization", t.AuthKey)
+	req.Header.Set("Authorization", ti.AuthKey)
 
 	resp, err := client.Do(req)
 	if err != nil {
@@ -152,11 +197,11 @@ func (t *TransCoordInitializer) Collect() (res TransCoordResult, err error) {
 	// don't forget to close the response body
 	defer resp.Body.Close()
 
-	if t.Format == "json" {
+	if ti.Format == "json" {
 		if err = json.NewDecoder(resp.Body).Decode(&res); err != nil {
 			return
 		}
-	} else if t.Format == "xml" {
+	} else if ti.Format == "xml" {
 		if err = xml.NewDecoder(resp.Body).Decode(&res); err != nil {
 			return
 		}
