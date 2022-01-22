@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"encoding/xml"
 	"fmt"
+	"log"
 	"net/http"
 	"strconv"
 	"strings"
@@ -35,6 +36,7 @@ type CategorySearchIterator struct {
 	Page              int
 	Size              int
 	Sort              string
+	end               bool
 }
 
 // PlaceSearchByCategory provides the search results for place by group code in the specified order.
@@ -100,77 +102,86 @@ func PlaceSearchByCategory(groupcode string) *CategorySearchIterator {
 	}
 }
 
-func (c *CategorySearchIterator) FormatJSON() *CategorySearchIterator {
-	c.Format = "json"
-	return c
-}
-
-func (c *CategorySearchIterator) FormatXML() *CategorySearchIterator {
-	c.Format = "xml"
-	return c
+// FormatAs sets the request format to @format (json or xml).
+func (ci *CategorySearchIterator) FormatAs(format string) *CategorySearchIterator {
+	switch format {
+	case "json", "xml":
+		ci.Format = format
+	default:
+		panic(ErrUnsupportedFormat)
+	}
+	if r := recover(); r != nil {
+		log.Println(r)
+	}
+	return ci
 }
 
 // Authorization sets the authorization key to @key.
-func (c *CategorySearchIterator) AuthorizeWith(key string) *CategorySearchIterator {
-	c.AuthKey = "KakaoAK " + strings.TrimSpace(key)
-	return c
+func (ci *CategorySearchIterator) AuthorizeWith(key string) *CategorySearchIterator {
+	ci.AuthKey = "KakaoAK " + strings.TrimSpace(key)
+	return ci
 }
 
 // WithRadius searches places around a specific area along with @x and @y.
 //
 // @radius is the distance (a value between 0 and 20000) from the center coordinates to an axis of rotation in meters.
-func (c *CategorySearchIterator) WithRadius(x, y float64, radius int) *CategorySearchIterator {
-	if 0 <= c.Radius && c.Radius <= 20000 {
-		c.X = strconv.FormatFloat(x, 'f', -1, 64)
-		c.Y = strconv.FormatFloat(y, 'f', -1, 64)
-		c.Radius = radius
+func (ci *CategorySearchIterator) WithRadius(x, y float64, radius int) *CategorySearchIterator {
+	if 0 <= ci.Radius && ci.Radius <= 20000 {
+		ci.X = strconv.FormatFloat(x, 'f', -1, 64)
+		ci.Y = strconv.FormatFloat(y, 'f', -1, 64)
+		ci.Radius = radius
 	}
 
-	return c
+	return ci
 }
 
 // WithRect limits the search area, such as when searching places within the map screen.
-func (c *CategorySearchIterator) WithRect(xMin, yMin, xMax, yMax float64) *CategorySearchIterator {
-	c.Rect = strings.Join([]string{
+func (ci *CategorySearchIterator) WithRect(xMin, yMin, xMax, yMax float64) *CategorySearchIterator {
+	ci.Rect = strings.Join([]string{
 		strconv.FormatFloat(xMin, 'f', -1, 64),
 		strconv.FormatFloat(yMin, 'f', -1, 64),
 		strconv.FormatFloat(xMax, 'f', -1, 64),
 		strconv.FormatFloat(yMax, 'f', -1, 64)}, ",")
-	return c
+	return ci
 }
 
-func (c *CategorySearchIterator) Result(page int) *CategorySearchIterator {
+// Result sets the result page number (a value between 1 and 45).
+func (ci *CategorySearchIterator) Result(page int) *CategorySearchIterator {
 	if 1 <= page && page <= 45 {
-		c.Page = page
+		ci.Page = page
 	}
-	return c
+	return ci
 }
 
-func (c *CategorySearchIterator) Display(size int) *CategorySearchIterator {
+// Display sets the number of documents displayed on a single page (a value between 1 and 15).
+func (ci *CategorySearchIterator) Display(size int) *CategorySearchIterator {
 	if 1 <= size && size <= 15 {
-		c.Size = size
+		ci.Size = size
 	}
-	return c
+	return ci
 }
 
 // SortBy sets the ordering type of c to @order.
 //
 // @order can be accuracy or distance. (default is accuracy)
-func (c *CategorySearchIterator) SortBy(order string) *CategorySearchIterator {
+func (ci *CategorySearchIterator) SortBy(order string) *CategorySearchIterator {
 	switch order {
 	case "accuracy", "distance":
-		c.Sort = order
+		ci.Sort = order
 	}
-	return c
+	return ci
 }
 
 // Next returns the category search result.
-func (c *CategorySearchIterator) Next() (res CategorySearchResult, err error) {
-	client := new(http.Client)
+func (ci *CategorySearchIterator) Next() (res CategorySearchResult, err error) {
+	if ci.end {
+		return res, ErrEndPage
+	}
 
+	client := new(http.Client)
 	req, err := http.NewRequest(http.MethodGet,
 		fmt.Sprintf("https://dapi.kakao.com/v2/local/search/category.%s?category_group_code=%s&page=%d&size=%d&sort=%s&x=%s&y=%s&radius=%d&rect=%s",
-			c.Format, c.CategoryGroupCode, c.Page, c.Size, c.Sort, c.X, c.Y, c.Radius, c.Rect), nil)
+			ci.Format, ci.CategoryGroupCode, ci.Page, ci.Size, ci.Sort, ci.X, ci.Y, ci.Radius, ci.Rect), nil)
 
 	if err != nil {
 		return
@@ -178,7 +189,7 @@ func (c *CategorySearchIterator) Next() (res CategorySearchResult, err error) {
 
 	req.Close = true
 
-	req.Header.Set("Authorization", c.AuthKey)
+	req.Header.Set("Authorization", ci.AuthKey)
 
 	resp, err := client.Do(req)
 	if err != nil {
@@ -187,21 +198,19 @@ func (c *CategorySearchIterator) Next() (res CategorySearchResult, err error) {
 
 	defer resp.Body.Close()
 
-	if c.Format == "json" {
+	if ci.Format == "json" {
 		if err = json.NewDecoder(resp.Body).Decode(&res); err != nil {
 			return
 		}
-	} else if c.Format == "xml" {
+	} else if ci.Format == "xml" {
 		if err = xml.NewDecoder(resp.Body).Decode(&res); err != nil {
 			return
 		}
 	}
 
-	if res.Meta.IsEnd {
-		return res, ErrEndPage
-	}
+	ci.end = res.Meta.IsEnd
 
-	c.Page++
+	ci.Page++
 
 	return
 }
