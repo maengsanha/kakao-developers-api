@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"encoding/xml"
 	"fmt"
+	"log"
 	"net/http"
 	"strings"
 )
@@ -68,20 +69,24 @@ func CoordToAddress(x, y string) *CoordToAddressInitializer {
 	}
 }
 
-func (c *CoordToAddressInitializer) FormatJSON() *CoordToAddressInitializer {
-	c.Format = "json"
-	return c
-}
-
-func (c *CoordToAddressInitializer) FormatXML() *CoordToAddressInitializer {
-	c.Format = "xml"
-	return c
+// FormatAs sets the request format to @format (json or xml).
+func (ci *CoordToAddressInitializer) FormatAs(format string) *CoordToAddressInitializer {
+	switch format {
+	case "json", "xml":
+		ci.Format = format
+	default:
+		panic(ErrUnsupportedFormat)
+	}
+	if r := recover(); r != nil {
+		log.Println(r)
+	}
+	return ci
 }
 
 // AuthorizeWith sets the authorization key to @key.
-func (c *CoordToAddressInitializer) AuthorizeWith(key string) *CoordToAddressInitializer {
-	c.AuthKey = "KakaoAK " + strings.TrimSpace(key)
-	return c
+func (ci *CoordToAddressInitializer) AuthorizeWith(key string) *CoordToAddressInitializer {
+	ci.AuthKey = "KakaoAK " + strings.TrimSpace(key)
+	return ci
 }
 
 // Input sets the coordinate system of request.
@@ -97,26 +102,27 @@ func (c *CoordToAddressInitializer) AuthorizeWith(key string) *CoordToAddressIni
 // WTM
 //
 // TM
-func (c *CoordToAddressInitializer) Input(coord string) *CoordToAddressInitializer {
+func (ci *CoordToAddressInitializer) Input(coord string) *CoordToAddressInitializer {
 	switch coord {
 	case "WGS84", "WCONAMUL", "CONGNAMUL", "WTM", "TM":
-		c.InputCoord = coord
+		ci.InputCoord = coord
 	}
-	return c
+	return ci
 }
 
 // Collect returns the land-lot number address(with post number) and road name address.
-func (c *CoordToAddressInitializer) Collect() (res CoordToAddressResult, err error) {
+func (ci *CoordToAddressInitializer) Collect() (res CoordToAddressResult, err error) {
 	client := new(http.Client)
+	req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("https://dapi.kakao.com/v2/local/geo/coord2address.%s?x=%s&y=%s&input_coord=%s",
+		ci.Format, ci.X, ci.Y, ci.InputCoord), nil)
 
-	req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("https://dapi.kakao.com/v2/local/geo/coord2address.%s?x=%s&y=%s&input_coord=%s", c.Format, c.X, c.Y, c.InputCoord), nil)
 	if err != nil {
 		return
 	}
 
 	req.Close = true
 
-	req.Header.Set("Authorization", c.AuthKey)
+	req.Header.Set("Authorization", ci.AuthKey)
 
 	resp, err := client.Do(req)
 	if err != nil {
@@ -125,11 +131,11 @@ func (c *CoordToAddressInitializer) Collect() (res CoordToAddressResult, err err
 
 	defer resp.Body.Close()
 
-	if c.Format == "json" {
+	if ci.Format == "json" {
 		if err = json.NewDecoder(resp.Body).Decode(&res); err != nil {
 			return
 		}
-	} else if c.Format == "xml" {
+	} else if ci.Format == "xml" {
 		if err = xml.NewDecoder(resp.Body).Decode(&res); err != nil {
 			return
 		}
