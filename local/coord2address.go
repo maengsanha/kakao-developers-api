@@ -40,7 +40,7 @@ type TotalAddress struct {
 
 // CoordToAddressResult represents a CoordToAddress result.
 type CoordToAddressResult struct {
-	XMLName xml.Name `xml:"result"`
+	XMLName xml.Name `json:"-" xml:"result"`
 	Meta    struct {
 		TotalCount int `json:"total_count" xml:"total_count"`
 	} `json:"meta" xml:"meta"`

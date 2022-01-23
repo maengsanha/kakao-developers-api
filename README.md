@@ -6,5 +6,4 @@
 [![Go Reference](https://pkg.go.dev/badge/github.com/maengsanha/kakao-developers-client.svg)](https://pkg.go.dev/github.com/maengsanha/kakao-developers-client)
 
 - Features
-  - [ ] Local
-  - [ ] Daum Search
+  - [x] Local

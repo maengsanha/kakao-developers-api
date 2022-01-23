@@ -15,7 +15,7 @@ import (
 
 // CategorySearchResult represents a category search result.
 type CategorySearchResult struct {
-	XMLName xml.Name `xml:"result"`
+	XMLName xml.Name `json:"-" xml:"result"`
 	Meta    struct {
 		TotalCount    int        `json:"total_count" xml:"total_count"`
 		PageableCount int        `json:"pageable_count" xml:"pageable_count"`
@@ -122,20 +122,26 @@ type CategorySearchIterator struct {
 func PlaceSearchByCategory(groupcode string) *CategorySearchIterator {
 	switch groupcode {
 	case "MT1", "CS2", "PS3", "SC4", "AC5", "PK6", "OL7", "SW8", "BK9", "CT1", "AG2", "PO3", "AT4", "AD5", "FD6", "CE7", "HP8", "PM9":
-		return &CategorySearchIterator{
-			Format:            "json",
-			AuthKey:           "KakaoAK ",
-			CategoryGroupCode: groupcode,
-			X:                 "",
-			Y:                 "",
-			Radius:            0,
-			Rect:              "",
-			Page:              1,
-			Size:              15,
-			Sort:              "accuracy",
-		}
 	default:
 		panic(ErrUnsupportedCategoryGroupCode)
+	}
+
+	if r := recover(); r != nil {
+		log.Println(r)
+		return nil
+	}
+
+	return &CategorySearchIterator{
+		Format:            "json",
+		AuthKey:           "KakaoAK ",
+		CategoryGroupCode: groupcode,
+		X:                 "",
+		Y:                 "",
+		Radius:            0,
+		Rect:              "",
+		Page:              1,
+		Size:              15,
+		Sort:              "accuracy",
 	}
 }
 
