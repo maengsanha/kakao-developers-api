@@ -6,6 +6,7 @@ import (
 	"encoding/xml"
 	"errors"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"net/url"
@@ -15,7 +16,7 @@ import (
 
 // KeywordSearchResult represents a keyword search result.
 type KeywordSearchResult struct {
-	XMLName xml.Name `xml:"result"`
+	XMLName xml.Name `json:"-" xml:"result"`
 	Meta    struct {
 		TotalCount    int        `json:"total_count" xml:"total_count"`
 		PageableCount int        `json:"pageable_count" xml:"pageable_count"`
@@ -23,6 +24,37 @@ type KeywordSearchResult struct {
 		SameName      RegionInfo `json:"same_name" xml:"same_name"`
 	} `json:"meta" xml:"meta"`
 	Documents []Place `json:"documents" xml:"documents"`
+}
+
+// String implements fmt.Stringer.
+func (kr KeywordSearchResult) String() string {
+	bs, _ := json.MarshalIndent(kr, "", "  ")
+	return string(bs)
+}
+
+type KeywordSearchResults []KeywordSearchResult
+
+// SaveAs saves ars to @filename.
+//
+// The file extension could be either .json or .xml.
+func (krs KeywordSearchResults) SaveAs(filename string) error {
+	switch tokens := strings.Split(filename, "."); tokens[len(tokens)-1] {
+	case "json":
+		if bs, err := json.MarshalIndent(krs, "", "  "); err != nil {
+			return err
+		} else {
+			return ioutil.WriteFile(filename, bs, 0644)
+		}
+	case "xml":
+		if bs, err := xml.MarshalIndent(krs, "", "  "); err != nil {
+			return err
+		} else {
+			return ioutil.WriteFile(filename, bs, 0644)
+		}
+	default:
+		return ErrUnsupportedFormat
+	}
+
 }
 
 // KeywordSearchIterator is a lazy keyword search iterator.
@@ -38,6 +70,7 @@ type KeywordSearchIterator struct {
 	Page              int
 	Size              int
 	Sort              string
+	end               bool
 }
 
 // PlaceSearchByKeyword provides the search results for places that match @query
@@ -62,23 +95,23 @@ func PlaceSearchByKeyword(query string) *KeywordSearchIterator {
 }
 
 // FormatAs sets the request format to @format (json or xml).
-func (k *KeywordSearchIterator) FormatAs(format string) *KeywordSearchIterator {
+func (ki *KeywordSearchIterator) FormatAs(format string) *KeywordSearchIterator {
 	switch format {
 	case "json", "xml":
-		k.Format = format
+		ki.Format = format
 	default:
 		panic(ErrUnsupportedFormat)
 	}
 	if r := recover(); r != nil {
 		log.Println(r)
 	}
-	return k
+	return ki
 }
 
 // AuthorizeWith sets the authorization key to @key.
-func (k *KeywordSearchIterator) AuthorizeWith(key string) *KeywordSearchIterator {
-	k.AuthKey = "KakaoAK " + strings.TrimSpace(key)
-	return k
+func (ki *KeywordSearchIterator) AuthorizeWith(key string) *KeywordSearchIterator {
+	ki.AuthKey = "KakaoAK " + strings.TrimSpace(key)
+	return ki
 }
 
 // Category sets the category group code of k.
@@ -119,71 +152,76 @@ func (k *KeywordSearchIterator) AuthorizeWith(key string) *KeywordSearchIterator
 // BK9: Bank
 //
 // AD5: Accommodation
-func (k *KeywordSearchIterator) Category(groupcode string) *KeywordSearchIterator {
+func (ki *KeywordSearchIterator) Category(groupcode string) *KeywordSearchIterator {
 	switch groupcode {
 	case "MT1", "CS2", "PS3", "SC4", "AC5", "PK6", "OL7", "SW8", "CT1",
-		"AG2", "PO3", "AT4", "FD6", "CE7", "HP8", "PM9", "BK9", "AD5":
-		k.CategoryGroupCode = groupcode
+		"AG2", "PO3", "AT4", "FD6", "CE7", "HP8", "PM9", "BK9", "AD5", "":
+		ki.CategoryGroupCode = groupcode
+	default:
+		panic(ErrUnsupportedCategoryGroupCode)
 	}
-	return k
+	if r := recover(); r != nil {
+		log.Println(r)
+	}
+	return ki
 }
 
 // WithCoordinates sets the X and Y coordinates of k.
-func (k *KeywordSearchIterator) WithCoordinates(x, y float64) *KeywordSearchIterator {
-	k.X = strconv.FormatFloat(x, 'f', -1, 64)
-	k.Y = strconv.FormatFloat(y, 'f', -1, 64)
-	return k
+func (ki *KeywordSearchIterator) WithCoordinates(x, y float64) *KeywordSearchIterator {
+	ki.X = strconv.FormatFloat(x, 'f', -1, 64)
+	ki.Y = strconv.FormatFloat(y, 'f', -1, 64)
+	return ki
 }
 
 // WithRadius searches places around a specific area along with @x and @y.
 //
 // @radius is the distance (a value between 0 and 20000) from the center coordinates to an axis of rotation in meters.
-func (k *KeywordSearchIterator) WithRadius(radius int) *KeywordSearchIterator {
+func (ki *KeywordSearchIterator) WithRadius(radius int) *KeywordSearchIterator {
 	if 0 <= radius && radius <= 20000 {
-		k.Radius = radius
+		ki.Radius = radius
 	} else {
 		panic(ErrRadiusOutOfBound)
 	}
 	if r := recover(); r != nil {
 		log.Println(r)
 	}
-	return k
+	return ki
 }
 
 // WithRect limits the search area, such as when searching places within the map screen.
-func (k *KeywordSearchIterator) WithRect(xMin, yMin, xMax, yMax float64) *KeywordSearchIterator {
-	k.Rect = strings.Join([]string{
+func (ki *KeywordSearchIterator) WithRect(xMin, yMin, xMax, yMax float64) *KeywordSearchIterator {
+	ki.Rect = strings.Join([]string{
 		strconv.FormatFloat(xMin, 'f', -1, 64),
 		strconv.FormatFloat(yMin, 'f', -1, 64),
 		strconv.FormatFloat(xMax, 'f', -1, 64),
 		strconv.FormatFloat(yMax, 'f', -1, 64)}, ",")
-	return k
+	return ki
 }
 
 // Result sets the result page number (a value between 1 and 45).
-func (k *KeywordSearchIterator) Result(page int) *KeywordSearchIterator {
+func (ki *KeywordSearchIterator) Result(page int) *KeywordSearchIterator {
 	if 1 <= page && page <= 45 {
-		k.Page = page
+		ki.Page = page
 	} else {
 		panic(ErrPageOutOfBound)
 	}
 	if r := recover(); r != nil {
 		log.Println(r)
 	}
-	return k
+	return ki
 }
 
 // Display sets the number of documents displayed on a single page (a value between 1 and 45).
-func (k *KeywordSearchIterator) Display(size int) *KeywordSearchIterator {
+func (ki *KeywordSearchIterator) Display(size int) *KeywordSearchIterator {
 	if 1 <= size && size <= 45 {
-		k.Size = size
+		ki.Size = size
 	} else {
 		panic(errors.New("size must be between 1 and 45"))
 	}
 	if r := recover(); r != nil {
 		log.Println(r)
 	}
-	return k
+	return ki
 }
 
 // SortBy sets the sorting order of the document results to @order.
@@ -191,22 +229,32 @@ func (k *KeywordSearchIterator) Display(size int) *KeywordSearchIterator {
 // @order can be accuracy or distance. (default is accuracy)
 //
 // In the case of distance, X and Y coordinates are required as a reference coordinates.
-func (k *KeywordSearchIterator) SortBy(order string) *KeywordSearchIterator {
+func (ki *KeywordSearchIterator) SortBy(order string) *KeywordSearchIterator {
 	switch order {
 	case "accuracy", "distance":
-		k.Sort = order
+		ki.Sort = order
+	default:
+		panic(ErrUnsupportedSortingOrder)
 	}
-	return k
+	if r := recover(); r != nil {
+		log.Println(r)
+	}
+	return ki
 }
 
 // Next returns the keyword search result and proceeds the iterator to the next page.
-func (k *KeywordSearchIterator) Next() (res KeywordSearchResult, err error) {
+func (ki *KeywordSearchIterator) Next() (res KeywordSearchResult, err error) {
+	// if there is no more result, return error
+	if ki.end {
+		return res, ErrEndPage
+	}
+
 	// at first, send request to the API server
 	client := new(http.Client)
 
 	req, err := http.NewRequest(http.MethodGet,
 		fmt.Sprintf("https://dapi.kakao.com/v2/local/search/keyword.%s?query=%s&category_group_code=%s&x=%s&y=%s&radius=%d&rect=%s&page=%d&size=%d&sort=%s",
-			k.Format, k.Query, k.CategoryGroupCode, k.X, k.Y, k.Radius, k.Rect, k.Page, k.Size, k.Sort), nil)
+			ki.Format, ki.Query, ki.CategoryGroupCode, ki.X, ki.Y, ki.Radius, ki.Rect, ki.Page, ki.Size, ki.Sort), nil)
 
 	if err != nil {
 		return
@@ -215,7 +263,7 @@ func (k *KeywordSearchIterator) Next() (res KeywordSearchResult, err error) {
 	req.Close = true
 
 	// set authorization header
-	req.Header.Set("Authorization", k.AuthKey)
+	req.Header.Set("Authorization", ki.AuthKey)
 
 	resp, err := client.Do(req)
 	if err != nil {
@@ -225,21 +273,19 @@ func (k *KeywordSearchIterator) Next() (res KeywordSearchResult, err error) {
 	// don't forget to close the response body
 	defer resp.Body.Close()
 
-	if k.Format == "json" {
+	if ki.Format == "json" {
 		if err = json.NewDecoder(resp.Body).Decode(&res); err != nil {
 			return
 		}
-	} else if k.Format == "xml" {
+	} else if ki.Format == "xml" {
 		if err = xml.NewDecoder(resp.Body).Decode(&res); err != nil {
 			return
 		}
 	}
 
-	if res.Meta.IsEnd {
-		return res, ErrEndPage
-	}
+	ki.end = res.Meta.IsEnd
 
-	k.Page++
+	ki.Page++
 
 	return
 }

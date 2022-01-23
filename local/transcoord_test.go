@@ -10,15 +10,31 @@ func TestTransCoordWithJSON(t *testing.T) {
 	x := 160710.37729270622
 	y := -4388.879299157299
 
-	if res, err := local.TransCoord(x, y).
+	if tr, err := local.TransCoord(x, y).
 		AuthorizeWith(local.REST_API_KEY).
 		Input("WTM").
 		Output("WCONGNAMUL").
-		FormatJSON().
+		FormatAs("json").
 		Collect(); err != nil {
 		t.Error(err)
 	} else {
-		t.Log(res)
+		t.Log(tr)
+	}
+}
+
+func TestTransCoordWithSaveAsJSON(t *testing.T) {
+	x := 160710.37729270622
+	y := -4388.879299157299
+
+	if tr, err := local.TransCoord(x, y).
+		AuthorizeWith(local.REST_API_KEY).
+		Input("WTM").
+		Output("WCONGNAMUL").
+		FormatAs("json").
+		Collect(); err != nil {
+		t.Error(err)
+	} else if err = tr.SaveAs("transcoord_test.json"); err != nil {
+		t.Error(err)
 	}
 }
 
@@ -26,14 +42,30 @@ func TestTransCoordWithXML(t *testing.T) {
 	x := 160710.37729270622
 	y := -4388.879299157299
 
-	if res, err := local.TransCoord(x, y).
+	if tr, err := local.TransCoord(x, y).
 		AuthorizeWith(local.REST_API_KEY).
 		Input("WTM").
 		Output("WCONGNAMUL").
-		FormatXML().
+		FormatAs("xml").
 		Collect(); err != nil {
 		t.Error(err)
 	} else {
-		t.Log(res)
+		t.Log(tr)
+	}
+}
+
+func TestTransCoordWithSaveAsXML(t *testing.T) {
+	x := 160710.37729270622
+	y := -4388.879299157299
+
+	if tr, err := local.TransCoord(x, y).
+		AuthorizeWith(local.REST_API_KEY).
+		Input("WTM").
+		Output("WCONGNAMUL").
+		FormatAs("xml").
+		Collect(); err != nil {
+		t.Error(err)
+	} else if err = tr.SaveAs("transcoord_test.xml"); err != nil {
+		t.Error(err)
 	}
 }
