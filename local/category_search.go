@@ -33,7 +33,7 @@ func (cr CategorySearchResult) String() string {
 	return string(bs)
 }
 
-// SaveAs saves cr to @filename.
+// SaveAs saves crs to @filename.
 //
 // The file extension could be either .json or .xml.
 func (crs CategorySearchResults) SaveAs(filename string) error {
@@ -135,22 +135,7 @@ func PlaceSearchByCategory(groupcode string) *CategorySearchIterator {
 			Sort:              "accuracy",
 		}
 	default:
-		panic(errors.New("wrong groupcode inputted"))
-	}
-	if r := recover(); r != nil {
-		log.Println(r)
-	}
-	return &CategorySearchIterator{
-		Format:            "json",
-		AuthKey:           "KakaoAK ",
-		CategoryGroupCode: groupcode,
-		X:                 "",
-		Y:                 "",
-		Radius:            0,
-		Rect:              "",
-		Page:              1,
-		Size:              15,
-		Sort:              "accuracy",
+		panic(ErrUnsupportedCategoryGroupCode)
 	}
 }
 
@@ -220,6 +205,9 @@ func (ci *CategorySearchIterator) Display(size int) *CategorySearchIterator {
 		ci.Size = size
 	} else {
 		panic(errors.New("size must be between 1 and 15"))
+	}
+	if r := recover(); r != nil {
+		log.Println(r)
 	}
 	return ci
 }

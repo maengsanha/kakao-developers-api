@@ -13,20 +13,38 @@ func TestCategorySearchWithJSON(t *testing.T) {
 	groupcode := "MT1"
 
 	iter := local.PlaceSearchByCategory(groupcode).
-		FormatJSON().
+		FormatAs("json").
 		AuthorizeWith(local.REST_API_KEY).
 		WithRadius(x, y, radius).
 		Display(15).
 		Result(1)
 
-	for res, err := iter.Next(); ; res, err = iter.Next() {
-		t.Log(res)
-		if err != nil {
-			if err != local.ErrEndPage {
-				t.Error(err)
-			}
-			break
-		}
+	for cr, err := iter.Next(); err == nil; cr, err = iter.Next() {
+		t.Log(cr)
+	}
+}
+
+func TestCategorySearchWithSaveAsJSON(t *testing.T) {
+	var x float64 = 127.06283102249932
+	var y float64 = 37.514322572335935
+	radius := 2000
+	groupcode := "MT1"
+
+	iter := local.PlaceSearchByCategory(groupcode).
+		FormatAs("json").
+		AuthorizeWith(local.REST_API_KEY).
+		WithRadius(x, y, radius).
+		Display(15).
+		Result(1)
+
+	crs := local.CategorySearchResults{}
+
+	for cr, err := iter.Next(); err == nil; cr, err = iter.Next() {
+		crs = append(crs, cr)
+	}
+
+	if err := crs.SaveAs("category_search_test.json"); err != nil {
+		t.Error(err)
 	}
 }
 
@@ -38,19 +56,37 @@ func TestCategorySearchWithXML(t *testing.T) {
 	ymax := 38.506051888130406
 
 	iter := local.PlaceSearchByCategory(groupcode).
-		FormatXML().
+		FormatAs("xml").
 		AuthorizeWith(local.REST_API_KEY).
 		WithRect(xmin, ymin, xmax, ymax).
 		Display(15).
 		Result(1)
 
-	for res, err := iter.Next(); ; res, err = iter.Next() {
-		t.Log(res)
-		if err != nil {
-			if err != local.ErrEndPage {
-				t.Error(err)
-			}
-			break
-		}
+	for cr, err := iter.Next(); err == nil; cr, err = iter.Next() {
+		t.Log(cr)
+	}
+}
+
+func TestCategorySearchWithSaveAsXML(t *testing.T) {
+	var x float64 = 127.06283102249932
+	var y float64 = 37.514322572335935
+	radius := 2000
+	groupcode := "MT1"
+
+	iter := local.PlaceSearchByCategory(groupcode).
+		FormatAs("xml").
+		AuthorizeWith(local.REST_API_KEY).
+		WithRadius(x, y, radius).
+		Display(15).
+		Result(1)
+
+	crs := local.CategorySearchResults{}
+
+	for cr, err := iter.Next(); err == nil; cr, err = iter.Next() {
+		crs = append(crs, cr)
+	}
+
+	if err := crs.SaveAs("category_search_test.xml"); err != nil {
+		t.Error(err)
 	}
 }
