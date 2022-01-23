@@ -4,7 +4,9 @@ package local
 import (
 	"encoding/json"
 	"encoding/xml"
+	"errors"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"strconv"
@@ -21,6 +23,36 @@ type CategorySearchResult struct {
 		SameName      RegionInfo `json:"same_name" xml:"same_name"`
 	} `json:"meta" xml:"meta"`
 	Documents []Place `json:"documents" xml:"documents"`
+}
+
+type CategorySearchResults []CategorySearchResult
+
+// String implements fmt.Stringer.
+func (cr CategorySearchResult) String() string {
+	bs, _ := json.MarshalIndent(cr, "", "  ")
+	return string(bs)
+}
+
+// SaveAs saves cr to @filename.
+//
+// The file extension could be either .json or .xml.
+func (crs CategorySearchResults) SaveAs(filename string) error {
+	switch tokens := strings.Split(filename, "."); tokens[len(tokens)-1] {
+	case "json":
+		if bs, err := json.MarshalIndent(crs, "", "  "); err != nil {
+			return err
+		} else {
+			return ioutil.WriteFile(filename, bs, 0644)
+		}
+	case "xml":
+		if bs, err := xml.MarshalIndent(crs, "", "  "); err != nil {
+			return err
+		} else {
+			return ioutil.WriteFile(filename, bs, 0644)
+		}
+	default:
+		return ErrUnsupportedFormat
+	}
 }
 
 // CategorySearchIterator is a lazy category search iterator.
@@ -88,6 +120,26 @@ type CategorySearchIterator struct {
 // Details can be referred to
 // https://developers.kakao.com/docs/latest/en/local/dev-guide#search-by-category.
 func PlaceSearchByCategory(groupcode string) *CategorySearchIterator {
+	switch groupcode {
+	case "MT1", "CS2", "PS3", "SC4", "AC5", "PK6", "OL7", "SW8", "BK9", "CT1", "AG2", "PO3", "AT4", "AD5", "FD6", "CE7", "HP8", "PM9":
+		return &CategorySearchIterator{
+			Format:            "json",
+			AuthKey:           "KakaoAK ",
+			CategoryGroupCode: groupcode,
+			X:                 "",
+			Y:                 "",
+			Radius:            0,
+			Rect:              "",
+			Page:              1,
+			Size:              15,
+			Sort:              "accuracy",
+		}
+	default:
+		panic(errors.New("wrong groupcode inputted"))
+	}
+	if r := recover(); r != nil {
+		log.Println(r)
+	}
 	return &CategorySearchIterator{
 		Format:            "json",
 		AuthKey:           "KakaoAK ",
@@ -130,8 +182,12 @@ func (ci *CategorySearchIterator) WithRadius(x, y float64, radius int) *Category
 		ci.X = strconv.FormatFloat(x, 'f', -1, 64)
 		ci.Y = strconv.FormatFloat(y, 'f', -1, 64)
 		ci.Radius = radius
+	} else {
+		panic(ErrRadiusOutOfBound)
 	}
-
+	if r := recover(); r != nil {
+		log.Println(r)
+	}
 	return ci
 }
 
@@ -149,6 +205,11 @@ func (ci *CategorySearchIterator) WithRect(xMin, yMin, xMax, yMax float64) *Cate
 func (ci *CategorySearchIterator) Result(page int) *CategorySearchIterator {
 	if 1 <= page && page <= 45 {
 		ci.Page = page
+	} else {
+		panic(ErrPageOutOfBound)
+	}
+	if r := recover(); r != nil {
+		log.Println(r)
 	}
 	return ci
 }
@@ -157,6 +218,8 @@ func (ci *CategorySearchIterator) Result(page int) *CategorySearchIterator {
 func (ci *CategorySearchIterator) Display(size int) *CategorySearchIterator {
 	if 1 <= size && size <= 15 {
 		ci.Size = size
+	} else {
+		panic(errors.New("size must be between 1 and 15"))
 	}
 	return ci
 }
@@ -168,6 +231,11 @@ func (ci *CategorySearchIterator) SortBy(order string) *CategorySearchIterator {
 	switch order {
 	case "accuracy", "distance":
 		ci.Sort = order
+	default:
+		panic(ErrUnsupportedSortingOrder)
+	}
+	if r := recover(); r != nil {
+		log.Println(r)
 	}
 	return ci
 }
