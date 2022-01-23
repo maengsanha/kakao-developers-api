@@ -8,10 +8,9 @@ import (
 
 func TestAddressSearchWithJSON(t *testing.T) {
 	query := "을지로"
-	key := ""
 
 	iter := local.AddressSearch(query).
-		AuthorizeWith(key).
+		AuthorizeWith(local.REST_API_KEY).
 		Analyze("similar").
 		FormatAs("json").
 		Display(20).
@@ -30,10 +29,9 @@ func TestAddressSearchWithJSON(t *testing.T) {
 
 func TestAddressSearchWithXML(t *testing.T) {
 	query := "을지로"
-	key := ""
 
 	iter := local.AddressSearch(query).
-		AuthorizeWith(key).
+		AuthorizeWith(local.REST_API_KEY).
 		Analyze("similar").
 		FormatAs("xml").
 		Display(30).
