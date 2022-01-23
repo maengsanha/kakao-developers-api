@@ -4,7 +4,9 @@ package local
 import (
 	"encoding/json"
 	"encoding/xml"
+	"errors"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"net/http"
 	"strings"
@@ -43,6 +45,34 @@ type CoordToAddressResult struct {
 		TotalCount int `json:"total_count" xml:"total_count"`
 	} `json:"meta" xml:"meta"`
 	Documents []TotalAddress `json:"documents" xml:"documents"`
+}
+
+// String implements fmt.Stringer.
+func (cr CoordToAddressResult) String() string {
+	bs, _ := json.MarshalIndent(cr, "", "  ")
+	return string(bs)
+}
+
+// SaveAs saves cr to @filename.
+//
+// The file extension could be either .json or .xml.
+func (cr CoordToAddressResult) SaveAs(filename string) error {
+	switch tokens := strings.Split(filename, "."); tokens[len(tokens)-1] {
+	case "json":
+		if bs, err := json.MarshalIndent(cr, "", "  "); err != nil {
+			return err
+		} else {
+			return ioutil.WriteFile(filename, bs, 0644)
+		}
+	case "xml":
+		if bs, err := xml.MarshalIndent(cr, "", "  "); err != nil {
+			return err
+		} else {
+			return ioutil.WriteFile(filename, bs, 0644)
+		}
+	default:
+		return ErrUnsupportedFormat
+	}
 }
 
 // CoordToAddressInitializer is a lazy coord to address converter.
@@ -106,6 +136,11 @@ func (ci *CoordToAddressInitializer) Input(coord string) *CoordToAddressInitiali
 	switch coord {
 	case "WGS84", "WCONAMUL", "CONGNAMUL", "WTM", "TM":
 		ci.InputCoord = coord
+	default:
+		panic(errors.New("input coordinate system must be either WGS84, WCONGNAMUL, CONGNAMUL, WTM or TM"))
+	}
+	if r := recover(); r != nil {
+		log.Panicln(r)
 	}
 	return ci
 }
