@@ -137,7 +137,7 @@ func (ci *CoordToAddressInitializer) Input(coord string) *CoordToAddressInitiali
 	case "WGS84", "WCONAMUL", "CONGNAMUL", "WTM", "TM":
 		ci.InputCoord = coord
 	default:
-		panic(errors.New("input coordinate system must be either WGS84, WCONGNAMUL, CONGNAMUL, WTM or TM"))
+		panic(errors.New("input coordinate system must be one of following options:\n WGS84, WCONGNAMUL, CONGNAMUL, WTM, TM"))
 	}
 	if r := recover(); r != nil {
 		log.Panicln(r)
