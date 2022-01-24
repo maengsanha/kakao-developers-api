@@ -12,7 +12,7 @@ import (
 	"strings"
 )
 
-// ComplexAddress represents a document of address search.
+// ComplexAddress represents a document of an address search result.
 type ComplexAddress struct {
 	AddressName string `json:"address_name" xml:"address_name"`
 	AddressType string `json:"address_type" xml:"address_type"`
