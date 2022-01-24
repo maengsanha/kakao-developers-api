@@ -137,7 +137,7 @@ func (ci *CafeSearchIterator) Result(page int) *CafeSearchIterator {
 	return ci
 }
 
-// Display sets the number of documents displayed on a single page (a value between 1 and 45).
+// Display sets the number of documents displayed on a single page (a value between 1 and 50).
 func (ci *CafeSearchIterator) Display(size int) *CafeSearchIterator {
 	if 1 <= size && size <= 50 {
 		ci.Size = size
