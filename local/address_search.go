@@ -1,4 +1,3 @@
-// Package local provides the features of the Local API.
 package local
 
 import (
@@ -187,8 +186,8 @@ func (ai *AddressSearchIterator) Next() (res AddressSearchResult, err error) {
 	// at first, send request to the API server
 	client := new(http.Client)
 	req, err := http.NewRequest(http.MethodGet,
-		fmt.Sprintf("https://dapi.kakao.com/v2/local/search/address.%s?query=%s&analyze_type=%s&page=%d&size=%d",
-			ai.Format, ai.Query, ai.AnalyzeType, ai.Page, ai.Size), nil)
+		fmt.Sprintf("%ssearch/address.%s?query=%s&analyze_type=%s&page=%d&size=%d",
+			prefix, ai.Format, ai.Query, ai.AnalyzeType, ai.Page, ai.Size), nil)
 
 	if err != nil {
 		return

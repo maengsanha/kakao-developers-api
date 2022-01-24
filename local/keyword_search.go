@@ -1,4 +1,3 @@
-// Package local provides the features of the Local API.
 package local
 
 import (
@@ -6,56 +5,12 @@ import (
 	"encoding/xml"
 	"errors"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"net/http"
 	"net/url"
 	"strconv"
 	"strings"
 )
-
-// KeywordSearchResult represents a keyword search result.
-type KeywordSearchResult struct {
-	XMLName xml.Name `json:"-" xml:"result"`
-	Meta    struct {
-		TotalCount    int        `json:"total_count" xml:"total_count"`
-		PageableCount int        `json:"pageable_count" xml:"pageable_count"`
-		IsEnd         bool       `json:"is_end" xml:"is_end"`
-		SameName      RegionInfo `json:"same_name" xml:"same_name"`
-	} `json:"meta" xml:"meta"`
-	Documents []Place `json:"documents" xml:"documents"`
-}
-
-// String implements fmt.Stringer.
-func (kr KeywordSearchResult) String() string {
-	bs, _ := json.MarshalIndent(kr, "", "  ")
-	return string(bs)
-}
-
-type KeywordSearchResults []KeywordSearchResult
-
-// SaveAs saves ars to @filename.
-//
-// The file extension could be either .json or .xml.
-func (krs KeywordSearchResults) SaveAs(filename string) error {
-	switch tokens := strings.Split(filename, "."); tokens[len(tokens)-1] {
-	case "json":
-		if bs, err := json.MarshalIndent(krs, "", "  "); err != nil {
-			return err
-		} else {
-			return ioutil.WriteFile(filename, bs, 0644)
-		}
-	case "xml":
-		if bs, err := xml.MarshalIndent(krs, "", "  "); err != nil {
-			return err
-		} else {
-			return ioutil.WriteFile(filename, bs, 0644)
-		}
-	default:
-		return ErrUnsupportedFormat
-	}
-
-}
 
 // KeywordSearchIterator is a lazy keyword search iterator.
 type KeywordSearchIterator struct {
@@ -242,8 +197,8 @@ func (ki *KeywordSearchIterator) SortBy(order string) *KeywordSearchIterator {
 	return ki
 }
 
-// Next returns the keyword search result and proceeds the iterator to the next page.
-func (ki *KeywordSearchIterator) Next() (res KeywordSearchResult, err error) {
+// Next returns the place search result and proceeds the iterator to the next page.
+func (ki *KeywordSearchIterator) Next() (res PlaceSearchResult, err error) {
 	// if there is no more result, return error
 	if ki.end {
 		return res, ErrEndPage
@@ -253,8 +208,8 @@ func (ki *KeywordSearchIterator) Next() (res KeywordSearchResult, err error) {
 	client := new(http.Client)
 
 	req, err := http.NewRequest(http.MethodGet,
-		fmt.Sprintf("https://dapi.kakao.com/v2/local/search/keyword.%s?query=%s&category_group_code=%s&x=%s&y=%s&radius=%d&rect=%s&page=%d&size=%d&sort=%s",
-			ki.Format, ki.Query, ki.CategoryGroupCode, ki.X, ki.Y, ki.Radius, ki.Rect, ki.Page, ki.Size, ki.Sort), nil)
+		fmt.Sprintf("%ssearch/keyword.%s?query=%s&category_group_code=%s&x=%s&y=%s&radius=%d&rect=%s&page=%d&size=%d&sort=%s",
+			prefix, ki.Format, ki.Query, ki.CategoryGroupCode, ki.X, ki.Y, ki.Radius, ki.Rect, ki.Page, ki.Size, ki.Sort), nil)
 
 	if err != nil {
 		return

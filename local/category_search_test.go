@@ -19,8 +19,8 @@ func TestCategorySearchWithJSON(t *testing.T) {
 		Display(15).
 		Result(1)
 
-	for cr, err := iter.Next(); err == nil; cr, err = iter.Next() {
-		t.Log(cr)
+	for pr, err := iter.Next(); err == nil; pr, err = iter.Next() {
+		t.Log(pr)
 	}
 }
 
@@ -37,13 +37,13 @@ func TestCategorySearchWithSaveAsJSON(t *testing.T) {
 		Display(15).
 		Result(1)
 
-	crs := local.CategorySearchResults{}
+	prs := local.PlaceSearchResults{}
 
-	for cr, err := iter.Next(); err == nil; cr, err = iter.Next() {
-		crs = append(crs, cr)
+	for pr, err := iter.Next(); err == nil; pr, err = iter.Next() {
+		prs = append(prs, pr)
 	}
 
-	if err := crs.SaveAs("category_search_test.json"); err != nil {
+	if err := prs.SaveAs("category_search_test.json"); err != nil {
 		t.Error(err)
 	}
 }
@@ -62,8 +62,8 @@ func TestCategorySearchWithXML(t *testing.T) {
 		Display(15).
 		Result(1)
 
-	for cr, err := iter.Next(); err == nil; cr, err = iter.Next() {
-		t.Log(cr)
+	for pr, err := iter.Next(); err == nil; pr, err = iter.Next() {
+		t.Log(pr)
 	}
 }
 
@@ -80,13 +80,13 @@ func TestCategorySearchWithSaveAsXML(t *testing.T) {
 		Display(15).
 		Result(1)
 
-	crs := local.CategorySearchResults{}
+	prs := local.PlaceSearchResults{}
 
-	for cr, err := iter.Next(); err == nil; cr, err = iter.Next() {
-		crs = append(crs, cr)
+	for pr, err := iter.Next(); err == nil; pr, err = iter.Next() {
+		prs = append(prs, pr)
 	}
 
-	if err := crs.SaveAs("category_search_test.xml"); err != nil {
+	if err := prs.SaveAs("category_search_test.xml"); err != nil {
 		t.Error(err)
 	}
 }

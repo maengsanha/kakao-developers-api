@@ -1,4 +1,3 @@
-// Package local provides the features of the Local API.
 package local
 
 // RegionInfo represents a region information of Local APIs.

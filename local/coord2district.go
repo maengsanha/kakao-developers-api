@@ -1,4 +1,3 @@
-// Package local provides the features of the Local API.
 package local
 
 import (
@@ -126,7 +125,7 @@ func (ci *CoordToDistrictInitializer) Input(coord string) *CoordToDistrictInitia
 	case "WGS84", "WCONGNAMUL", "CONGNAMUL", "WTM", "TM":
 		ci.InputCoord = coord
 	default:
-		panic(errors.New("input coordinate system must be either WGS84, WCONGNAMUL, CONGNAMUL, WTM or TM"))
+		panic(errors.New("input coordinate system must be one of the following options:\nWGS84, WCONGNAMUL, CONGNAMUL, WTM, TM"))
 	}
 	if r := recover(); r != nil {
 		log.Println(r)
@@ -152,7 +151,7 @@ func (ci *CoordToDistrictInitializer) Output(coord string) *CoordToDistrictIniti
 	case "WGS84", "WCONGNAMUL", "CONGNAMUL", "WTM", "TM":
 		ci.OutputCoord = coord
 	default:
-		panic(errors.New("output coordinate system must be either WGS84, WCONGNAMUL, CONGNAMUL, WTM or TM"))
+		panic(errors.New("output coordinate system must be one of the following options:\nWGS84, WCONGNAMUL, CONGNAMUL, WTM, TM"))
 	}
 	if r := recover(); r != nil {
 		log.Println(r)
@@ -164,8 +163,8 @@ func (ci *CoordToDistrictInitializer) Output(coord string) *CoordToDistrictIniti
 func (ci *CoordToDistrictInitializer) Collect() (res CoordToDistrictResult, err error) {
 	client := new(http.Client)
 	req, err := http.NewRequest(http.MethodGet,
-		fmt.Sprintf("https://dapi.kakao.com/v2/local/geo/coord2regioncode.%s?x=%s&y=%s&input_coord=%s&output_coord=%s",
-			ci.Format, ci.X, ci.Y, ci.InputCoord, ci.OutputCoord), nil)
+		fmt.Sprintf("%sgeo/coord2regioncode.%s?x=%s&y=%s&input_coord=%s&output_coord=%s",
+			prefix, ci.Format, ci.X, ci.Y, ci.InputCoord, ci.OutputCoord), nil)
 
 	if err != nil {
 		return
