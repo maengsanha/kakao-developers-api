@@ -242,8 +242,8 @@ func (ci *CategorySearchIterator) Next() (res CategorySearchResult, err error) {
 
 	client := new(http.Client)
 	req, err := http.NewRequest(http.MethodGet,
-		fmt.Sprintf("https://dapi.kakao.com/v2/local/search/category.%s?category_group_code=%s&page=%d&size=%d&sort=%s&x=%s&y=%s&radius=%d&rect=%s",
-			ci.Format, ci.CategoryGroupCode, ci.Page, ci.Size, ci.Sort, ci.X, ci.Y, ci.Radius, ci.Rect), nil)
+		fmt.Sprintf("%ssearch/category.%s?category_group_code=%s&page=%d&size=%d&sort=%s&x=%s&y=%s&radius=%d&rect=%s",
+			prefix, ci.Format, ci.CategoryGroupCode, ci.Page, ci.Size, ci.Sort, ci.X, ci.Y, ci.Radius, ci.Rect), nil)
 
 	if err != nil {
 		return

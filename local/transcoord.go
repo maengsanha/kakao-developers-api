@@ -129,7 +129,7 @@ func (ti *TransCoordInitializer) Input(coord string) *TransCoordInitializer {
 	case "WGS84", "WCONGNAMUL", "CONGNAMUL", "WTM", "TM", "KTM", "UTM", "BESSEL", "WKTM", "WUTM":
 		ti.InputCoord = coord
 	default:
-		panic(errors.New("input coordinate system must be either WGS84, WCONGNAMUL, CONGNAMUL, WTM, TM, KTM, UTM, BESSEL, WKTM, WUTM"))
+		panic(errors.New("input coordinate system must be one of the following options:\nWGS84, WCONGNAMUL, CONGNAMUL, WTM, TM, KTM, UTM, BESSEL, WKTM, WUTM"))
 	}
 	if r := recover(); r != nil {
 		log.Println(r)
@@ -165,7 +165,7 @@ func (ti *TransCoordInitializer) Output(coord string) *TransCoordInitializer {
 	case "WGS84", "WCONGNAMUL", "CONGNAMUL", "WTM", "TM", "KTM", "UTM", "BESSEL", "WKTM", "WUTM":
 		ti.OutputCoord = coord
 	default:
-		panic(errors.New("output coordinate system must be either WGS84, WCONGNAMUL, CONGNAMUL, WTM, TM, KTM, UTM, BESSEL, WKTM, WUTM"))
+		panic(errors.New("output coordinate system must be one of the following options:\nWGS84, WCONGNAMUL, CONGNAMUL, WTM, TM, KTM, UTM, BESSEL, WKTM, WUTM"))
 	}
 	if r := recover(); r != nil {
 		log.Println(r)
