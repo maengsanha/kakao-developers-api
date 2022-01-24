@@ -57,6 +57,8 @@ type DocumentSearchIterator struct {
 }
 
 // DocumentSearch allows to search web documents by @query in the Daum Search service.
+//
+// See https://developers.kakao.com/docs/latest/ko/daum-search/dev-guide#search-doc for more details.
 func DocumentSearch(query string) *DocumentSearchIterator {
 	return &DocumentSearchIterator{
 		Query:   url.QueryEscape(strings.TrimSpace(query)),
