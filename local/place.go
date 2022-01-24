@@ -1,4 +1,3 @@
-// Package local provides the features of the Local API.
 package local
 
 // Place represents a place information of Local APIs.

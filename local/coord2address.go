@@ -1,4 +1,3 @@
-// Package local provides the features of the Local API.
 package local
 
 import (
@@ -40,7 +39,7 @@ type TotalAddress struct {
 
 // CoordToAddressResult represents a CoordToAddress result.
 type CoordToAddressResult struct {
-	XMLName xml.Name `xml:"result"`
+	XMLName xml.Name `json:"-" xml:"result"`
 	Meta    struct {
 		TotalCount int `json:"total_count" xml:"total_count"`
 	} `json:"meta" xml:"meta"`
@@ -148,8 +147,9 @@ func (ci *CoordToAddressInitializer) Input(coord string) *CoordToAddressInitiali
 // Collect returns the land-lot number address(with post number) and road name address.
 func (ci *CoordToAddressInitializer) Collect() (res CoordToAddressResult, err error) {
 	client := new(http.Client)
-	req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("https://dapi.kakao.com/v2/local/geo/coord2address.%s?x=%s&y=%s&input_coord=%s",
-		ci.Format, ci.X, ci.Y, ci.InputCoord), nil)
+	req, err := http.NewRequest(http.MethodGet,
+		fmt.Sprintf("%sgeo/coord2address.%s?x=%s&y=%s&input_coord=%s",
+			prefix, ci.Format, ci.X, ci.Y, ci.InputCoord), nil)
 
 	if err != nil {
 		return
