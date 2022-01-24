@@ -24,8 +24,8 @@ func TestKeywordSearchWithJSON(t *testing.T) {
 		Category(groupcode).
 		SortBy(order)
 
-	for kr, err := iter.Next(); err == nil; kr, err = iter.Next() {
-		t.Log(kr)
+	for pr, err := iter.Next(); err == nil; pr, err = iter.Next() {
+		t.Log(pr)
 	}
 
 }
@@ -48,13 +48,13 @@ func TestKeywordSearchWithSaveAsJSON(t *testing.T) {
 		Category(groupcode).
 		SortBy(order)
 
-	krs := local.KeywordSearchResults{}
+	prs := local.PlaceSearchResults{}
 
-	for kr, err := iter.Next(); err == nil; kr, err = iter.Next() {
-		krs = append(krs, kr)
+	for pr, err := iter.Next(); err == nil; pr, err = iter.Next() {
+		prs = append(prs, pr)
 	}
 
-	if err := krs.SaveAs("keyword_search_test.json"); err != nil {
+	if err := prs.SaveAs("keyword_search_test.json"); err != nil {
 		t.Error(err)
 	}
 }
@@ -82,8 +82,8 @@ func TestKeywordSearchWithXML(t *testing.T) {
 		Category(groupcode).
 		SortBy(order)
 
-	for kr, err := iter.Next(); err == nil; kr, err = iter.Next() {
-		t.Log(kr)
+	for pr, err := iter.Next(); err == nil; pr, err = iter.Next() {
+		t.Log(pr)
 	}
 
 }
@@ -110,13 +110,13 @@ func TestKeywordSearchWithSaveAsXML(t *testing.T) {
 		Category(groupcode).
 		SortBy(order)
 
-	krs := local.KeywordSearchResults{}
+	prs := local.PlaceSearchResults{}
 
-	for kr, err := iter.Next(); err == nil; kr, err = iter.Next() {
-		krs = append(krs, kr)
+	for pr, err := iter.Next(); err == nil; pr, err = iter.Next() {
+		prs = append(prs, pr)
 	}
 
-	if err := krs.SaveAs("keyword_search_test.xml"); err != nil {
+	if err := prs.SaveAs("keyword_search_test.xml"); err != nil {
 		t.Error(err)
 	}
 

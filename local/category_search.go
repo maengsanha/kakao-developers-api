@@ -6,54 +6,11 @@ import (
 	"encoding/xml"
 	"errors"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"net/http"
 	"strconv"
 	"strings"
 )
-
-// CategorySearchResult represents a category search result.
-type CategorySearchResult struct {
-	XMLName xml.Name `json:"-" xml:"result"`
-	Meta    struct {
-		TotalCount    int        `json:"total_count" xml:"total_count"`
-		PageableCount int        `json:"pageable_count" xml:"pageable_count"`
-		IsEnd         bool       `json:"is_end" xml:"is_end"`
-		SameName      RegionInfo `json:"same_name" xml:"same_name"`
-	} `json:"meta" xml:"meta"`
-	Documents []Place `json:"documents" xml:"documents"`
-}
-
-type CategorySearchResults []CategorySearchResult
-
-// String implements fmt.Stringer.
-func (cr CategorySearchResult) String() string {
-	bs, _ := json.MarshalIndent(cr, "", "  ")
-	return string(bs)
-}
-
-// SaveAs saves crs to @filename.
-//
-// The file extension could be either .json or .xml.
-func (crs CategorySearchResults) SaveAs(filename string) error {
-	switch tokens := strings.Split(filename, "."); tokens[len(tokens)-1] {
-	case "json":
-		if bs, err := json.MarshalIndent(crs, "", "  "); err != nil {
-			return err
-		} else {
-			return ioutil.WriteFile(filename, bs, 0644)
-		}
-	case "xml":
-		if bs, err := xml.MarshalIndent(crs, "", "  "); err != nil {
-			return err
-		} else {
-			return ioutil.WriteFile(filename, bs, 0644)
-		}
-	default:
-		return ErrUnsupportedFormat
-	}
-}
 
 // CategorySearchIterator is a lazy category search iterator.
 type CategorySearchIterator struct {
@@ -234,8 +191,8 @@ func (ci *CategorySearchIterator) SortBy(order string) *CategorySearchIterator {
 	return ci
 }
 
-// Next returns the category search result.
-func (ci *CategorySearchIterator) Next() (res CategorySearchResult, err error) {
+// Next returns the place search result.
+func (ci *CategorySearchIterator) Next() (res PlaceSearchResult, err error) {
 	if ci.end {
 		return res, ErrEndPage
 	}
