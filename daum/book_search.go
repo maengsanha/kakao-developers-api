@@ -61,7 +61,7 @@ type BookSearchIterator struct {
 	end     bool
 }
 
-// BlogSearch allows to search books by @query in the Daum Book service.
+// BookSearch allows to search books by @query in the Daum Book service.
 //
 // See https://developers.kakao.com/docs/latest/ko/daum-search/dev-guide#search-book for more details.
 func BookSearch(query string) *BookSearchIterator {
