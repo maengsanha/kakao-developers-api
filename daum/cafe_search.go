@@ -1,29 +1,23 @@
 package daum
 
 import (
-	"bytes"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"net/url"
 	"strings"
-	"time"
 )
 
-// CafeResult represents a document of cafe search result.
+// CafeResult represents a document of a Daum cafe search result.
 type CafeResult struct {
-	Title     string    `json:"title"`
-	Contents  string    `json:"contents"`
-	URL       string    `json:"url"`
-	CafeName  string    `json:"cafename"`
-	Thumbnail string    `json:"thumbnail"`
-	Datetime  time.Time `json:"datetime"`
+	WebResult
+	CafeName  string `json:"cafename"`
+	Thumbnail string `json:"thumbnail"`
 }
 
-// CafeSearchResult represents a cafe search result.
+// CafeSearchResult represents a Daum cafe search result.
 type CafeSearchResult struct {
 	Meta struct {
 		TotalCount    int  `json:"total_count"`
@@ -34,47 +28,19 @@ type CafeSearchResult struct {
 }
 
 // String implements fmt.Stringer.
-func (ci CafeSearchResult) String() string {
-	bs, _ := Indent(ci, "", "  ")
+func (cr CafeSearchResult) String() string {
+	bs, _ := json.MarshalIndent(cr, "", "  ")
 	return string(bs)
-}
-
-// JSONEncode encodes JSON format to []byte format.
-func JSONEncode(t interface{}) ([]byte, error) {
-	buffer := &bytes.Buffer{}
-	encoder := json.NewEncoder(buffer)
-	encoder.SetEscapeHTML(false)
-	err := encoder.Encode(t)
-	return buffer.Bytes(), err
-}
-
-// Indent appends to an indented form of the JSON-encoded src.
-func Indent(v interface{}, prefix, indent string) ([]byte, error) {
-	b, err := JSONEncode(v)
-	if err != nil {
-		return nil, err
-	}
-	var buf bytes.Buffer
-	err = json.Indent(&buf, b, prefix, indent)
-	if err != nil {
-		return nil, err
-	}
-	return buf.Bytes(), nil
 }
 
 type CafeSearchResults []CafeSearchResult
 
 // SaveAs saves crs to @filename.
 func (crs CafeSearchResults) SaveAs(filename string) error {
-	switch tokens := strings.Split(filename, "."); tokens[len(tokens)-1] {
-	case "json":
-		if bs, err := json.MarshalIndent(crs, "", "  "); err != nil {
-			return err
-		} else {
-			return ioutil.WriteFile(filename, bs, 0644)
-		}
-	default:
-		return errors.New("file format must be json")
+	if bs, err := json.MarshalIndent(crs, "", "  "); err != nil {
+		return err
+	} else {
+		return ioutil.WriteFile(filename, bs, 0644)
 	}
 }
 
@@ -116,7 +82,7 @@ func (ci *CafeSearchIterator) SortBy(order string) *CafeSearchIterator {
 	case "accuracy", "recency":
 		ci.Sort = order
 	default:
-		panic(errors.New("sorting order must be either accuracy or recency"))
+		panic("sorting order must be either accuracy or recency")
 	}
 	if r := recover(); r != nil {
 		log.Println(r)
@@ -129,7 +95,7 @@ func (ci *CafeSearchIterator) Result(page int) *CafeSearchIterator {
 	if 1 <= page && page <= 50 {
 		ci.Page = page
 	} else {
-		panic(errors.New("page must be between 1 and 50"))
+		panic("page must be between 1 and 50")
 	}
 	if r := recover(); r != nil {
 		log.Println(r)
@@ -142,7 +108,7 @@ func (ci *CafeSearchIterator) Display(size int) *CafeSearchIterator {
 	if 1 <= size && size <= 50 {
 		ci.Size = size
 	} else {
-		panic(errors.New("size musts be between 1 and 50"))
+		panic("size musts be between 1 and 50")
 	}
 	if r := recover(); r != nil {
 		log.Println(r)
@@ -153,7 +119,7 @@ func (ci *CafeSearchIterator) Display(size int) *CafeSearchIterator {
 // Next returns the cafe search result and proceeds the iterator to the next page.
 func (ci *CafeSearchIterator) Next() (res CafeSearchResult, err error) {
 	if ci.end {
-		return res, errors.New("page reaches the end")
+		return res, ErrEndPage
 	}
 
 	client := new(http.Client)
@@ -180,9 +146,9 @@ func (ci *CafeSearchIterator) Next() (res CafeSearchResult, err error) {
 		return
 	}
 
-	ci.end = res.Meta.IsEnd
-
 	ci.Page++
+
+	ci.end = res.Meta.IsEnd || ci.Page > 50
 
 	return
 }

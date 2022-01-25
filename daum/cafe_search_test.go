@@ -12,10 +12,9 @@ func TestCafeSearchSort(t *testing.T) {
 		AuthorizeWith(daum.REST_API_KEY).
 		SortBy("accuracy").
 		Display(10).
-		Result(10)
+		Result(1)
 
-	cr, err := iter.Next()
-	if err == nil {
+	for cr, err := iter.Next(); err == nil; cr, err = iter.Next() {
 		t.Log(cr)
 	}
 
@@ -30,8 +29,8 @@ func TestCafeSearchSaveAsJSON(t *testing.T) {
 		Result(1)
 
 	crs := daum.CafeSearchResults{}
-	cr, err := iter.Next()
-	if err == nil {
+
+	for cr, err := iter.Next(); err == nil; cr, err = iter.Next() {
 		crs = append(crs, cr)
 	}
 
