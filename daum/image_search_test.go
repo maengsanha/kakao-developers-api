@@ -11,7 +11,9 @@ func TestImageSearchWithJSON(t *testing.T) {
 
 	iter := daum.ImageSearch(query).
 		AuthorizeWith(daum.REST_API_KEY).
-		SortBy("accuracy")
+		SortBy("accuracy").
+		Display(1).
+		Result(1)
 
 	for ir, err := iter.Next(); err == nil; ir, err = iter.Next() {
 		t.Log(ir)

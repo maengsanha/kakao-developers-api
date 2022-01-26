@@ -153,7 +153,7 @@ func (ii *ImageSearchIterator) Next() (res ImageSearchResult, err error) {
 		return
 	}
 
-	ii.end = res.Meta.IsEnd
+	ii.end = res.Meta.IsEnd || ii.Page > 50
 
 	ii.Page++
 

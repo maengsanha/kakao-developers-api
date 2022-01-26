@@ -7,7 +7,7 @@ import (
 )
 
 func TestVideoSearchWithJSON(t *testing.T) {
-	query := "major scale code"
+	query := "major scale"
 
 	iter := daum.VideoSearch(query).
 		AuthorizeWith(daum.REST_API_KEY).
@@ -21,7 +21,7 @@ func TestVideoSearchWithJSON(t *testing.T) {
 }
 
 func TestVideoSearchWithSaveAsJSON(t *testing.T) {
-	query := "minor code"
+	query := "minor scale"
 
 	iter := daum.VideoSearch(query).
 		AuthorizeWith(daum.REST_API_KEY).

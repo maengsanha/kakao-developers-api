@@ -151,7 +151,7 @@ func (vi *VideoSearchIterator) Next() (res VideoSearchResult, err error) {
 		return
 	}
 
-	vi.end = res.Meta.IsEnd
+	vi.end = res.Meta.IsEnd || vi.Page > 15
 
 	vi.Page++
 
