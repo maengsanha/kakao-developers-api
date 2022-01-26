@@ -50,7 +50,7 @@ func (irs ImageSearchResults) SaveAs(filename string) error {
 	}
 }
 
-// ImageSearchIterator is a lazt image search iterator.
+// ImageSearchIterator is a lazy image search iterator.
 type ImageSearchIterator struct {
 	Query   string
 	Sort    string
