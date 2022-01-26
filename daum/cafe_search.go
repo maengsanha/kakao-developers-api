@@ -108,7 +108,7 @@ func (ci *CafeSearchIterator) Display(size int) *CafeSearchIterator {
 	if 1 <= size && size <= 50 {
 		ci.Size = size
 	} else {
-		panic("size musts be between 1 and 50")
+		panic("size must be between 1 and 50")
 	}
 	if r := recover(); r != nil {
 		log.Println(r)
