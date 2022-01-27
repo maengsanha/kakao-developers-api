@@ -6,7 +6,7 @@ import (
 	"github.com/maengsanha/kakao-developers-client/daum"
 )
 
-func TestCafeSearchSort(t *testing.T) {
+func TestCafeSearchSortWithJSON(t *testing.T) {
 	query := "손흥민"
 	iter := daum.CafeSearch(query).
 		AuthorizeWith(daum.REST_API_KEY).
@@ -20,7 +20,7 @@ func TestCafeSearchSort(t *testing.T) {
 
 }
 
-func TestCafeSearchSaveAsJSON(t *testing.T) {
+func TestCafeSearchWithSaveAsJSON(t *testing.T) {
 	query := "손흥민"
 	iter := daum.CafeSearch(query).
 		AuthorizeWith(daum.REST_API_KEY).
