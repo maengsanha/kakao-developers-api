@@ -11,7 +11,7 @@ import (
 	"time"
 )
 
-// VclipResult represents a result of a video search result.
+// VclipResult represents a document of a video search result.
 type VClipResult struct {
 	Title     string    `json:"title"`
 	URL       string    `json:"url"`

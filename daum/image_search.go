@@ -11,7 +11,7 @@ import (
 	"time"
 )
 
-// ImageResult represents a result of a image search result.
+// ImageResult represents a document of a image search result.
 type ImageResult struct {
 	Collection      string    `json:"collection"`
 	ThumbnailURL    string    `json:"thumbnail_url"`
@@ -23,7 +23,7 @@ type ImageResult struct {
 	Datetime        time.Time `json:"datetime"`
 }
 
-// ImageSearchResult represents a image search result.
+// ImageSearchResult represents an image search result.
 type ImageSearchResult struct {
 	Meta struct {
 		TotalCount    int  `json:"total_count"`
