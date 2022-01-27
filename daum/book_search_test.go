@@ -6,7 +6,7 @@ import (
 	"github.com/maengsanha/kakao-developers-client/daum"
 )
 
-func TestBookSearch(t *testing.T) {
+func TestBookSearchWithJSON(t *testing.T) {
 	query := "밤은 짧아 걸어 아가씨야"
 
 	iter := daum.BookSearch(query).
@@ -21,7 +21,7 @@ func TestBookSearch(t *testing.T) {
 	}
 }
 
-func TestBookSearchSaveAsJSON(t *testing.T) {
+func TestBookSearchWithSaveAsJSON(t *testing.T) {
 	query := "히가시노 게이고"
 
 	iter := daum.BookSearch(query).

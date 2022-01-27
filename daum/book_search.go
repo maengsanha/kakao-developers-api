@@ -50,7 +50,7 @@ func (brs BookSearchResults) SaveAs(filename string) error {
 	}
 }
 
-// BookSearchIterator is a lazy blog search iterator.
+// BookSearchIterator is a lazy book search iterator.
 type BookSearchIterator struct {
 	Query   string
 	AuthKey string
