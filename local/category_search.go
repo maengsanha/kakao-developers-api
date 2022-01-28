@@ -3,8 +3,8 @@ package local
 import (
 	"encoding/json"
 	"encoding/xml"
-	"errors"
 	"fmt"
+	"internal/common"
 	"log"
 	"net/http"
 	"strconv"
@@ -77,7 +77,8 @@ type CategorySearchIterator struct {
 // https://developers.kakao.com/docs/latest/en/local/dev-guide#search-by-category.
 func PlaceSearchByCategory(groupcode string) *CategorySearchIterator {
 	switch groupcode {
-	case "MT1", "CS2", "PS3", "SC4", "AC5", "PK6", "OL7", "SW8", "BK9", "CT1", "AG2", "PO3", "AT4", "AD5", "FD6", "CE7", "HP8", "PM9":
+	case "MT1", "CS2", "PS3", "SC4", "AC5", "PK6", "OL7", "SW8", "BK9",
+		"CT1", "AG2", "PO3", "AT4", "AD5", "FD6", "CE7", "HP8", "PM9":
 	default:
 		panic(ErrUnsupportedCategoryGroupCode)
 	}
@@ -89,7 +90,7 @@ func PlaceSearchByCategory(groupcode string) *CategorySearchIterator {
 
 	return &CategorySearchIterator{
 		Format:            "json",
-		AuthKey:           "KakaoAK ",
+		AuthKey:           common.KeyPrefix,
 		CategoryGroupCode: groupcode,
 		X:                 "",
 		Y:                 "",
@@ -107,7 +108,7 @@ func (ci *CategorySearchIterator) FormatAs(format string) *CategorySearchIterato
 	case "json", "xml":
 		ci.Format = format
 	default:
-		panic(ErrUnsupportedFormat)
+		panic(common.ErrUnsupportedFormat)
 	}
 	if r := recover(); r != nil {
 		log.Println(r)
@@ -117,7 +118,7 @@ func (ci *CategorySearchIterator) FormatAs(format string) *CategorySearchIterato
 
 // Authorization sets the authorization key to @key.
 func (ci *CategorySearchIterator) AuthorizeWith(key string) *CategorySearchIterator {
-	ci.AuthKey = "KakaoAK " + strings.TrimSpace(key)
+	ci.AuthKey = common.FormatKey(key)
 	return ci
 }
 
@@ -153,7 +154,7 @@ func (ci *CategorySearchIterator) Result(page int) *CategorySearchIterator {
 	if 1 <= page && page <= 45 {
 		ci.Page = page
 	} else {
-		panic(ErrPageOutOfBound)
+		panic(common.ErrPageOutOfBound)
 	}
 	if r := recover(); r != nil {
 		log.Println(r)
@@ -166,7 +167,7 @@ func (ci *CategorySearchIterator) Display(size int) *CategorySearchIterator {
 	if 1 <= size && size <= 15 {
 		ci.Size = size
 	} else {
-		panic(errors.New("size must be between 1 and 15"))
+		panic(common.ErrSizeOutOfBound)
 	}
 	if r := recover(); r != nil {
 		log.Println(r)
@@ -182,7 +183,7 @@ func (ci *CategorySearchIterator) SortBy(order string) *CategorySearchIterator {
 	case "accuracy", "distance":
 		ci.Sort = order
 	default:
-		panic(ErrUnsupportedSortingOrder)
+		panic(common.ErrUnsupportedSortingOrder)
 	}
 	if r := recover(); r != nil {
 		log.Println(r)
@@ -193,7 +194,7 @@ func (ci *CategorySearchIterator) SortBy(order string) *CategorySearchIterator {
 // Next returns the place search result.
 func (ci *CategorySearchIterator) Next() (res PlaceSearchResult, err error) {
 	if ci.end {
-		return res, ErrEndPage
+		return res, common.ErrEndPage
 	}
 
 	client := new(http.Client)
@@ -207,7 +208,7 @@ func (ci *CategorySearchIterator) Next() (res PlaceSearchResult, err error) {
 
 	req.Close = true
 
-	req.Header.Set("Authorization", ci.AuthKey)
+	req.Header.Set(common.Authorization, ci.AuthKey)
 
 	resp, err := client.Do(req)
 	if err != nil {

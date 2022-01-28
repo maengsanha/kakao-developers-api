@@ -2,8 +2,9 @@ package daum
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
-	"io/ioutil"
+	"internal/common"
 	"log"
 	"net/http"
 	"net/url"
@@ -25,30 +26,17 @@ type BookResult struct {
 
 // BookSearchResult represents a Daum Book search result.
 type BookSearchResult struct {
-	Meta struct {
-		TotalCount    int  `json:"total_count"`
-		PageableCount int  `json:"pageable_count"`
-		IsEnd         bool `json:"is_end"`
-	} `json:"meta"`
-	Documents []BookResult `json:"documents"`
+	Meta      common.PageableMeta `json:"meta"`
+	Documents []BookResult        `json:"documents"`
 }
 
 // String implements fmt.Stringer.
-func (br BookSearchResult) String() string {
-	bs, _ := json.MarshalIndent(br, "", "  ")
-	return string(bs)
-}
+func (br BookSearchResult) String() string { return common.String(br) }
 
 type BookSearchResults []BookSearchResult
 
 // SaveAs saves brs to @filename.
-func (brs BookSearchResults) SaveAs(filename string) error {
-	if bs, err := json.MarshalIndent(brs, "", "  "); err != nil {
-		return err
-	} else {
-		return ioutil.WriteFile(filename, bs, 0644)
-	}
-}
+func (brs BookSearchResults) SaveAs(filename string) error { return common.SaveAsJSON(brs, filename) }
 
 // BookSearchIterator is a lazy book search iterator.
 type BookSearchIterator struct {
@@ -67,7 +55,7 @@ type BookSearchIterator struct {
 func BookSearch(query string) *BookSearchIterator {
 	return &BookSearchIterator{
 		Query:   url.QueryEscape(strings.TrimSpace(query)),
-		AuthKey: "KakaoAK ",
+		AuthKey: common.KeyPrefix,
 		Sort:    "accuracy",
 		Page:    1,
 		Size:    10,
@@ -78,7 +66,7 @@ func BookSearch(query string) *BookSearchIterator {
 
 // AuthorizeWith sets the authorization key to @key.
 func (bi *BookSearchIterator) AuthorizeWith(key string) *BookSearchIterator {
-	bi.AuthKey = "KakaoAK " + strings.TrimSpace(key)
+	bi.AuthKey = common.FormatKey(key)
 	return bi
 }
 
@@ -90,7 +78,7 @@ func (bi *BookSearchIterator) SortBy(order string) *BookSearchIterator {
 	case "accuracy", "latest":
 		bi.Sort = order
 	default:
-		panic("sorting order must be either accuracy or latest")
+		panic(common.ErrUnsupportedSortingOrder)
 	}
 	if r := recover(); r != nil {
 		log.Println(r)
@@ -103,7 +91,7 @@ func (bi *BookSearchIterator) Result(page int) *BookSearchIterator {
 	if 1 <= page && page <= 50 {
 		bi.Page = page
 	} else {
-		panic("page must be between 1 and 50")
+		panic(common.ErrPageOutOfBound)
 	}
 	if r := recover(); r != nil {
 		log.Println(r)
@@ -116,7 +104,7 @@ func (bi *BookSearchIterator) Display(size int) *BookSearchIterator {
 	if 1 <= size && size <= 50 {
 		bi.Size = size
 	} else {
-		panic("size must be between 1 and 50")
+		panic(common.ErrSizeOutOfBound)
 	}
 	if r := recover(); r != nil {
 		log.Println(r)
@@ -134,7 +122,9 @@ func (bi *BookSearchIterator) Filter(target string) *BookSearchIterator {
 	case "title", "isbn", "publisher", "person", "":
 		bi.Target = target
 	default:
-		panic("target must be one of the following options:\ntitle, isbn, publisher, person")
+		panic(errors.New(
+			`target must be one of the following options:
+			title, isbn, publisher, person`))
 	}
 	if r := recover(); r != nil {
 		log.Println(r)
@@ -159,7 +149,7 @@ func (bi *BookSearchIterator) Next() (res BookSearchResult, err error) {
 
 	req.Close = true
 
-	req.Header.Set("Authorization", bi.AuthKey)
+	req.Header.Set(common.Authorization, bi.AuthKey)
 
 	resp, err := client.Do(req)
 	if err != nil {

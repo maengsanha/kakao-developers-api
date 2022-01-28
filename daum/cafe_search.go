@@ -3,7 +3,7 @@ package daum
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"internal/common"
 	"log"
 	"net/http"
 	"net/url"
@@ -19,30 +19,17 @@ type CafeResult struct {
 
 // CafeSearchResult represents a Daum Cafe search result.
 type CafeSearchResult struct {
-	Meta struct {
-		TotalCount    int  `json:"total_count"`
-		PageableCount int  `json:"pageable_count"`
-		IsEnd         bool `json:"is_end"`
-	} `json:"meta"`
-	Documents []CafeResult `json:"documents"`
+	Meta      common.PageableMeta `json:"meta"`
+	Documents []CafeResult        `json:"documents"`
 }
 
 // String implements fmt.Stringer.
-func (cr CafeSearchResult) String() string {
-	bs, _ := json.MarshalIndent(cr, "", "  ")
-	return string(bs)
-}
+func (cr CafeSearchResult) String() string { return common.String(cr) }
 
 type CafeSearchResults []CafeSearchResult
 
 // SaveAs saves crs to @filename.
-func (crs CafeSearchResults) SaveAs(filename string) error {
-	if bs, err := json.MarshalIndent(crs, "", "  "); err != nil {
-		return err
-	} else {
-		return ioutil.WriteFile(filename, bs, 0644)
-	}
-}
+func (crs CafeSearchResults) SaveAs(filename string) error { return common.SaveAsJSON(crs, filename) }
 
 // CafeSearchIterator is a lazy cafe search iterator.
 type CafeSearchIterator struct {
@@ -60,7 +47,7 @@ type CafeSearchIterator struct {
 func CafeSearch(query string) *CafeSearchIterator {
 	return &CafeSearchIterator{
 		Query:   url.QueryEscape(strings.TrimSpace(query)),
-		AuthKey: "KakaoAK ",
+		AuthKey: common.KeyPrefix,
 		Sort:    "accuracy",
 		Page:    1,
 		Size:    10,
@@ -70,7 +57,7 @@ func CafeSearch(query string) *CafeSearchIterator {
 
 // AuthorizeWith sets the authorization key to @key.
 func (ci *CafeSearchIterator) AuthorizeWith(key string) *CafeSearchIterator {
-	ci.AuthKey = "KakaoAK " + strings.TrimSpace(key)
+	ci.AuthKey = common.FormatKey(key)
 	return ci
 }
 
@@ -82,7 +69,7 @@ func (ci *CafeSearchIterator) SortBy(order string) *CafeSearchIterator {
 	case "accuracy", "recency":
 		ci.Sort = order
 	default:
-		panic("sorting order must be either accuracy or recency")
+		panic(common.ErrUnsupportedSortingOrder)
 	}
 	if r := recover(); r != nil {
 		log.Println(r)
@@ -95,7 +82,7 @@ func (ci *CafeSearchIterator) Result(page int) *CafeSearchIterator {
 	if 1 <= page && page <= 50 {
 		ci.Page = page
 	} else {
-		panic("page must be between 1 and 50")
+		panic(common.ErrPageOutOfBound)
 	}
 	if r := recover(); r != nil {
 		log.Println(r)
@@ -108,7 +95,7 @@ func (ci *CafeSearchIterator) Display(size int) *CafeSearchIterator {
 	if 1 <= size && size <= 50 {
 		ci.Size = size
 	} else {
-		panic("size must be between 1 and 50")
+		panic(common.ErrSizeOutOfBound)
 	}
 	if r := recover(); r != nil {
 		log.Println(r)
@@ -133,7 +120,7 @@ func (ci *CafeSearchIterator) Next() (res CafeSearchResult, err error) {
 
 	req.Close = true
 
-	req.Header.Set("Authorization", ci.AuthKey)
+	req.Header.Set(common.Authorization, ci.AuthKey)
 
 	resp, err := client.Do(req)
 	if err != nil {

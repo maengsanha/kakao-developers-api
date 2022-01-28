@@ -3,8 +3,8 @@ package local
 import (
 	"encoding/json"
 	"encoding/xml"
-	"errors"
 	"fmt"
+	"internal/common"
 	"log"
 	"net/http"
 	"net/url"
@@ -38,7 +38,7 @@ func PlaceSearchByKeyword(query string) *KeywordSearchIterator {
 		Query:             url.QueryEscape(strings.TrimSpace(query)),
 		CategoryGroupCode: "",
 		Format:            "json",
-		AuthKey:           "KakaoAK ",
+		AuthKey:           common.KeyPrefix,
 		X:                 "",
 		Y:                 "",
 		Radius:            0,
@@ -55,7 +55,7 @@ func (ki *KeywordSearchIterator) FormatAs(format string) *KeywordSearchIterator 
 	case "json", "xml":
 		ki.Format = format
 	default:
-		panic(ErrUnsupportedFormat)
+		panic(common.ErrUnsupportedFormat)
 	}
 	if r := recover(); r != nil {
 		log.Println(r)
@@ -65,7 +65,7 @@ func (ki *KeywordSearchIterator) FormatAs(format string) *KeywordSearchIterator 
 
 // AuthorizeWith sets the authorization key to @key.
 func (ki *KeywordSearchIterator) AuthorizeWith(key string) *KeywordSearchIterator {
-	ki.AuthKey = "KakaoAK " + strings.TrimSpace(key)
+	ki.AuthKey = common.FormatKey(key)
 	return ki
 }
 
@@ -158,7 +158,7 @@ func (ki *KeywordSearchIterator) Result(page int) *KeywordSearchIterator {
 	if 1 <= page && page <= 45 {
 		ki.Page = page
 	} else {
-		panic(ErrPageOutOfBound)
+		panic(common.ErrPageOutOfBound)
 	}
 	if r := recover(); r != nil {
 		log.Println(r)
@@ -171,7 +171,7 @@ func (ki *KeywordSearchIterator) Display(size int) *KeywordSearchIterator {
 	if 1 <= size && size <= 45 {
 		ki.Size = size
 	} else {
-		panic(errors.New("size must be between 1 and 45"))
+		panic(common.ErrSizeOutOfBound)
 	}
 	if r := recover(); r != nil {
 		log.Println(r)
@@ -189,7 +189,7 @@ func (ki *KeywordSearchIterator) SortBy(order string) *KeywordSearchIterator {
 	case "accuracy", "distance":
 		ki.Sort = order
 	default:
-		panic(ErrUnsupportedSortingOrder)
+		panic(common.ErrUnsupportedSortingOrder)
 	}
 	if r := recover(); r != nil {
 		log.Println(r)
@@ -199,12 +199,10 @@ func (ki *KeywordSearchIterator) SortBy(order string) *KeywordSearchIterator {
 
 // Next returns the place search result and proceeds the iterator to the next page.
 func (ki *KeywordSearchIterator) Next() (res PlaceSearchResult, err error) {
-	// if there is no more result, return error
 	if ki.end {
-		return res, ErrEndPage
+		return res, common.ErrEndPage
 	}
 
-	// at first, send request to the API server
 	client := new(http.Client)
 
 	req, err := http.NewRequest(http.MethodGet,
@@ -214,18 +212,16 @@ func (ki *KeywordSearchIterator) Next() (res PlaceSearchResult, err error) {
 	if err != nil {
 		return
 	}
-	// don't forget to close the request for concurrent request
+
 	req.Close = true
 
-	// set authorization header
-	req.Header.Set("Authorization", ki.AuthKey)
+	req.Header.Set(common.Authorization, ki.AuthKey)
 
 	resp, err := client.Do(req)
 	if err != nil {
 		return
 	}
 
-	// don't forget to close the response body
 	defer resp.Body.Close()
 
 	if ki.Format == "json" {

@@ -5,7 +5,7 @@ import (
 	"encoding/xml"
 	"errors"
 	"fmt"
-	"io/ioutil"
+	"internal/common"
 	"log"
 	"net/http"
 	"net/url"
@@ -51,20 +51,13 @@ type ComplexAddress struct {
 
 // AddressSearchResult represents an address search result.
 type AddressSearchResult struct {
-	XMLName xml.Name `json:"-" xml:"result"`
-	Meta    struct {
-		TotalCount    int  `json:"total_count" xml:"total_count"`
-		PageableCount int  `json:"pageable_count" xml:"pageable_count"`
-		IsEnd         bool `json:"is_end" xml:"is_end"`
-	} `json:"meta" xml:"meta"`
-	Documents []ComplexAddress `json:"documents" xml:"documents"`
+	XMLName   xml.Name            `json:"-" xml:"result"`
+	Meta      common.PageableMeta `json:"meta" xml:"meta"`
+	Documents []ComplexAddress    `json:"documents" xml:"documents"`
 }
 
 // String implements fmt.Stringer.
-func (ar AddressSearchResult) String() string {
-	bs, _ := json.MarshalIndent(ar, "", "  ")
-	return string(bs)
-}
+func (ar AddressSearchResult) String() string { return common.String(ar) }
 
 type AddressSearchResults []AddressSearchResult
 
@@ -72,22 +65,7 @@ type AddressSearchResults []AddressSearchResult
 //
 // The file extension could be either .json or .xml.
 func (ars AddressSearchResults) SaveAs(filename string) error {
-	switch tokens := strings.Split(filename, "."); tokens[len(tokens)-1] {
-	case "json":
-		if bs, err := json.MarshalIndent(ars, "", "  "); err != nil {
-			return err
-		} else {
-			return ioutil.WriteFile(filename, bs, 0644)
-		}
-	case "xml":
-		if bs, err := xml.MarshalIndent(ars, "", "  "); err != nil {
-			return err
-		} else {
-			return ioutil.WriteFile(filename, bs, 0644)
-		}
-	default:
-		return ErrUnsupportedFormat
-	}
+	return common.SaveAsJSONorXML(ars, filename)
 }
 
 // AddressSearchIterator is a lazy address search iterator.
@@ -108,7 +86,7 @@ func AddressSearch(query string) *AddressSearchIterator {
 	return &AddressSearchIterator{
 		Query:       url.QueryEscape(strings.TrimSpace(query)),
 		Format:      "json",
-		AuthKey:     "KakaoAK ",
+		AuthKey:     common.KeyPrefix,
 		AnalyzeType: "similar",
 		Page:        1,
 		Size:        10,
@@ -122,7 +100,7 @@ func (ai *AddressSearchIterator) FormatAs(format string) *AddressSearchIterator 
 	case "json", "xml":
 		ai.Format = format
 	default:
-		panic(ErrUnsupportedFormat)
+		panic(common.ErrUnsupportedFormat)
 	}
 	if r := recover(); r != nil {
 		log.Println(r)
@@ -132,7 +110,7 @@ func (ai *AddressSearchIterator) FormatAs(format string) *AddressSearchIterator 
 
 // AuthorizeWith sets the authorization key to @key.
 func (ai *AddressSearchIterator) AuthorizeWith(key string) *AddressSearchIterator {
-	ai.AuthKey = "KakaoAK " + strings.TrimSpace(key)
+	ai.AuthKey = common.FormatKey(key)
 	return ai
 }
 
@@ -155,7 +133,7 @@ func (ai *AddressSearchIterator) Result(page int) *AddressSearchIterator {
 	if 1 <= page && page <= 45 {
 		ai.Page = page
 	} else {
-		panic(ErrPageOutOfBound)
+		panic(common.ErrPageOutOfBound)
 	}
 	if r := recover(); r != nil {
 		log.Println(r)
@@ -168,7 +146,7 @@ func (ai *AddressSearchIterator) Display(size int) *AddressSearchIterator {
 	if 1 <= size && size <= 30 {
 		ai.Size = size
 	} else {
-		panic(errors.New("size must be between 1 and 30"))
+		panic(common.ErrSizeOutOfBound)
 	}
 	if r := recover(); r != nil {
 		log.Println(r)
@@ -180,7 +158,7 @@ func (ai *AddressSearchIterator) Display(size int) *AddressSearchIterator {
 func (ai *AddressSearchIterator) Next() (res AddressSearchResult, err error) {
 	// if there is no more result, return error
 	if ai.end {
-		return res, ErrEndPage
+		return res, common.ErrEndPage
 	}
 
 	// at first, send request to the API server
@@ -196,7 +174,7 @@ func (ai *AddressSearchIterator) Next() (res AddressSearchResult, err error) {
 	req.Close = true
 
 	// set authorization header
-	req.Header.Set("Authorization", ai.AuthKey)
+	req.Header.Set(common.Authorization, ai.AuthKey)
 
 	resp, err := client.Do(req)
 	if err != nil {

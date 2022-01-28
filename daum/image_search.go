@@ -3,7 +3,7 @@ package daum
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"internal/common"
 	"log"
 	"net/http"
 	"net/url"
@@ -25,30 +25,17 @@ type ImageResult struct {
 
 // ImageSearchResult represents an image search result.
 type ImageSearchResult struct {
-	Meta struct {
-		TotalCount    int  `json:"total_count"`
-		PageableCount int  `json:"pageable_count"`
-		IsEnd         bool `json:"is_end"`
-	} `json:"meta"`
-	Documents []ImageResult `json:"documents"`
+	Meta      common.PageableMeta `json:"meta"`
+	Documents []ImageResult       `json:"documents"`
 }
 
 // String implements fmt.Stringer.
-func (ir ImageSearchResult) String() string {
-	bs, _ := json.MarshalIndent(ir, "", "  ")
-	return string(bs)
-}
+func (ir ImageSearchResult) String() string { return common.String(ir) }
 
 type ImageSearchResults []ImageSearchResult
 
 // SaveAs saves irs to @filename.
-func (irs ImageSearchResults) SaveAs(filename string) error {
-	if bs, err := json.MarshalIndent(irs, "", "  "); err != nil {
-		return err
-	} else {
-		return ioutil.WriteFile(filename, bs, 0644)
-	}
-}
+func (irs ImageSearchResults) SaveAs(filename string) error { return common.SaveAsJSON(irs, filename) }
 
 // ImageSearchIterator is a lazy image search iterator.
 type ImageSearchIterator struct {
@@ -69,14 +56,14 @@ func ImageSearch(query string) *ImageSearchIterator {
 		Sort:    "accuracy",
 		Page:    1,
 		Size:    80,
-		AuthKey: "KakaoAK ",
+		AuthKey: common.KeyPrefix,
 		end:     false,
 	}
 }
 
 // AuthorizeWith sets the authorization key to @key.
 func (ii *ImageSearchIterator) AuthorizeWith(key string) *ImageSearchIterator {
-	ii.AuthKey = "KakaoAK " + strings.TrimSpace(key)
+	ii.AuthKey = common.FormatKey(key)
 	return ii
 }
 
@@ -88,7 +75,7 @@ func (ii *ImageSearchIterator) SortBy(order string) *ImageSearchIterator {
 	case "accuracy", "recency":
 		ii.Sort = order
 	default:
-		panic("order must be either accuracy or recency")
+		panic(common.ErrUnsupportedSortingOrder)
 	}
 	if r := recover(); r != nil {
 		log.Println(r)
@@ -101,7 +88,7 @@ func (ii *ImageSearchIterator) Result(page int) *ImageSearchIterator {
 	if 1 <= page && page <= 50 {
 		ii.Page = page
 	} else {
-		panic("page must be between 1 and 50")
+		panic(common.ErrPageOutOfBound)
 	}
 	if r := recover(); r != nil {
 		log.Println(r)
@@ -114,7 +101,7 @@ func (ii *ImageSearchIterator) Display(size int) *ImageSearchIterator {
 	if 1 <= size && size <= 80 {
 		ii.Size = size
 	} else {
-		panic("size must be between 1 and 80")
+		panic(common.ErrSizeOutOfBound)
 	}
 	if r := recover(); r != nil {
 		log.Println(r)
@@ -140,7 +127,7 @@ func (ii *ImageSearchIterator) Next() (res ImageSearchResult, err error) {
 
 	req.Close = true
 
-	req.Header.Set("Authorization", ii.AuthKey)
+	req.Header.Set(common.Authorization, ii.AuthKey)
 
 	resp, err := client.Do(req)
 	if err != nil {

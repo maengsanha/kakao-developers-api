@@ -3,7 +3,7 @@ package daum
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"internal/common"
 	"log"
 	"net/http"
 	"net/url"
@@ -23,30 +23,17 @@ type VClipResult struct {
 
 // VideoSearchResult represents a video search result.
 type VideoSearchResult struct {
-	Meta struct {
-		TotalCount    int  `json:"total_count"`
-		PageableCount int  `json:"pageable_count"`
-		IsEnd         bool `json:"is_end"`
-	} `json:"meta"`
-	Documents []VClipResult `json:"documents"`
+	Meta      common.PageableMeta `json:"meta"`
+	Documents []VClipResult       `json:"documents"`
 }
 
 // String implements fmt.Stringer.
-func (vr VideoSearchResult) String() string {
-	bs, _ := json.MarshalIndent(vr, "", "  ")
-	return string(bs)
-}
+func (vr VideoSearchResult) String() string { return common.String(vr) }
 
 type VideoSearchResults []VideoSearchResult
 
 // SaveAs saves vrs to @filename.
-func (vrs VideoSearchResults) SaveAs(filename string) error {
-	if bs, err := json.MarshalIndent(vrs, "", "  "); err != nil {
-		return err
-	} else {
-		return ioutil.WriteFile(filename, bs, 0644)
-	}
-}
+func (vrs VideoSearchResults) SaveAs(filename string) error { return common.SaveAsJSON(vrs, filename) }
 
 // VideoSearchIterator is a lazy video search iterator.
 type VideoSearchIterator struct {
@@ -67,14 +54,14 @@ func VideoSearch(query string) *VideoSearchIterator {
 		Sort:    "accuracy",
 		Page:    1,
 		Size:    15,
-		AuthKey: "KakaoAK ",
+		AuthKey: common.KeyPrefix,
 		end:     false,
 	}
 }
 
 // AuthorizeWith sets the authorization key to @key.
 func (vi *VideoSearchIterator) AuthorizeWith(key string) *VideoSearchIterator {
-	vi.AuthKey = "KakaoAK " + strings.TrimSpace(key)
+	vi.AuthKey = common.FormatKey(key)
 	return vi
 }
 
@@ -86,7 +73,7 @@ func (vi *VideoSearchIterator) SortBy(order string) *VideoSearchIterator {
 	case "accuracy", "recency":
 		vi.Sort = order
 	default:
-		panic("order must be either accuracy or recency")
+		panic(common.ErrUnsupportedSortingOrder)
 	}
 	if r := recover(); r != nil {
 		log.Println(r)
@@ -99,7 +86,7 @@ func (vi *VideoSearchIterator) Result(page int) *VideoSearchIterator {
 	if 1 <= page && page <= 15 {
 		vi.Page = page
 	} else {
-		panic("page must be between 1 and 15")
+		panic(common.ErrPageOutOfBound)
 	}
 	if r := recover(); r != nil {
 		log.Println(r)
@@ -112,7 +99,7 @@ func (vi *VideoSearchIterator) Display(size int) *VideoSearchIterator {
 	if 1 <= size && size <= 30 {
 		vi.Size = size
 	} else {
-		panic("size must be between 1 and 30")
+		panic(common.ErrSizeOutOfBound)
 	}
 	if r := recover(); r != nil {
 		log.Println(r)
@@ -138,7 +125,7 @@ func (vi *VideoSearchIterator) Next() (res VideoSearchResult, err error) {
 
 	req.Close = true
 
-	req.Header.Set("Authorization", vi.AuthKey)
+	req.Header.Set(common.Authorization, vi.AuthKey)
 
 	resp, err := client.Do(req)
 	if err != nil {

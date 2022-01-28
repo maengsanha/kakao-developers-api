@@ -5,11 +5,10 @@ import (
 	"encoding/xml"
 	"errors"
 	"fmt"
-	"io/ioutil"
+	"internal/common"
 	"log"
 	"net/http"
 	"strconv"
-	"strings"
 )
 
 // Coord represents a document of coordinate transformation result.
@@ -30,39 +29,19 @@ type TransCoordInitializer struct {
 
 // TransCoordResult represents a coordinate transformation result.
 type TransCoordResult struct {
-	XMLName xml.Name `json:"-" xml:"result"`
-	Meta    struct {
-		TotalCount int `json:"total_count" xml:"total_count"`
-	} `json:"meta" xml:"meta"`
-	Documents []Coord `json:"documents" xml:"documents"`
+	XMLName   xml.Name    `json:"-" xml:"result"`
+	Meta      common.Meta `json:"meta" xml:"meta"`
+	Documents []Coord     `json:"documents" xml:"documents"`
 }
 
 // String implements fmt.Stringer.
-func (tr TransCoordResult) String() string {
-	bs, _ := json.MarshalIndent(tr, "", "  ")
-	return string(bs)
-}
+func (tr TransCoordResult) String() string { return common.String(tr) }
 
 // SaveAs saves tr to @filename.
 //
 // The file extension could be either .json or .xml.
 func (tr TransCoordResult) SaveAs(filename string) error {
-	switch tokens := strings.Split(filename, "."); tokens[len(tokens)-1] {
-	case "json":
-		if bs, err := json.MarshalIndent(tr, "", "  "); err != nil {
-			return err
-		} else {
-			return ioutil.WriteFile(filename, bs, 0644)
-		}
-	case "xml":
-		if bs, err := xml.MarshalIndent(tr, "", "  "); err != nil {
-			return err
-		} else {
-			return ioutil.WriteFile(filename, bs, 0644)
-		}
-	default:
-		return ErrUnsupportedFormat
-	}
+	return common.SaveAsJSONorXML(tr, filename)
 }
 
 // TransCoord converts @x and @y coordinates to another X and Y coordinates in the designated coordinate system.
@@ -74,7 +53,7 @@ func TransCoord(x, y float64) *TransCoordInitializer {
 		X:           strconv.FormatFloat(x, 'f', -1, 64),
 		Y:           strconv.FormatFloat(y, 'f', -1, 64),
 		Format:      "json",
-		AuthKey:     "KakaoAK ",
+		AuthKey:     common.KeyPrefix,
 		InputCoord:  "WGS84",
 		OutputCoord: "WGS84",
 	}
@@ -86,7 +65,7 @@ func (ti *TransCoordInitializer) FormatAs(format string) *TransCoordInitializer 
 	case "json", "xml":
 		ti.Format = format
 	default:
-		panic(ErrUnsupportedFormat)
+		panic(common.ErrUnsupportedFormat)
 	}
 	if r := recover(); r != nil {
 		log.Println(r)
@@ -96,7 +75,7 @@ func (ti *TransCoordInitializer) FormatAs(format string) *TransCoordInitializer 
 
 // AuthorizeWith sets the authorization key to @key.
 func (ti *TransCoordInitializer) AuthorizeWith(key string) *TransCoordInitializer {
-	ti.AuthKey = "KakaoAK " + strings.TrimSpace(key)
+	ti.AuthKey = common.FormatKey(key)
 	return ti
 }
 
@@ -128,7 +107,9 @@ func (ti *TransCoordInitializer) Input(coord string) *TransCoordInitializer {
 	case "WGS84", "WCONGNAMUL", "CONGNAMUL", "WTM", "TM", "KTM", "UTM", "BESSEL", "WKTM", "WUTM":
 		ti.InputCoord = coord
 	default:
-		panic(errors.New("input coordinate system must be one of the following options:\nWGS84, WCONGNAMUL, CONGNAMUL, WTM, TM, KTM, UTM, BESSEL, WKTM, WUTM"))
+		panic(errors.New(
+			`input coordinate system must be one of the following options:
+			WGS84, WCONGNAMUL, CONGNAMUL, WTM, TM, KTM, UTM, BESSEL, WKTM, WUTM`))
 	}
 	if r := recover(); r != nil {
 		log.Println(r)
@@ -164,7 +145,9 @@ func (ti *TransCoordInitializer) Output(coord string) *TransCoordInitializer {
 	case "WGS84", "WCONGNAMUL", "CONGNAMUL", "WTM", "TM", "KTM", "UTM", "BESSEL", "WKTM", "WUTM":
 		ti.OutputCoord = coord
 	default:
-		panic(errors.New("output coordinate system must be one of the following options:\nWGS84, WCONGNAMUL, CONGNAMUL, WTM, TM, KTM, UTM, BESSEL, WKTM, WUTM"))
+		panic(errors.New(
+			`output coordinate system must be one of the following options:
+			WGS84, WCONGNAMUL, CONGNAMUL, WTM, TM, KTM, UTM, BESSEL, WKTM, WUTM`))
 	}
 	if r := recover(); r != nil {
 		log.Println(r)
@@ -187,7 +170,7 @@ func (ti *TransCoordInitializer) Collect() (res TransCoordResult, err error) {
 	req.Close = true
 
 	// set authorization header
-	req.Header.Set("Authorization", ti.AuthKey)
+	req.Header.Set(common.Authorization, ti.AuthKey)
 
 	resp, err := client.Do(req)
 	if err != nil {

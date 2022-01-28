@@ -5,10 +5,9 @@ import (
 	"encoding/xml"
 	"errors"
 	"fmt"
-	"io/ioutil"
+	"internal/common"
 	"log"
 	"net/http"
-	"strings"
 )
 
 // TotalAddress represents a document of CoordToAddressResult.
@@ -39,39 +38,19 @@ type TotalAddress struct {
 
 // CoordToAddressResult represents a CoordToAddress result.
 type CoordToAddressResult struct {
-	XMLName xml.Name `json:"-" xml:"result"`
-	Meta    struct {
-		TotalCount int `json:"total_count" xml:"total_count"`
-	} `json:"meta" xml:"meta"`
+	XMLName   xml.Name       `json:"-" xml:"result"`
+	Meta      common.Meta    `json:"meta" xml:"meta"`
 	Documents []TotalAddress `json:"documents" xml:"documents"`
 }
 
 // String implements fmt.Stringer.
-func (cr CoordToAddressResult) String() string {
-	bs, _ := json.MarshalIndent(cr, "", "  ")
-	return string(bs)
-}
+func (cr CoordToAddressResult) String() string { return common.String(cr) }
 
 // SaveAs saves cr to @filename.
 //
 // The file extension could be either .json or .xml.
 func (cr CoordToAddressResult) SaveAs(filename string) error {
-	switch tokens := strings.Split(filename, "."); tokens[len(tokens)-1] {
-	case "json":
-		if bs, err := json.MarshalIndent(cr, "", "  "); err != nil {
-			return err
-		} else {
-			return ioutil.WriteFile(filename, bs, 0644)
-		}
-	case "xml":
-		if bs, err := xml.MarshalIndent(cr, "", "  "); err != nil {
-			return err
-		} else {
-			return ioutil.WriteFile(filename, bs, 0644)
-		}
-	default:
-		return ErrUnsupportedFormat
-	}
+	return common.SaveAsJSONorXML(cr, filename)
 }
 
 // CoordToAddressInitializer is a lazy coord to address converter.
@@ -93,7 +72,7 @@ func CoordToAddress(x, y string) *CoordToAddressInitializer {
 		X:          x,
 		Y:          y,
 		Format:     "json",
-		AuthKey:    "KakaoAK ",
+		AuthKey:    common.KeyPrefix,
 		InputCoord: "WGS84",
 	}
 }
@@ -104,7 +83,7 @@ func (ci *CoordToAddressInitializer) FormatAs(format string) *CoordToAddressInit
 	case "json", "xml":
 		ci.Format = format
 	default:
-		panic(ErrUnsupportedFormat)
+		panic(common.ErrUnsupportedFormat)
 	}
 	if r := recover(); r != nil {
 		log.Println(r)
@@ -114,7 +93,7 @@ func (ci *CoordToAddressInitializer) FormatAs(format string) *CoordToAddressInit
 
 // AuthorizeWith sets the authorization key to @key.
 func (ci *CoordToAddressInitializer) AuthorizeWith(key string) *CoordToAddressInitializer {
-	ci.AuthKey = "KakaoAK " + strings.TrimSpace(key)
+	ci.AuthKey = common.FormatKey(key)
 	return ci
 }
 
@@ -136,7 +115,9 @@ func (ci *CoordToAddressInitializer) Input(coord string) *CoordToAddressInitiali
 	case "WGS84", "WCONAMUL", "CONGNAMUL", "WTM", "TM":
 		ci.InputCoord = coord
 	default:
-		panic(errors.New("input coordinate system must be one of following options:\n WGS84, WCONGNAMUL, CONGNAMUL, WTM, TM"))
+		panic(errors.New(
+			`input coordinate system must be one of following options:
+			WGS84, WCONGNAMUL, CONGNAMUL, WTM, TM`))
 	}
 	if r := recover(); r != nil {
 		log.Panicln(r)
@@ -157,7 +138,7 @@ func (ci *CoordToAddressInitializer) Collect() (res CoordToAddressResult, err er
 
 	req.Close = true
 
-	req.Header.Set("Authorization", ci.AuthKey)
+	req.Header.Set(common.Authorization, ci.AuthKey)
 
 	resp, err := client.Do(req)
 	if err != nil {

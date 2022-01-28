@@ -3,7 +3,7 @@ package daum
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"internal/common"
 	"log"
 	"net/http"
 	"net/url"
@@ -19,30 +19,17 @@ type BlogResult struct {
 
 // BlogSearchResult represents a blog search result.
 type BlogSearchResult struct {
-	Meta struct {
-		TotalCount    int  `json:"total_count"`
-		PageableCount int  `json:"pageable_count"`
-		IsEnd         bool `json:"is_end"`
-	} `json:"meta"`
-	Documents []BlogResult `json:"documents"`
+	Meta      common.PageableMeta `json:"meta"`
+	Documents []BlogResult        `json:"documents"`
 }
 
 // String implements fmt.Stringer.
-func (br BlogSearchResult) String() string {
-	bs, _ := json.MarshalIndent(br, "", "  ")
-	return string(bs)
-}
+func (br BlogSearchResult) String() string { return common.String(br) }
 
 type BlogSearchResults []BlogSearchResult
 
 // SaveAs saves brs to @filename.
-func (brs BlogSearchResults) SaveAs(filename string) error {
-	if bs, err := json.MarshalIndent(brs, "", "  "); err != nil {
-		return err
-	} else {
-		return ioutil.WriteFile(filename, bs, 0644)
-	}
-}
+func (brs BlogSearchResults) SaveAs(filename string) error { return common.SaveAsJSON(brs, filename) }
 
 // BlogSearchIterator is a lazy blog search iterator.
 type BlogSearchIterator struct {
@@ -63,14 +50,14 @@ func BlogSearch(query string) *BlogSearchIterator {
 		Sort:    "accuracy",
 		Page:    1,
 		Size:    10,
-		AuthKey: "KakaoAK ",
+		AuthKey: common.KeyPrefix,
 		end:     false,
 	}
 }
 
 // AuthorizeWith sets the authorization key to @key.
 func (bi *BlogSearchIterator) AuthorizeWith(key string) *BlogSearchIterator {
-	bi.AuthKey = "KakaoAK " + strings.TrimSpace(key)
+	bi.AuthKey = common.FormatKey(key)
 	return bi
 }
 
@@ -82,7 +69,7 @@ func (bi *BlogSearchIterator) SortBy(order string) *BlogSearchIterator {
 	case "accuracy", "recency":
 		bi.Sort = order
 	default:
-		panic("order must be either accuracy or recency")
+		panic(common.ErrUnsupportedSortingOrder)
 	}
 	if r := recover(); r != nil {
 		log.Println(r)
@@ -95,7 +82,7 @@ func (bi *BlogSearchIterator) Result(page int) *BlogSearchIterator {
 	if 1 <= page && page <= 50 {
 		bi.Page = page
 	} else {
-		panic("page must be between 1 and 50")
+		panic(common.ErrPageOutOfBound)
 	}
 	if r := recover(); r != nil {
 		log.Println(r)
@@ -108,7 +95,7 @@ func (bi *BlogSearchIterator) Display(size int) *BlogSearchIterator {
 	if 1 <= size && size <= 50 {
 		bi.Size = size
 	} else {
-		panic("size must be between 1 and 50")
+		panic(common.ErrSizeOutOfBound)
 	}
 	if r := recover(); r != nil {
 		log.Println(r)
@@ -134,7 +121,7 @@ func (bi *BlogSearchIterator) Next() (res BlogSearchResult, err error) {
 
 	req.Close = true
 
-	req.Header.Set("Authorization", bi.AuthKey)
+	req.Header.Set(common.Authorization, bi.AuthKey)
 
 	resp, err := client.Do(req)
 	if err != nil {

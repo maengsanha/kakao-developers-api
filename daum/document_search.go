@@ -3,7 +3,7 @@ package daum
 import (
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"internal/common"
 	"log"
 	"net/http"
 	"net/url"
@@ -21,29 +21,18 @@ type WebResult struct {
 
 // DocumentSearchResult represents a Daum search result.
 type DocumentSearchResult struct {
-	Meta struct {
-		TotalCount    int  `json:"total_count"`
-		PageableCount int  `json:"pageable_count"`
-		IsEnd         bool `json:"is_end"`
-	} `json:"meta"`
-	Documents []WebResult `json:"documents"`
+	Meta      common.PageableMeta `json:"meta"`
+	Documents []WebResult         `json:"documents"`
 }
 
 // String implements fmt.Stringer.
-func (dr DocumentSearchResult) String() string {
-	bs, _ := json.MarshalIndent(dr, "", "  ")
-	return string(bs)
-}
+func (dr DocumentSearchResult) String() string { return common.String(dr) }
 
 type DocumentSearchResults []DocumentSearchResult
 
 // SaveAs saves drs to @filename.
 func (drs DocumentSearchResults) SaveAs(filename string) error {
-	if bs, err := json.MarshalIndent(drs, "", "  "); err != nil {
-		return err
-	} else {
-		return ioutil.WriteFile(filename, bs, 0644)
-	}
+	return common.SaveAsJSON(drs, filename)
 }
 
 // DocumentSearchIterator is a lazy document search iterator.
@@ -65,14 +54,14 @@ func DocumentSearch(query string) *DocumentSearchIterator {
 		Sort:    "accuracy",
 		Page:    1,
 		Size:    10,
-		AuthKey: "KakaoAK ",
+		AuthKey: common.KeyPrefix,
 		end:     false,
 	}
 }
 
 // AuthorizeWith sets the authorization key to @key.
 func (di *DocumentSearchIterator) AuthorizeWith(key string) *DocumentSearchIterator {
-	di.AuthKey = "KakaoAK " + strings.TrimSpace(key)
+	di.AuthKey = common.FormatKey(key)
 	return di
 }
 
@@ -84,7 +73,7 @@ func (di *DocumentSearchIterator) SortBy(order string) *DocumentSearchIterator {
 	case "accuracy", "recency":
 		di.Sort = order
 	default:
-		panic("order must be either accuracy or recency")
+		panic(common.ErrUnsupportedSortingOrder)
 	}
 	if r := recover(); r != nil {
 		log.Println(r)
@@ -97,7 +86,7 @@ func (di *DocumentSearchIterator) Result(page int) *DocumentSearchIterator {
 	if 1 <= page && page <= 50 {
 		di.Page = page
 	} else {
-		panic("page must be between 1 and 50")
+		panic(common.ErrPageOutOfBound)
 	}
 	if r := recover(); r != nil {
 		log.Println(r)
@@ -110,7 +99,7 @@ func (di *DocumentSearchIterator) Display(size int) *DocumentSearchIterator {
 	if 1 <= size && size <= 50 {
 		di.Size = size
 	} else {
-		panic("size must be between 1 and 50")
+		panic(common.ErrSizeOutOfBound)
 	}
 	if r := recover(); r != nil {
 		log.Println(r)
@@ -136,7 +125,7 @@ func (di *DocumentSearchIterator) Next() (res DocumentSearchResult, err error) {
 
 	req.Close = true
 
-	req.Header.Set("Authorization", di.AuthKey)
+	req.Header.Set(common.Authorization, di.AuthKey)
 
 	resp, err := client.Do(req)
 	if err != nil {
