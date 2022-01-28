@@ -11,7 +11,7 @@ import (
 	"time"
 )
 
-// ImageResult represents a document of a image search result.
+// ImageResult represents a document of an image search result.
 type ImageResult struct {
 	Collection      string    `json:"collection"`
 	ThumbnailURL    string    `json:"thumbnail_url"`
@@ -153,7 +153,7 @@ func (ii *ImageSearchIterator) Next() (res ImageSearchResult, err error) {
 		return
 	}
 
-	ii.end = res.Meta.IsEnd || ii.Page > 50
+	ii.end = res.Meta.IsEnd || 50 < ii.Page
 
 	ii.Page++
 

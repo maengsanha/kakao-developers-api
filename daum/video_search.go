@@ -11,7 +11,7 @@ import (
 	"time"
 )
 
-// VclipResult represents a document of a video search result.
+// VClipResult represents a document of a video search result.
 type VClipResult struct {
 	Title     string    `json:"title"`
 	URL       string    `json:"url"`
@@ -151,7 +151,7 @@ func (vi *VideoSearchIterator) Next() (res VideoSearchResult, err error) {
 		return
 	}
 
-	vi.end = res.Meta.IsEnd || vi.Page > 15
+	vi.end = res.Meta.IsEnd || 15 < vi.Page
 
 	vi.Page++
 

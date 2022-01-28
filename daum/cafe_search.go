@@ -10,14 +10,14 @@ import (
 	"strings"
 )
 
-// CafeResult represents a document of a Daum cafe search result.
+// CafeResult represents a document of a Daum Cafe search result.
 type CafeResult struct {
 	WebResult
 	CafeName  string `json:"cafename"`
 	Thumbnail string `json:"thumbnail"`
 }
 
-// CafeSearchResult represents a Daum cafe search result.
+// CafeSearchResult represents a Daum Cafe search result.
 type CafeSearchResult struct {
 	Meta struct {
 		TotalCount    int  `json:"total_count"`
@@ -44,7 +44,7 @@ func (crs CafeSearchResults) SaveAs(filename string) error {
 	}
 }
 
-// CafeSearchIterator is a lazy Cafe search iterator.
+// CafeSearchIterator is a lazy cafe search iterator.
 type CafeSearchIterator struct {
 	Query   string
 	AuthKey string
@@ -148,7 +148,7 @@ func (ci *CafeSearchIterator) Next() (res CafeSearchResult, err error) {
 
 	ci.Page++
 
-	ci.end = res.Meta.IsEnd || ci.Page > 50
+	ci.end = res.Meta.IsEnd || 50 < ci.Page
 
 	return
 }

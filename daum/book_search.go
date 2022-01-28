@@ -10,7 +10,7 @@ import (
 	"strings"
 )
 
-// BookResult represents a document of a Daum book search result.
+// BookResult represents a document of a Daum Book search result.
 type BookResult struct {
 	WebResult
 	ISBN        string   `json:"isbn"`
@@ -23,7 +23,7 @@ type BookResult struct {
 	Status      string   `json:"status"`
 }
 
-// BookSearchResult represents a Daum book search result.
+// BookSearchResult represents a Daum Book search result.
 type BookSearchResult struct {
 	Meta struct {
 		TotalCount    int  `json:"total_count"`
@@ -126,13 +126,15 @@ func (bi *BookSearchIterator) Display(size int) *BookSearchIterator {
 
 // Filter limits the search field.
 //
-// @target can be one of the title, isbn, publisher, person.
+// @target can be one of the following options:
+//
+// title, isbn, publisher, person
 func (bi *BookSearchIterator) Filter(target string) *BookSearchIterator {
 	switch target {
 	case "title", "isbn", "publisher", "person", "":
 		bi.Target = target
 	default:
-		panic("filter target must be one of the title, isbn, publisher, person")
+		panic("target must be one of the following options:\ntitle, isbn, publisher, person")
 	}
 	if r := recover(); r != nil {
 		log.Println(r)
@@ -172,7 +174,7 @@ func (bi *BookSearchIterator) Next() (res BookSearchResult, err error) {
 
 	bi.Page++
 
-	bi.end = res.Meta.IsEnd || bi.Page > 50
+	bi.end = res.Meta.IsEnd || 50 < bi.Page
 
 	return
 }
