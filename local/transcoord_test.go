@@ -1,6 +1,7 @@
 package local_test
 
 import (
+	"internal/common"
 	"testing"
 
 	"github.com/maengsanha/kakao-developers-client/local"
@@ -11,7 +12,7 @@ func TestTransCoordWithJSON(t *testing.T) {
 	y := -4388.879299157299
 
 	if tr, err := local.TransCoord(x, y).
-		AuthorizeWith(local.REST_API_KEY).
+		AuthorizeWith(common.REST_API_KEY).
 		Input("WTM").
 		Output("WCONGNAMUL").
 		FormatAs("json").
@@ -27,7 +28,7 @@ func TestTransCoordWithSaveAsJSON(t *testing.T) {
 	y := -4388.879299157299
 
 	if tr, err := local.TransCoord(x, y).
-		AuthorizeWith(local.REST_API_KEY).
+		AuthorizeWith(common.REST_API_KEY).
 		Input("WTM").
 		Output("WCONGNAMUL").
 		FormatAs("json").
@@ -43,7 +44,7 @@ func TestTransCoordWithXML(t *testing.T) {
 	y := -4388.879299157299
 
 	if tr, err := local.TransCoord(x, y).
-		AuthorizeWith(local.REST_API_KEY).
+		AuthorizeWith(common.REST_API_KEY).
 		Input("WTM").
 		Output("WCONGNAMUL").
 		FormatAs("xml").
@@ -59,7 +60,7 @@ func TestTransCoordWithSaveAsXML(t *testing.T) {
 	y := -4388.879299157299
 
 	if tr, err := local.TransCoord(x, y).
-		AuthorizeWith(local.REST_API_KEY).
+		AuthorizeWith(common.REST_API_KEY).
 		Input("WTM").
 		Output("WCONGNAMUL").
 		FormatAs("xml").

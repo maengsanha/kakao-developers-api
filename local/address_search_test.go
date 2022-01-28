@@ -1,6 +1,7 @@
 package local_test
 
 import (
+	"internal/common"
 	"testing"
 
 	"github.com/maengsanha/kakao-developers-client/local"
@@ -10,7 +11,7 @@ func TestAddressSearchWithJSON(t *testing.T) {
 	query := "을지로"
 
 	iter := local.AddressSearch(query).
-		AuthorizeWith(local.REST_API_KEY).
+		AuthorizeWith(common.REST_API_KEY).
 		Analyze("similar").
 		FormatAs("json").
 		Display(20).
@@ -25,7 +26,7 @@ func TestAddressSearchWithSaveAsJSON(t *testing.T) {
 	query := "을지로"
 
 	iter := local.AddressSearch(query).
-		AuthorizeWith(local.REST_API_KEY).
+		AuthorizeWith(common.REST_API_KEY).
 		Analyze("similar").
 		FormatAs("json").
 		Display(20).
@@ -46,7 +47,7 @@ func TestAddressSearchWithXML(t *testing.T) {
 	query := "을지로"
 
 	iter := local.AddressSearch(query).
-		AuthorizeWith(local.REST_API_KEY).
+		AuthorizeWith(common.REST_API_KEY).
 		Analyze("similar").
 		FormatAs("xml").
 		Display(30).
@@ -61,7 +62,7 @@ func TestAddressSearchWithSaveAsXML(t *testing.T) {
 	query := "을지로"
 
 	iter := local.AddressSearch(query).
-		AuthorizeWith(local.REST_API_KEY).
+		AuthorizeWith(common.REST_API_KEY).
 		Analyze("similar").
 		FormatAs("xml").
 		Display(30).

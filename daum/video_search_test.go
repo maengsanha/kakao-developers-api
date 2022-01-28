@@ -1,6 +1,7 @@
 package daum_test
 
 import (
+	"internal/common"
 	"testing"
 
 	"github.com/maengsanha/kakao-developers-client/daum"
@@ -10,7 +11,7 @@ func TestVideoSearchWithJSON(t *testing.T) {
 	query := "major scale"
 
 	iter := daum.VideoSearch(query).
-		AuthorizeWith(daum.REST_API_KEY).
+		AuthorizeWith(common.REST_API_KEY).
 		SortBy("accuracy").
 		Display(30).
 		Result(1)
@@ -24,7 +25,7 @@ func TestVideoSearchWithSaveAsJSON(t *testing.T) {
 	query := "minor scale"
 
 	iter := daum.VideoSearch(query).
-		AuthorizeWith(daum.REST_API_KEY).
+		AuthorizeWith(common.REST_API_KEY).
 		SortBy("accuracy").
 		Display(30).
 		Result(1)

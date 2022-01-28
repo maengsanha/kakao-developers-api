@@ -1,6 +1,7 @@
 package local_test
 
 import (
+	"internal/common"
 	"testing"
 
 	"github.com/maengsanha/kakao-developers-client/local"
@@ -14,7 +15,7 @@ func TestCategorySearchWithJSON(t *testing.T) {
 
 	iter := local.PlaceSearchByCategory(groupcode).
 		FormatAs("json").
-		AuthorizeWith(local.REST_API_KEY).
+		AuthorizeWith(common.REST_API_KEY).
 		WithRadius(x, y, radius).
 		Display(15).
 		Result(1)
@@ -32,7 +33,7 @@ func TestCategorySearchWithSaveAsJSON(t *testing.T) {
 
 	iter := local.PlaceSearchByCategory(groupcode).
 		FormatAs("json").
-		AuthorizeWith(local.REST_API_KEY).
+		AuthorizeWith(common.REST_API_KEY).
 		WithRadius(x, y, radius).
 		Display(15).
 		Result(1)
@@ -57,7 +58,7 @@ func TestCategorySearchWithXML(t *testing.T) {
 
 	iter := local.PlaceSearchByCategory(groupcode).
 		FormatAs("xml").
-		AuthorizeWith(local.REST_API_KEY).
+		AuthorizeWith(common.REST_API_KEY).
 		WithRect(xmin, ymin, xmax, ymax).
 		Display(15).
 		Result(1)
@@ -75,7 +76,7 @@ func TestCategorySearchWithSaveAsXML(t *testing.T) {
 
 	iter := local.PlaceSearchByCategory(groupcode).
 		FormatAs("xml").
-		AuthorizeWith(local.REST_API_KEY).
+		AuthorizeWith(common.REST_API_KEY).
 		WithRadius(x, y, radius).
 		Display(15).
 		Result(1)

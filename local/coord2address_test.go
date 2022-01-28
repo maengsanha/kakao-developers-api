@@ -1,6 +1,7 @@
 package local_test
 
 import (
+	"internal/common"
 	"testing"
 
 	"github.com/maengsanha/kakao-developers-client/local"
@@ -12,7 +13,7 @@ func TestCoord2AddressWithJSON(t *testing.T) {
 	coord := "WGS84"
 
 	if cr, err := local.CoordToAddress(x, y).
-		AuthorizeWith(local.REST_API_KEY).
+		AuthorizeWith(common.REST_API_KEY).
 		Input(coord).
 		FormatAs("json").
 		Collect(); err != nil {
@@ -29,7 +30,7 @@ func TestCoord2AddressWithSaveAsJSON(t *testing.T) {
 	coord := "WGS84"
 
 	if cr, err := local.CoordToAddress(x, y).
-		AuthorizeWith(local.REST_API_KEY).
+		AuthorizeWith(common.REST_API_KEY).
 		Input(coord).
 		FormatAs("json").
 		Collect(); err != nil {
@@ -46,7 +47,7 @@ func TestCoord2AddressWithXML(t *testing.T) {
 	coord := "WGS84"
 
 	if cr, err := local.CoordToAddress(x, y).
-		AuthorizeWith(local.REST_API_KEY).
+		AuthorizeWith(common.REST_API_KEY).
 		Input(coord).
 		FormatAs("xml").
 		Collect(); err != nil {
@@ -63,7 +64,7 @@ func TestCoord2AddressWithSaveAsXML(t *testing.T) {
 	coord := "WGS84"
 
 	if cr, err := local.CoordToAddress(x, y).
-		AuthorizeWith(local.REST_API_KEY).
+		AuthorizeWith(common.REST_API_KEY).
 		Input(coord).
 		FormatAs("xml").
 		Collect(); err != nil {

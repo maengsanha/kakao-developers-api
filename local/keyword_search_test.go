@@ -1,6 +1,7 @@
 package local_test
 
 import (
+	"internal/common"
 	"testing"
 
 	"github.com/maengsanha/kakao-developers-client/local"
@@ -16,7 +17,7 @@ func TestKeywordSearchWithJSON(t *testing.T) {
 
 	iter := local.PlaceSearchByKeyword(query).
 		FormatAs("json").
-		AuthorizeWith(local.REST_API_KEY).
+		AuthorizeWith(common.REST_API_KEY).
 		WithCoordinates(x, y).
 		WithRadius(radius).
 		Result(1).
@@ -40,7 +41,7 @@ func TestKeywordSearchWithSaveAsJSON(t *testing.T) {
 
 	iter := local.PlaceSearchByKeyword(query).
 		FormatAs("json").
-		AuthorizeWith(local.REST_API_KEY).
+		AuthorizeWith(common.REST_API_KEY).
 		WithCoordinates(x, y).
 		WithRadius(radius).
 		Result(1).
@@ -73,7 +74,7 @@ func TestKeywordSearchWithXML(t *testing.T) {
 
 	iter := local.PlaceSearchByKeyword(query).
 		FormatAs("xml").
-		AuthorizeWith(local.REST_API_KEY).
+		AuthorizeWith(common.REST_API_KEY).
 		WithCoordinates(x, y).
 		WithRadius(radius).
 		WithRect(xMin, yMin, xMax, yMax).
@@ -101,7 +102,7 @@ func TestKeywordSearchWithSaveAsXML(t *testing.T) {
 
 	iter := local.PlaceSearchByKeyword(query).
 		FormatAs("xml").
-		AuthorizeWith(local.REST_API_KEY).
+		AuthorizeWith(common.REST_API_KEY).
 		WithCoordinates(x, y).
 		WithRadius(radius).
 		WithRect(xMin, yMin, xMax, yMax).

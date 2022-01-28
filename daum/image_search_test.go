@@ -1,6 +1,7 @@
 package daum_test
 
 import (
+	"internal/common"
 	"testing"
 
 	"github.com/maengsanha/kakao-developers-client/daum"
@@ -10,7 +11,7 @@ func TestImageSearchWithJSON(t *testing.T) {
 	query := "g2"
 
 	iter := daum.ImageSearch(query).
-		AuthorizeWith(daum.REST_API_KEY).
+		AuthorizeWith(common.REST_API_KEY).
 		SortBy("accuracy").
 		Display(1).
 		Result(1)
@@ -24,7 +25,7 @@ func TestImageSearchWithSaveAsJSON(t *testing.T) {
 	query := "g2"
 
 	iter := daum.ImageSearch(query).
-		AuthorizeWith(daum.REST_API_KEY).
+		AuthorizeWith(common.REST_API_KEY).
 		SortBy("recency")
 
 	irs := daum.ImageSearchResults{}

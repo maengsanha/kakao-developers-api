@@ -1,6 +1,7 @@
 package daum_test
 
 import (
+	"internal/common"
 	"testing"
 
 	"github.com/maengsanha/kakao-developers-client/daum"
@@ -10,7 +11,7 @@ func TestDocumentSearchWithJSON(t *testing.T) {
 	query := "Alan Turing"
 
 	iter := daum.DocumentSearch(query).
-		AuthorizeWith(daum.REST_API_KEY).
+		AuthorizeWith(common.REST_API_KEY).
 		SortBy("accuracy").
 		Result(10).
 		Display(50)
@@ -24,7 +25,7 @@ func TestDocumentSearchWithSaveAsJSON(t *testing.T) {
 	query := "Alan Turing"
 
 	iter := daum.DocumentSearch(query).
-		AuthorizeWith(daum.REST_API_KEY).
+		AuthorizeWith(common.REST_API_KEY).
 		SortBy("recency").
 		Result(1).
 		Display(30)

@@ -1,6 +1,7 @@
 package local_test
 
 import (
+	"internal/common"
 	"testing"
 
 	"github.com/maengsanha/kakao-developers-client/local"
@@ -11,7 +12,7 @@ func TestCoordToDistrictWithJSON(t *testing.T) {
 	y := 37.4012191
 
 	if cr, err := local.CoordToDistrict(x, y).
-		AuthorizeWith(local.REST_API_KEY).
+		AuthorizeWith(common.REST_API_KEY).
 		Input("WGS84").
 		Output("WGS84").
 		FormatAs("json").
@@ -27,7 +28,7 @@ func TestCoordToDistrictWithSaveAsJSON(t *testing.T) {
 	y := 37.4012191
 
 	if cr, err := local.CoordToDistrict(x, y).
-		AuthorizeWith(local.REST_API_KEY).
+		AuthorizeWith(common.REST_API_KEY).
 		Input("WGS84").
 		Output("WGS84").
 		FormatAs("json").
@@ -43,7 +44,7 @@ func TestCoordToDistrictWithXML(t *testing.T) {
 	y := 37.4012191
 
 	if cr, err := local.CoordToDistrict(x, y).
-		AuthorizeWith(local.REST_API_KEY).
+		AuthorizeWith(common.REST_API_KEY).
 		Input("WGS84").
 		Output("CONGNAMUL").
 		FormatAs("xml").
@@ -59,7 +60,7 @@ func TestCoordToDistrictWithSaveAsXML(t *testing.T) {
 	y := 37.4012191
 
 	if cr, err := local.CoordToDistrict(x, y).
-		AuthorizeWith(local.REST_API_KEY).
+		AuthorizeWith(common.REST_API_KEY).
 		Input("WGS84").
 		Output("CONGNAMUL").
 		FormatAs("xml").
