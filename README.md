@@ -7,4 +7,4 @@
 
 - Features
   - [x] Local
-  - [ ] Daum Search
+  - [x] Daum Search
