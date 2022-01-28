@@ -226,7 +226,7 @@ func (ci *CategorySearchIterator) Next() (res PlaceSearchResult, err error) {
 		}
 	}
 
-	ci.end = res.Meta.IsEnd
+	ci.end = res.Meta.IsEnd || 45 < ci.Page
 
 	ci.Page++
 

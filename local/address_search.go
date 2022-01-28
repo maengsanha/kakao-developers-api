@@ -216,7 +216,7 @@ func (ai *AddressSearchIterator) Next() (res AddressSearchResult, err error) {
 		}
 	}
 
-	ai.end = res.Meta.IsEnd
+	ai.end = res.Meta.IsEnd || 45 < ai.Page
 
 	ai.Page++
 

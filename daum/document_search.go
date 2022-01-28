@@ -149,7 +149,7 @@ func (di *DocumentSearchIterator) Next() (res DocumentSearchResult, err error) {
 		return
 	}
 
-	di.end = res.Meta.IsEnd
+	di.end = res.Meta.IsEnd || 50 < di.Page
 
 	di.Page++
 

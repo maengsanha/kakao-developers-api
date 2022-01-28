@@ -147,7 +147,7 @@ func (bi *BlogSearchIterator) Next() (res BlogSearchResult, err error) {
 		return
 	}
 
-	bi.end = res.Meta.IsEnd
+	bi.end = res.Meta.IsEnd || 50 < bi.Page
 
 	bi.Page++
 

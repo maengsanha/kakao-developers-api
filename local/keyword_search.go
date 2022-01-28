@@ -238,7 +238,7 @@ func (ki *KeywordSearchIterator) Next() (res PlaceSearchResult, err error) {
 		}
 	}
 
-	ki.end = res.Meta.IsEnd
+	ki.end = res.Meta.IsEnd || 45 < ki.Page
 
 	ki.Page++
 
