@@ -7,7 +7,7 @@ import (
 	"github.com/maengsanha/kakao-developers-client/translation"
 )
 
-func TestDetectLanguageByGET(t *testing.T) {
+func TestDetectLanguageWithJSONByGET(t *testing.T) {
 	query := "안녕하세요"
 	method := "GET"
 
@@ -21,7 +21,7 @@ func TestDetectLanguageByGET(t *testing.T) {
 	}
 }
 
-func TestDetectLanguageByGETSaveAsJSON(t *testing.T) {
+func TestDetectLanguageWithSaveAsJSONByGET(t *testing.T) {
 	query := "안녕하세요"
 	method := "GET"
 	if dr, err := translation.DetectLanguage(query).
@@ -33,7 +33,7 @@ func TestDetectLanguageByGETSaveAsJSON(t *testing.T) {
 	}
 }
 
-func TestDetectLanguageByPOST(t *testing.T) {
+func TestDetectLanguageWithJSONByPOST(t *testing.T) {
 	query := "안녕하세요"
 	method := "POST"
 	if dr, err := translation.DetectLanguage(query).
@@ -45,7 +45,7 @@ func TestDetectLanguageByPOST(t *testing.T) {
 	}
 }
 
-func TestDetectLanguageByPOSTSaveAsJSON(t *testing.T) {
+func TestDetectLanguageWithSaveAsJSONByPOST(t *testing.T) {
 	query := "안녕하세요"
 	method := "POST"
 	if dr, err := translation.DetectLanguage(query).
