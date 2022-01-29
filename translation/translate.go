@@ -164,7 +164,7 @@ func (ti *TranslationInitializer) Target(target string) *TranslationInitializer 
 	return ti
 }
 
-// Collect returns the translation result.
+// CollectByGET returns the translation result.
 func (ti *TranslationInitializer) CollectByGET() (res TranslationResult, err error) {
 	client := new(http.Client)
 	req, err := http.NewRequest(http.MethodGet,
@@ -191,7 +191,7 @@ func (ti *TranslationInitializer) CollectByGET() (res TranslationResult, err err
 	return
 }
 
-// Collect returns the translation result.
+// CollectByPOST returns the translation result.
 func (ti *TranslationInitializer) CollectByPOST() (res TranslationResult, err error) {
 	client := new(http.Client)
 	req, err := http.NewRequest(http.MethodPost,
