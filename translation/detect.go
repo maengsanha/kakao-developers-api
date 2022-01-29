@@ -28,7 +28,7 @@ type DetectLanguageResult struct {
 // String implements fmt.Stringer.
 func (dr DetectLanguageResult) String() string { return common.String(dr) }
 
-// SaveAs saves dl to @filename.
+// SaveAs saves dr to @filename.
 func (dr *DetectLanguageResult) SaveAs(filename string) error {
 	return common.SaveAsJSON(dr, filename)
 }
