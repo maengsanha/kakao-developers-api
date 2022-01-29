@@ -11,38 +11,38 @@ import (
 	"strings"
 )
 
-// TranslationResult represents a result of translation.
-type TranslationResult struct {
+// TranslateResult represents a result of translate.
+type TranslateResult struct {
 	TranslatedText [][]string `json:"translated_text"`
 }
 
 // String implements fmt.Stringer.
-func (tr TranslationResult) String() string { return common.String(tr) }
+func (tr TranslateResult) String() string { return common.String(tr) }
 
 // SaveAs saves tr to @filename.
 //
 // The file extension must be .json.
-func (tr TranslationResult) SaveAs(filename string) error { return common.SaveAsJSON(tr, filename) }
+func (tr TranslateResult) SaveAs(filename string) error { return common.SaveAsJSON(tr, filename) }
 
-// TranslationInitializer is a lazy translator.
-type TranslationInitializer struct {
+// TranslateInitializer is a lazy translator.
+type TranslateInitializer struct {
 	Query      string
 	SrcLang    string
 	TargetLang string
 	AuthKey    string
 }
 
-// Translation translates the input text into various languages.
+// Translate translates the input text into various languages.
 //
 // For more details visit https://developers.kakao.com/docs/latest/en/translate/dev-guide#trans-sentence.
-func Translation(query string) *TranslationInitializer {
+func Translate(query string) *TranslateInitializer {
 	if 5000 < len(query) {
 		panic(errors.New("query must be 5,000 bytes or less"))
 	}
 	if r := recover(); r != nil {
 		log.Println(r)
 	}
-	return &TranslationInitializer{
+	return &TranslateInitializer{
 		Query:      url.QueryEscape(strings.TrimSpace(query)),
 		SrcLang:    "",
 		TargetLang: "",
@@ -51,7 +51,7 @@ func Translation(query string) *TranslationInitializer {
 }
 
 // AuthorizeWith sets the authorization key to @key.
-func (ti *TranslationInitializer) AuthorizeWith(key string) *TranslationInitializer {
+func (ti *TranslateInitializer) AuthorizeWith(key string) *TranslateInitializer {
 	ti.AuthKey = common.FormatKey(key)
 	return ti
 }
@@ -97,7 +97,7 @@ func (ti *TranslationInitializer) AuthorizeWith(key string) *TranslationInitiali
 // th: Thai
 //
 // tr: Turkish
-func (ti *TranslationInitializer) Source(src string) *TranslationInitializer {
+func (ti *TranslateInitializer) Source(src string) *TranslateInitializer {
 	switch src {
 	case "kr", "en", "jp", "cn", "vi", "id", "ar", "bn", "de", "es", "fr", "hi", "it", "ms", "nl", "pt", "ru", "th", "tr":
 		ti.SrcLang = src
@@ -151,7 +151,7 @@ func (ti *TranslationInitializer) Source(src string) *TranslationInitializer {
 // th: Thai
 //
 // tr: Turkish
-func (ti *TranslationInitializer) Target(target string) *TranslationInitializer {
+func (ti *TranslateInitializer) Target(target string) *TranslateInitializer {
 	switch target {
 	case "kr", "en", "jp", "cn", "vi", "id", "ar", "bn", "de", "es", "fr", "hi", "it", "ms", "nl", "pt", "ru", "th", "tr":
 		ti.TargetLang = target
@@ -164,8 +164,8 @@ func (ti *TranslationInitializer) Target(target string) *TranslationInitializer 
 	return ti
 }
 
-// CollectByGET returns the translation result.
-func (ti *TranslationInitializer) CollectByGET() (res TranslationResult, err error) {
+// CollectByGET returns the translate result.
+func (ti *TranslateInitializer) CollectByGET() (res TranslateResult, err error) {
 	client := new(http.Client)
 	req, err := http.NewRequest(http.MethodGet,
 		fmt.Sprintf("%s/v2/translation/translate?src_lang=%s&target_lang=%s&query=%s",
@@ -191,8 +191,8 @@ func (ti *TranslationInitializer) CollectByGET() (res TranslationResult, err err
 	return
 }
 
-// CollectByPOST returns the translation result.
-func (ti *TranslationInitializer) CollectByPOST() (res TranslationResult, err error) {
+// CollectByPOST returns the translate result.
+func (ti *TranslateInitializer) CollectByPOST() (res TranslateResult, err error) {
 	client := new(http.Client)
 	req, err := http.NewRequest(http.MethodPost,
 		fmt.Sprintf("%s/v2/translation/translate?src_lang=%s&target_lang=%s&query=%s",
