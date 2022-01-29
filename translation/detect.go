@@ -26,11 +26,11 @@ type DetectLanguageResult struct {
 }
 
 // String implements fmt.Stringer.
-func (dl DetectLanguageResult) String() string { return common.String(dl) }
+func (dr DetectLanguageResult) String() string { return common.String(dr) }
 
 // SaveAs saves dl to @filename.
-func (dl *DetectLanguageResult) SaveAs(filename string) error {
-	return common.SaveAsJSON(dl, filename)
+func (dr *DetectLanguageResult) SaveAs(filename string) error {
+	return common.SaveAsJSON(dr, filename)
 }
 
 // DetectLanguageInitializer is a lazy language detector.
@@ -57,9 +57,9 @@ func DetectLanguage(query string) *DetectLanguageInitializer {
 }
 
 // AuthorizeWith sets the authorization key to @key.
-func (dl *DetectLanguageInitializer) AuthorizeWith(key string) *DetectLanguageInitializer {
-	dl.Authkey = common.FormatKey(key)
-	return dl
+func (di *DetectLanguageInitializer) AuthorizeWith(key string) *DetectLanguageInitializer {
+	di.Authkey = common.FormatKey(key)
+	return di
 }
 
 // RequestBy returns the detected language result by sending a HTTP @method (GET or POST).

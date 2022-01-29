@@ -10,23 +10,25 @@ import (
 func TestDetectLanguageByGET(t *testing.T) {
 	query := "안녕하세요"
 	method := "GET"
-	if dl, err := translation.DetectLanguage(query).
+
+	if dr, err := translation.DetectLanguage(query).
 		AuthorizeWith(common.REST_API_KEY).
 		RequestBy(method); err != nil {
 		t.Error(err)
+
 	} else {
-		t.Log(dl)
+		t.Log(dr)
 	}
 }
 
 func TestDetectLanguageByGETSaveAsJSON(t *testing.T) {
 	query := "안녕하세요"
 	method := "GET"
-	if dl, err := translation.DetectLanguage(query).
+	if dr, err := translation.DetectLanguage(query).
 		AuthorizeWith(common.REST_API_KEY).
 		RequestBy(method); err != nil {
 		t.Error(err)
-	} else if err = dl.SaveAs("detect_test_by_get.json"); err != nil {
+	} else if err = dr.SaveAs("detect_test_by_get.json"); err != nil {
 		t.Error(err)
 	}
 }
@@ -34,23 +36,23 @@ func TestDetectLanguageByGETSaveAsJSON(t *testing.T) {
 func TestDetectLanguageByPOST(t *testing.T) {
 	query := "안녕하세요"
 	method := "POST"
-	if dl, err := translation.DetectLanguage(query).
+	if dr, err := translation.DetectLanguage(query).
 		AuthorizeWith(common.REST_API_KEY).
 		RequestBy(method); err != nil {
 		t.Error(err)
 	} else {
-		t.Log(dl)
+		t.Log(dr)
 	}
 }
 
 func TestDetectLanguageByPOSTSaveAsJSON(t *testing.T) {
 	query := "안녕하세요"
 	method := "POST"
-	if dl, err := translation.DetectLanguage(query).
+	if dr, err := translation.DetectLanguage(query).
 		AuthorizeWith(common.REST_API_KEY).
 		RequestBy(method); err != nil {
 		t.Error(err)
-	} else if dl.SaveAs("detect_test_by_post.json"); err != nil {
+	} else if dr.SaveAs("detect_test_by_post.json"); err != nil {
 		t.Error(err)
 	}
 }
