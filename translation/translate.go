@@ -13,7 +13,7 @@ import (
 
 // TranslationResult represents a result of translation.
 type TranslationResult struct {
-	TraslatedText []string `json:"translated_text"`
+	TranslatedText [][]string `json:"translated_text"`
 }
 
 // String implements fmt.Stringer.
@@ -36,6 +36,12 @@ type TranslationInitializer struct {
 //
 // For more details visit https://developers.kakao.com/docs/latest/en/translate/dev-guide#trans-sentence.
 func Translation(query string) *TranslationInitializer {
+	if 5000 < len(query) {
+		panic(errors.New("query must be 5,000 bytes or less"))
+	}
+	if r := recover(); r != nil {
+		log.Println(r)
+	}
 	return &TranslationInitializer{
 		Query:      url.QueryEscape(strings.TrimSpace(query)),
 		SrcLang:    "",
@@ -159,12 +165,11 @@ func (ti *TranslationInitializer) Target(target string) *TranslationInitializer 
 }
 
 // Collect returns the translation result.
-func (ti *TranslationInitializer) Collect() (res TranslationResult, err error) {
+func (ti *TranslationInitializer) CollectByGET() (res TranslationResult, err error) {
 	client := new(http.Client)
 	req, err := http.NewRequest(http.MethodGet,
 		fmt.Sprintf("%s/v2/translation/translate?src_lang=%s&target_lang=%s&query=%s",
 			prefix, ti.SrcLang, ti.TargetLang, ti.Query), nil)
-
 	if err != nil {
 		return
 	}
@@ -179,6 +184,32 @@ func (ti *TranslationInitializer) Collect() (res TranslationResult, err error) {
 	}
 
 	defer resp.Body.Close()
+
+	if err = json.NewDecoder(resp.Body).Decode(&res); err != nil {
+		return
+	}
+	return
+}
+
+// Collect returns the translation result.
+func (ti *TranslationInitializer) CollectByPOST() (res TranslationResult, err error) {
+	client := new(http.Client)
+	req, err := http.NewRequest(http.MethodPost,
+		fmt.Sprintf("%s/v2/translation/translate?src_lang=%s&target_lang=%s&query=%s",
+			prefix, ti.SrcLang, ti.TargetLang, ti.Query), nil)
+	if err != nil {
+		return
+	}
+
+	req.Close = true
+
+	req.Header.Set(common.Authorization, ti.AuthKey)
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+
+	resp, err := client.Do(req)
+	if err != nil {
+		return
+	}
 
 	if err = json.NewDecoder(resp.Body).Decode(&res); err != nil {
 		return
