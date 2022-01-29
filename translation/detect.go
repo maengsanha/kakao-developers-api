@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"internal/common"
+	"log"
 	"net/http"
 	"net/url"
 	"strings"
@@ -42,6 +43,13 @@ type DetectLanguageInitializer struct {
 //
 // See https://developers.kakao.com/docs/latest/ko/translate/dev-guide#language-detect for more details.
 func DetectLanguage(query string) *DetectLanguageInitializer {
+	if 5000 < len(query) {
+		panic(errors.New("query must be 5,000 bytes or less"))
+	}
+	if r := recover(); r != nil {
+		log.Panicln(r)
+	}
+
 	return &DetectLanguageInitializer{
 		Query:   url.QueryEscape(strings.TrimSpace(query)),
 		Authkey: common.KeyPrefix,
@@ -58,8 +66,8 @@ func (dl *DetectLanguageInitializer) AuthorizeWith(key string) *DetectLanguageIn
 func (dl *DetectLanguageInitializer) RequestBy(method string) (res DetectLanguageResult, err error) {
 	client := new(http.Client)
 	switch method {
-	case "GET":
-		req, err := http.NewRequest(http.MethodGet,
+	case "GET", "POST":
+		req, err := http.NewRequest(method,
 			fmt.Sprintf("%s/v3/translation/language/detect?query=%s", prefix, dl.Query), nil)
 		if err != nil {
 			return res, err
@@ -68,30 +76,9 @@ func (dl *DetectLanguageInitializer) RequestBy(method string) (res DetectLanguag
 		req.Close = true
 
 		req.Header.Set(common.Authorization, dl.Authkey)
-
-		resp, err := client.Do(req)
-		if err != nil {
-			return res, err
+		if method == "POST" {
+			req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 		}
-
-		defer resp.Body.Close()
-
-		if err = json.NewDecoder(resp.Body).Decode(&res); err != nil {
-			return res, err
-		}
-
-	case "POST":
-		req, err := http.NewRequest(http.MethodPost,
-			fmt.Sprintf("%s/v3/translation/language/detect?query=%s", prefix, dl.Query), nil)
-		if err != nil {
-			return res, err
-		}
-
-		req.Close = true
-
-		req.Header.Set(common.Authorization, dl.Authkey)
-		req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-
 		resp, err := client.Do(req)
 		if err != nil {
 			return res, err
