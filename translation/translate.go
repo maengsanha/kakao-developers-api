@@ -38,8 +38,8 @@ type TranslateInitializer struct {
 // but also between a language and another language (non-Korean).
 //
 // For more details visit https://developers.kakao.com/docs/latest/en/translate/dev-guide#trans-sentence.
-func Translate(query string) *TranslateInitializer {
-	if 5000 < len(query) {
+func Translate(text string) *TranslateInitializer {
+	if 5000 < len(text) {
 		panic(errors.New("up to 5,000 characters are allowed"))
 	}
 	if r := recover(); r != nil {
@@ -47,7 +47,7 @@ func Translate(query string) *TranslateInitializer {
 	}
 
 	return &TranslateInitializer{
-		Query:   url.QueryEscape(strings.TrimSpace(query)),
+		Query:   url.QueryEscape(strings.TrimSpace(text)),
 		AuthKey: common.KeyPrefix,
 	}
 }
