@@ -7,7 +7,7 @@
 
 - Installation
   ```bash
-  $ go get -u github.com/maengsanha/kakao-developers-client
+  go get -u github.com/maengsanha/kakao-developers-client
   ```
 
 - Features
