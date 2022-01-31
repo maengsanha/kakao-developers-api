@@ -110,7 +110,7 @@ func (ti *TranslateInitializer) From(src string) *TranslateInitializer {
 			kr, en, jp, cn, vi, id, ar, bn, de, es, fr, hi, it, ms, nl, pt, ru, th, tr`))
 	}
 	if r := recover(); r != nil {
-		log.Println(r)
+		log.Panicln(r)
 	}
 	return ti
 }
@@ -166,7 +166,7 @@ func (ti *TranslateInitializer) To(target string) *TranslateInitializer {
 		kr, en, jp, cn, vi, id, ar, bn, de, es, fr, hi, it, ms, nl, pt, ru, th, tr`))
 	}
 	if r := recover(); r != nil {
-		log.Println(r)
+		log.Panicln(r)
 	}
 	return ti
 }

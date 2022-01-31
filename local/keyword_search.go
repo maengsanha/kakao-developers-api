@@ -58,7 +58,7 @@ func (ki *KeywordSearchIterator) FormatAs(format string) *KeywordSearchIterator 
 		panic(common.ErrUnsupportedFormat)
 	}
 	if r := recover(); r != nil {
-		log.Println(r)
+		log.Panicln(r)
 	}
 	return ki
 }
@@ -116,7 +116,7 @@ func (ki *KeywordSearchIterator) Category(groupcode string) *KeywordSearchIterat
 		panic(ErrUnsupportedCategoryGroupCode)
 	}
 	if r := recover(); r != nil {
-		log.Println(r)
+		log.Panicln(r)
 	}
 	return ki
 }
@@ -138,7 +138,7 @@ func (ki *KeywordSearchIterator) WithRadius(radius int) *KeywordSearchIterator {
 		panic(ErrRadiusOutOfBound)
 	}
 	if r := recover(); r != nil {
-		log.Println(r)
+		log.Panicln(r)
 	}
 	return ki
 }
@@ -161,7 +161,7 @@ func (ki *KeywordSearchIterator) Result(page int) *KeywordSearchIterator {
 		panic(common.ErrPageOutOfBound)
 	}
 	if r := recover(); r != nil {
-		log.Println(r)
+		log.Panicln(r)
 	}
 	return ki
 }
@@ -174,7 +174,7 @@ func (ki *KeywordSearchIterator) Display(size int) *KeywordSearchIterator {
 		panic(common.ErrSizeOutOfBound)
 	}
 	if r := recover(); r != nil {
-		log.Println(r)
+		log.Panicln(r)
 	}
 	return ki
 }
@@ -192,7 +192,7 @@ func (ki *KeywordSearchIterator) SortBy(order string) *KeywordSearchIterator {
 		panic(common.ErrUnsupportedSortingOrder)
 	}
 	if r := recover(); r != nil {
-		log.Println(r)
+		log.Panicln(r)
 	}
 	return ki
 }

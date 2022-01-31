@@ -68,7 +68,7 @@ func (ti *TransCoordInitializer) FormatAs(format string) *TransCoordInitializer 
 		panic(common.ErrUnsupportedFormat)
 	}
 	if r := recover(); r != nil {
-		log.Println(r)
+		log.Panicln(r)
 	}
 	return ti
 }
@@ -112,7 +112,7 @@ func (ti *TransCoordInitializer) Input(coord string) *TransCoordInitializer {
 			WGS84, WCONGNAMUL, CONGNAMUL, WTM, TM, KTM, UTM, BESSEL, WKTM, WUTM`))
 	}
 	if r := recover(); r != nil {
-		log.Println(r)
+		log.Panicln(r)
 	}
 	return ti
 }
@@ -150,7 +150,7 @@ func (ti *TransCoordInitializer) Output(coord string) *TransCoordInitializer {
 			WGS84, WCONGNAMUL, CONGNAMUL, WTM, TM, KTM, UTM, BESSEL, WKTM, WUTM`))
 	}
 	if r := recover(); r != nil {
-		log.Println(r)
+		log.Panicln(r)
 	}
 	return ti
 }

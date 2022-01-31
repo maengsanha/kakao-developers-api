@@ -78,7 +78,7 @@ func (ii *ImageSearchIterator) SortBy(order string) *ImageSearchIterator {
 		panic(common.ErrUnsupportedSortingOrder)
 	}
 	if r := recover(); r != nil {
-		log.Println(r)
+		log.Panicln(r)
 	}
 	return ii
 }
@@ -91,7 +91,7 @@ func (ii *ImageSearchIterator) Result(page int) *ImageSearchIterator {
 		panic(common.ErrPageOutOfBound)
 	}
 	if r := recover(); r != nil {
-		log.Println(r)
+		log.Panicln(r)
 	}
 	return ii
 }
@@ -104,7 +104,7 @@ func (ii *ImageSearchIterator) Display(size int) *ImageSearchIterator {
 		panic(common.ErrSizeOutOfBound)
 	}
 	if r := recover(); r != nil {
-		log.Println(r)
+		log.Panicln(r)
 	}
 	return ii
 }

@@ -72,7 +72,7 @@ func (ci *CafeSearchIterator) SortBy(order string) *CafeSearchIterator {
 		panic(common.ErrUnsupportedSortingOrder)
 	}
 	if r := recover(); r != nil {
-		log.Println(r)
+		log.Panicln(r)
 	}
 	return ci
 }
@@ -85,7 +85,7 @@ func (ci *CafeSearchIterator) Result(page int) *CafeSearchIterator {
 		panic(common.ErrPageOutOfBound)
 	}
 	if r := recover(); r != nil {
-		log.Println(r)
+		log.Panicln(r)
 	}
 	return ci
 }
@@ -98,7 +98,7 @@ func (ci *CafeSearchIterator) Display(size int) *CafeSearchIterator {
 		panic(common.ErrSizeOutOfBound)
 	}
 	if r := recover(); r != nil {
-		log.Println(r)
+		log.Panicln(r)
 	}
 	return ci
 }

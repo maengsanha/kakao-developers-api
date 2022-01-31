@@ -86,7 +86,7 @@ func (ci *CoordToAddressInitializer) FormatAs(format string) *CoordToAddressInit
 		panic(common.ErrUnsupportedFormat)
 	}
 	if r := recover(); r != nil {
-		log.Println(r)
+		log.Panicln(r)
 	}
 	return ci
 }
