@@ -11,86 +11,78 @@ import (
 	"strings"
 )
 
-// LanguageInfo represents list of detected languages sorted by highest confidence.
-//
-// Up to three results are returned.
+// LanguageInfo represents a detected language.
 type LanguageInfo struct {
 	Code       string  `json:"code"`
 	Name       string  `json:"name"`
 	Confidence float64 `json:"confidence"`
 }
 
-// DetectLanguageResult represents a detected language result.
-type DetectLanguageResult struct {
+// DetectResult represents a language detection result.
+type DetectResult struct {
 	LanguageInfo []LanguageInfo `json:"language_info"`
 }
 
 // String implements fmt.Stringer.
-func (dr DetectLanguageResult) String() string { return common.String(dr) }
+func (dr DetectResult) String() string { return common.String(dr) }
 
 // SaveAs saves dr to @filename.
-func (dr *DetectLanguageResult) SaveAs(filename string) error {
-	return common.SaveAsJSON(dr, filename)
-}
+//
+// The file extension must be .json.
+func (dr DetectResult) SaveAs(filename string) error { return common.SaveAsJSON(dr, filename) }
 
-// DetectLanguageInitializer is a lazy language detector.
-type DetectLanguageInitializer struct {
+// DetectInitializer is a lazy language detector.
+type DetectInitializer struct {
 	Query   string
 	Authkey string
 }
 
-// DetectLanguage detects the language of the given @query.
+// Detect detects the language of the given @text.
 //
 // See https://developers.kakao.com/docs/latest/ko/translate/dev-guide#language-detect for more details.
-func DetectLanguage(query string) *DetectLanguageInitializer {
-	if 5000 < len(query) {
-		panic(errors.New("query must be 5,000 bytes or less"))
+func Detect(text string) *DetectInitializer {
+	if 5000 < len(text) {
+		panic(errors.New("up to 5,000 characters are allowed"))
 	}
 	if r := recover(); r != nil {
 		log.Panicln(r)
 	}
 
-	return &DetectLanguageInitializer{
-		Query:   url.QueryEscape(strings.TrimSpace(query)),
+	return &DetectInitializer{
+		Query:   url.QueryEscape(strings.TrimSpace(text)),
 		Authkey: common.KeyPrefix,
 	}
 }
 
 // AuthorizeWith sets the authorization key to @key.
-func (di *DetectLanguageInitializer) AuthorizeWith(key string) *DetectLanguageInitializer {
+func (di *DetectInitializer) AuthorizeWith(key string) *DetectInitializer {
 	di.Authkey = common.FormatKey(key)
 	return di
 }
 
-// RequestBy returns the detected language result by sending a HTTP @method (GET or POST).
-func (dl *DetectLanguageInitializer) RequestBy(method string) (res DetectLanguageResult, err error) {
+// Collect returns the language detection result.
+func (dl *DetectInitializer) Collect() (res DetectResult, err error) {
 	client := new(http.Client)
-	switch method {
-	case "GET", "POST":
-		req, err := http.NewRequest(method,
-			fmt.Sprintf("%s/v3/translation/language/detect?query=%s", prefix, dl.Query), nil)
-		if err != nil {
-			return res, err
-		}
-
-		req.Close = true
-
-		req.Header.Set(common.Authorization, dl.Authkey)
-		if method == "POST" {
-			req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-		}
-		resp, err := client.Do(req)
-		if err != nil {
-			return res, err
-		}
-
-		defer resp.Body.Close()
-
-		if err = json.NewDecoder(resp.Body).Decode(&res); err != nil {
-			return res, err
-		}
-	default:
-		return res, errors.New("method must be either GET or POST")
+	req, err := http.NewRequest(http.MethodGet,
+		fmt.Sprintf("%s/v3/translation/language/detect?query=%s", prefix, dl.Query), nil)
+	if err != nil {
+		return res, err
 	}
+
+	req.Close = true
+
+	req.Header.Set(common.Authorization, dl.Authkey)
+
+	resp, err := client.Do(req)
+	if err != nil {
+		return res, err
+	}
+
+	defer resp.Body.Close()
+
+	if err = json.NewDecoder(resp.Body).Decode(&res); err != nil {
+		return res, err
+	}
+
 	return
 }

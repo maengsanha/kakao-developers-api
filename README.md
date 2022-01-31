@@ -8,4 +8,4 @@
 - Features
   - [x] Local
   - [x] Daum Search
-  - [ ] Translation
+  - [x] Translation
