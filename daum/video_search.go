@@ -76,7 +76,7 @@ func (vi *VideoSearchIterator) SortBy(order string) *VideoSearchIterator {
 		panic(common.ErrUnsupportedSortingOrder)
 	}
 	if r := recover(); r != nil {
-		log.Println(r)
+		log.Panicln(r)
 	}
 	return vi
 }
@@ -89,7 +89,7 @@ func (vi *VideoSearchIterator) Result(page int) *VideoSearchIterator {
 		panic(common.ErrPageOutOfBound)
 	}
 	if r := recover(); r != nil {
-		log.Println(r)
+		log.Panicln(r)
 	}
 	return vi
 }
@@ -102,7 +102,7 @@ func (vi *VideoSearchIterator) Display(size int) *VideoSearchIterator {
 		panic(common.ErrSizeOutOfBound)
 	}
 	if r := recover(); r != nil {
-		log.Println(r)
+		log.Panicln(r)
 	}
 	return vi
 }

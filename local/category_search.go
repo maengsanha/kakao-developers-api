@@ -84,7 +84,7 @@ func PlaceSearchByCategory(groupcode string) *CategorySearchIterator {
 	}
 
 	if r := recover(); r != nil {
-		log.Println(r)
+		log.Panicln(r)
 		return nil
 	}
 
@@ -111,7 +111,7 @@ func (ci *CategorySearchIterator) FormatAs(format string) *CategorySearchIterato
 		panic(common.ErrUnsupportedFormat)
 	}
 	if r := recover(); r != nil {
-		log.Println(r)
+		log.Panicln(r)
 	}
 	return ci
 }
@@ -134,7 +134,7 @@ func (ci *CategorySearchIterator) WithRadius(x, y float64, radius int) *Category
 		panic(ErrRadiusOutOfBound)
 	}
 	if r := recover(); r != nil {
-		log.Println(r)
+		log.Panicln(r)
 	}
 	return ci
 }
@@ -157,7 +157,7 @@ func (ci *CategorySearchIterator) Result(page int) *CategorySearchIterator {
 		panic(common.ErrPageOutOfBound)
 	}
 	if r := recover(); r != nil {
-		log.Println(r)
+		log.Panicln(r)
 	}
 	return ci
 }
@@ -170,7 +170,7 @@ func (ci *CategorySearchIterator) Display(size int) *CategorySearchIterator {
 		panic(common.ErrSizeOutOfBound)
 	}
 	if r := recover(); r != nil {
-		log.Println(r)
+		log.Panicln(r)
 	}
 	return ci
 }
@@ -186,7 +186,7 @@ func (ci *CategorySearchIterator) SortBy(order string) *CategorySearchIterator {
 		panic(common.ErrUnsupportedSortingOrder)
 	}
 	if r := recover(); r != nil {
-		log.Println(r)
+		log.Panicln(r)
 	}
 	return ci
 }

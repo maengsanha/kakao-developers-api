@@ -75,7 +75,7 @@ func (ci *CoordToDistrictInitializer) FormatAs(format string) *CoordToDistrictIn
 		panic(common.ErrUnsupportedFormat)
 	}
 	if r := recover(); r != nil {
-		log.Println(r)
+		log.Panicln(r)
 	}
 	return ci
 }
@@ -109,7 +109,7 @@ func (ci *CoordToDistrictInitializer) Input(coord string) *CoordToDistrictInitia
 			WGS84, WCONGNAMUL, CONGNAMUL, WTM, TM`))
 	}
 	if r := recover(); r != nil {
-		log.Println(r)
+		log.Panicln(r)
 	}
 	return ci
 }
@@ -137,7 +137,7 @@ func (ci *CoordToDistrictInitializer) Output(coord string) *CoordToDistrictIniti
 			WGS84, WCONGNAMUL, CONGNAMUL, WTM, TM`))
 	}
 	if r := recover(); r != nil {
-		log.Println(r)
+		log.Panicln(r)
 	}
 	return ci
 }

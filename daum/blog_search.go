@@ -72,7 +72,7 @@ func (bi *BlogSearchIterator) SortBy(order string) *BlogSearchIterator {
 		panic(common.ErrUnsupportedSortingOrder)
 	}
 	if r := recover(); r != nil {
-		log.Println(r)
+		log.Panicln(r)
 	}
 	return bi
 }
@@ -85,7 +85,7 @@ func (bi *BlogSearchIterator) Result(page int) *BlogSearchIterator {
 		panic(common.ErrPageOutOfBound)
 	}
 	if r := recover(); r != nil {
-		log.Println(r)
+		log.Panicln(r)
 	}
 	return bi
 }
@@ -98,7 +98,7 @@ func (bi *BlogSearchIterator) Display(size int) *BlogSearchIterator {
 		panic(common.ErrSizeOutOfBound)
 	}
 	if r := recover(); r != nil {
-		log.Println(r)
+		log.Panicln(r)
 	}
 	return bi
 }
