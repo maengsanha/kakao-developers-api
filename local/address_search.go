@@ -103,7 +103,7 @@ func (ai *AddressSearchIterator) FormatAs(format string) *AddressSearchIterator 
 		panic(common.ErrUnsupportedFormat)
 	}
 	if r := recover(); r != nil {
-		log.Println(r)
+		log.Panicln(r)
 	}
 	return ai
 }
@@ -123,7 +123,7 @@ func (ai *AddressSearchIterator) Analyze(typ string) *AddressSearchIterator {
 		panic(errors.New("analyze type must be either similar or exact"))
 	}
 	if r := recover(); r != nil {
-		log.Println(r)
+		log.Panicln(r)
 	}
 	return ai
 }
@@ -136,7 +136,7 @@ func (ai *AddressSearchIterator) Result(page int) *AddressSearchIterator {
 		panic(common.ErrPageOutOfBound)
 	}
 	if r := recover(); r != nil {
-		log.Println(r)
+		log.Panicln(r)
 	}
 	return ai
 }
@@ -149,7 +149,7 @@ func (ai *AddressSearchIterator) Display(size int) *AddressSearchIterator {
 		panic(common.ErrSizeOutOfBound)
 	}
 	if r := recover(); r != nil {
-		log.Println(r)
+		log.Panicln(r)
 	}
 	return ai
 }

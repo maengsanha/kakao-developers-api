@@ -81,7 +81,7 @@ func (bi *BookSearchIterator) SortBy(order string) *BookSearchIterator {
 		panic(common.ErrUnsupportedSortingOrder)
 	}
 	if r := recover(); r != nil {
-		log.Println(r)
+		log.Panicln(r)
 	}
 	return bi
 }
@@ -94,7 +94,7 @@ func (bi *BookSearchIterator) Result(page int) *BookSearchIterator {
 		panic(common.ErrPageOutOfBound)
 	}
 	if r := recover(); r != nil {
-		log.Println(r)
+		log.Panicln(r)
 	}
 	return bi
 }
@@ -107,7 +107,7 @@ func (bi *BookSearchIterator) Display(size int) *BookSearchIterator {
 		panic(common.ErrSizeOutOfBound)
 	}
 	if r := recover(); r != nil {
-		log.Println(r)
+		log.Panicln(r)
 	}
 	return bi
 }
@@ -127,7 +127,7 @@ func (bi *BookSearchIterator) Filter(target string) *BookSearchIterator {
 			title, isbn, publisher, person`))
 	}
 	if r := recover(); r != nil {
-		log.Println(r)
+		log.Panicln(r)
 	}
 	return bi
 }

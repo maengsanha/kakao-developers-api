@@ -76,7 +76,7 @@ func (di *DocumentSearchIterator) SortBy(order string) *DocumentSearchIterator {
 		panic(common.ErrUnsupportedSortingOrder)
 	}
 	if r := recover(); r != nil {
-		log.Println(r)
+		log.Panicln(r)
 	}
 	return di
 }
@@ -89,7 +89,7 @@ func (di *DocumentSearchIterator) Result(page int) *DocumentSearchIterator {
 		panic(common.ErrPageOutOfBound)
 	}
 	if r := recover(); r != nil {
-		log.Println(r)
+		log.Panicln(r)
 	}
 	return di
 }
@@ -102,7 +102,7 @@ func (di *DocumentSearchIterator) Display(size int) *DocumentSearchIterator {
 		panic(common.ErrSizeOutOfBound)
 	}
 	if r := recover(); r != nil {
-		log.Println(r)
+		log.Panicln(r)
 	}
 	return di
 }
