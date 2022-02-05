@@ -21,6 +21,7 @@ func TestFaceDetectWithUrl(t *testing.T) {
 
 func TestFaceDetectWithUrlSaveAsJSON(t *testing.T) {
 	source := "https://resources.premierleague.com/premierleague/photos/players/250x250/p85971.png"
+
 	if fr, err := vision.FaceDetect(source).
 		AuthorizeWith(common.REST_API_KEY).
 		Collect(); err != nil {
@@ -32,6 +33,7 @@ func TestFaceDetectWithUrlSaveAsJSON(t *testing.T) {
 
 func TestFaceDetectWithFile(t *testing.T) {
 	source := "/home/js/test.jpg"
+
 	if fr, err := vision.FaceDetect(source).
 		AuthorizeWith(common.REST_API_KEY).
 		Collect(); err != nil {
@@ -43,6 +45,7 @@ func TestFaceDetectWithFile(t *testing.T) {
 
 func TestFaceDetectWithFileSaveAsJSON(t *testing.T) {
 	source := "/home/js/test.jpg"
+
 	if fr, err := vision.FaceDetect(source).
 		AuthorizeWith(common.REST_API_KEY).
 		Collect(); err != nil {

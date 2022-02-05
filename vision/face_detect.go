@@ -198,7 +198,6 @@ func (fi *FaceDetectInitializer) Collect() (res FaceDetectResult, err error) {
 		req.Close = true
 
 		req.Header.Set(common.Authorization, fi.AuthKey)
-
 		req.Header.Set("Content-Type", writer.FormDataContentType())
 
 		resp, err := client.Do(req)
