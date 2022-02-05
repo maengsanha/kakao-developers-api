@@ -62,6 +62,7 @@ type FaceResult struct {
 
 // FaceDetectResult represents a Face Detection result.
 type FaceDetectResult struct {
+	Rid    string     `json:"rid"`
 	Result FaceResult `json:"result"`
 }
 
