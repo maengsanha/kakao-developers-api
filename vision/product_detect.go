@@ -77,7 +77,7 @@ func ProductDetect(source string) *ProductDetectInitializer {
 			panic(err)
 		}
 		if stat, _ := bs.Stat(); stat.Size() > 2*1024*1024 {
-			panic(errors.New("file size must be 2 mb or less"))
+			panic(ErrOverTheFileSize)
 		} else {
 			return &ProductDetectInitializer{
 				AuthKey:   common.KeyPrefix,
