@@ -26,7 +26,7 @@ func TestFaceDetectWithUrlSaveAsJSON(t *testing.T) {
 		AuthorizeWith(common.REST_API_KEY).
 		Collect(); err != nil {
 		t.Error(err)
-	} else if err = fr.SaveAs("face_detection_Url_test.json"); err != nil {
+	} else if err = fr.SaveAs("face_detect_url_test.json"); err != nil {
 		t.Error(err)
 	}
 }
@@ -36,6 +36,7 @@ func TestFaceDetectWithFile(t *testing.T) {
 
 	if fr, err := vision.FaceDetect(source).
 		AuthorizeWith(common.REST_API_KEY).
+		ThresholdAt(0.9).
 		Collect(); err != nil {
 		t.Error(err)
 	} else {
@@ -48,9 +49,10 @@ func TestFaceDetectWithFileSaveAsJSON(t *testing.T) {
 
 	if fr, err := vision.FaceDetect(source).
 		AuthorizeWith(common.REST_API_KEY).
+		ThresholdAt(0.9).
 		Collect(); err != nil {
 		t.Error(err)
-	} else if err = fr.SaveAs("face_detection_File_test.json"); err != nil {
+	} else if err = fr.SaveAs("face_detect_file_test.json"); err != nil {
 		t.Error(fr)
 	}
 }

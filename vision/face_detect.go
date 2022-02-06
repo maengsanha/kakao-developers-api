@@ -60,7 +60,7 @@ type FaceResult struct {
 	Faces  []Face `json:"faces"`
 }
 
-// FaceDetectResult represents a Face Detection result.
+// FaceDetectResult represents a Face Detect result.
 type FaceDetectResult struct {
 	Rid    string     `json:"rid"`
 	Result FaceResult `json:"result"`
@@ -87,16 +87,16 @@ type FaceDetectInitializer struct {
 // @source can be requested with either the image or image_url, PNG and JPG format only.
 // Refer to https://developers.kakao.com/docs/latest/ko/vision/dev-guide#recog-face for more details.
 func FaceDetect(source string) *FaceDetectInitializer {
+	switch format := strings.Split(source, "."); format[len(format)-1] {
+	case "jpg", "png":
+		break
+	default:
+		panic(ErrUnsupportedFormat)
+	}
+	if r := recover(); r != nil {
+		log.Panicln(r)
+	}
 	if source[0:4] == "http" {
-		switch format := strings.Split(source, "."); format[len(format)-1] {
-		case "jpg", "png":
-			break
-		default:
-			panic(ErrUnsupportedFormat)
-		}
-		if r := recover(); r != nil {
-			log.Panicln(r)
-		}
 		return &FaceDetectInitializer{
 			AuthKey:   common.KeyPrefix,
 			ImageUrl:  source,
@@ -111,22 +111,12 @@ func FaceDetect(source string) *FaceDetectInitializer {
 		if stat, _ := bs.Stat(); stat.Size() > 2*1024*1024 {
 			panic(errors.New("file size must be 2 mb or less"))
 		} else {
-			filename := filepath.Base(bs.Name())
-			switch format := strings.Split(filename, "."); format[len(format)-1] {
-			case "jpg", "png":
-				break
-			default:
-				panic(ErrUnsupportedFormat)
+			return &FaceDetectInitializer{
+				AuthKey:   common.KeyPrefix,
+				ImageUrl:  "",
+				Image:     bs,
+				Threshold: 0.7,
 			}
-		}
-		if r := recover(); r != nil {
-			log.Panicln(r)
-		}
-		return &FaceDetectInitializer{
-			AuthKey:   common.KeyPrefix,
-			ImageUrl:  "",
-			Image:     bs,
-			Threshold: 0.7,
 		}
 	}
 }
@@ -157,63 +147,47 @@ func (fi *FaceDetectInitializer) ThresholdAt(val float64) *FaceDetectInitializer
 // Collect returns the face detection result.
 func (fi *FaceDetectInitializer) Collect() (res FaceDetectResult, err error) {
 	client := new(http.Client)
-	switch fi.Image {
-	case nil:
-		req, err := http.NewRequest(http.MethodPost,
-			fmt.Sprintf("%s/face/detect?threshold=%f&image_url=%s", prefix, fi.Threshold, fi.ImageUrl), nil)
-		if err != nil {
-			return res, err
-		}
-		req.Close = true
 
-		req.Header.Set(common.Authorization, fi.AuthKey)
-		req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	body := new(bytes.Buffer)
+	writer := multipart.NewWriter(body)
+	if err != nil {
+		return res, err
+	}
 
-		resp, err := client.Do(req)
-		if err != nil {
-			return res, err
-		}
-
-		defer resp.Body.Close()
-
-		if err = json.NewDecoder(resp.Body).Decode(&res); err != nil {
-			return res, err
-		}
-	default:
-		body := new(bytes.Buffer)
-		writer := multipart.NewWriter(body)
+	if fi.Image != nil {
 		part, err := writer.CreateFormFile("image", filepath.Base(fi.Image.Name()))
 		if err != nil {
 			return res, err
 		}
-
 		io.Copy(part, fi.Image)
-		defer writer.Close()
-
-		req, err := http.NewRequest(http.MethodPost,
-			fmt.Sprintf("%s/face/detect?threshold=%f&", prefix, fi.Threshold), body)
-		if err != nil {
-			return res, err
-		}
-
-		req.Close = true
-
-		req.Header.Set(common.Authorization, fi.AuthKey)
-		req.Header.Set("Content-Type", writer.FormDataContentType())
-
-		resp, err := client.Do(req)
-		if err != nil {
-			return res, err
-		}
-
-		defer resp.Body.Close()
-		defer fi.Image.Close()
-
-		if err = json.NewDecoder(resp.Body).Decode(&res); err != nil {
-			return res, err
-		}
-
 	}
 
+	defer writer.Close()
+
+	req, err := http.NewRequest(http.MethodPost, fmt.Sprintf("%s/face/detect?threshold=%f&image_url=%s", prefix, fi.Threshold, fi.ImageUrl), body)
+	if err != nil {
+		return res, err
+	}
+	req.Close = true
+
+	req.Header.Set(common.Authorization, fi.AuthKey)
+	if fi.Image != nil {
+		req.Header.Set("Content-Type", writer.FormDataContentType())
+	} else {
+		req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	}
+	defer fi.Image.Close()
+
+	resp, err := client.Do(req)
+	if err != nil {
+		return res, err
+	}
+
+	defer resp.Body.Close()
+
+	if err = json.NewDecoder(resp.Body).Decode(&res); err != nil {
+		return res, err
+	}
 	return
+
 }
