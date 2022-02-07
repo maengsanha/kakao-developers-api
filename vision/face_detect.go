@@ -12,7 +12,6 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
-	"strings"
 )
 
 // Face represents data of the detected face.
@@ -60,7 +59,7 @@ type FaceResult struct {
 	Faces  []Face `json:"faces"`
 }
 
-// FaceDetectResult represents a Face Detect result.
+// FaceDetectResult represents a Face Detection result.
 type FaceDetectResult struct {
 	Rid    string     `json:"rid"`
 	Result FaceResult `json:"result"`
@@ -87,38 +86,14 @@ type FaceDetectInitializer struct {
 // @source can be requested with either the image or image_url, PNG and JPG format only.
 // Refer to https://developers.kakao.com/docs/latest/ko/vision/dev-guide#recog-face for more details.
 func FaceDetect(source string) *FaceDetectInitializer {
-	switch format := strings.Split(source, "."); format[len(format)-1] {
-	case "jpg", "png":
-		break
-	default:
-		panic(ErrUnsupportedFormat)
+	url, file := CheckSourceType(source)
+	return &FaceDetectInitializer{
+		AuthKey:   common.KeyPrefix,
+		ImageUrl:  url,
+		Image:     file,
+		Threshold: 0.7,
 	}
-	if r := recover(); r != nil {
-		log.Panicln(r)
-	}
-	if source[0:4] == "http" {
-		return &FaceDetectInitializer{
-			AuthKey:   common.KeyPrefix,
-			ImageUrl:  source,
-			Image:     nil,
-			Threshold: 0.7,
-		}
-	} else {
-		bs, err := os.Open(source)
-		if err != nil {
-			panic(err)
-		}
-		if stat, _ := bs.Stat(); stat.Size() > 2*1024*1024 {
-			panic(errors.New("file size must be 2 mb or less"))
-		} else {
-			return &FaceDetectInitializer{
-				AuthKey:   common.KeyPrefix,
-				ImageUrl:  "",
-				Image:     bs,
-				Threshold: 0.7,
-			}
-		}
-	}
+
 }
 
 // AuthorizeWith sets the authorization key to @key.
@@ -129,7 +104,7 @@ func (fi *FaceDetectInitializer) AuthorizeWith(key string) *FaceDetectInitialize
 
 // ThresholdAt sets the Threshold to @val. (a value between 0 and 1.0)
 //
-// Threshold is reference value to detect as a face.
+// Threshold is a reference value to detect as a face.
 // *If this value is set too high, some faces may not be able to be detected as a face.
 // *If this value is set too low, other area can be detected as a face.
 func (fi *FaceDetectInitializer) ThresholdAt(val float64) *FaceDetectInitializer {
@@ -150,9 +125,6 @@ func (fi *FaceDetectInitializer) Collect() (res FaceDetectResult, err error) {
 
 	body := new(bytes.Buffer)
 	writer := multipart.NewWriter(body)
-	if err != nil {
-		return res, err
-	}
 
 	if fi.Image != nil {
 		part, err := writer.CreateFormFile("image", filepath.Base(fi.Image.Name()))

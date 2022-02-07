@@ -12,7 +12,6 @@ import (
 	"net/http"
 	"os"
 	"path/filepath"
-	"strings"
 )
 
 // Product represents coordinates of the detected product area box.
@@ -58,34 +57,12 @@ type ProductDetectInitializer struct {
 // @source can be requested with either the image or image_url, PNG and JPG format only.
 // Refer to https://developers.kakao.com/docs/latest/en/vision/dev-guide#recog-product for more details.
 func ProductDetect(source string) *ProductDetectInitializer {
-	switch format := strings.Split(source, "."); format[len(format)-1] {
-	case "jpg", "png":
-		break
-	default:
-		panic(ErrUnsupportedFormat)
-	}
-	if source[0:4] == "http" {
-		return &ProductDetectInitializer{
-			AuthKey:   common.KeyPrefix,
-			ImageUrl:  source,
-			Image:     nil,
-			Threshold: 0.8,
-		}
-	} else {
-		bs, err := os.Open(source)
-		if err != nil {
-			panic(err)
-		}
-		if stat, _ := bs.Stat(); stat.Size() > 2*1024*1024 {
-			panic(ErrOverTheFileSize)
-		} else {
-			return &ProductDetectInitializer{
-				AuthKey:   common.KeyPrefix,
-				ImageUrl:  "",
-				Image:     bs,
-				Threshold: 0.8,
-			}
-		}
+	url, file := CheckSourceType(source)
+	return &ProductDetectInitializer{
+		AuthKey:   common.KeyPrefix,
+		Image:     file,
+		ImageUrl:  url,
+		Threshold: 0.8,
 	}
 }
 
@@ -115,9 +92,6 @@ func (pi *ProductDetectInitializer) Collect() (res ProductDetectResult, err erro
 	client := new(http.Client)
 	body := new(bytes.Buffer)
 	writer := multipart.NewWriter(body)
-	if err != nil {
-		return res, err
-	}
 	if pi.Image != nil {
 		part, err := writer.CreateFormFile("image", filepath.Base(pi.Image.Name()))
 		if err != nil {
