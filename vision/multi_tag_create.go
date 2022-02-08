@@ -43,6 +43,7 @@ type MultiTagCreateInitializer struct {
 
 // MultiTagCreate creates a tag according to image content(@source).
 //
+// @source can be either image URL or image file (JPG or PNG).
 // Refer to https://developers.kakao.com/docs/latest/ko/vision/dev-guide#create-multi-tag for more details.
 func MultiTagCreate(source string) *MultiTagCreateInitializer {
 	url, file := CheckSourceType(source)

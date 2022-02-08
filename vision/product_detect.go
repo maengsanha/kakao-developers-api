@@ -54,7 +54,7 @@ type ProductDetectInitializer struct {
 
 // ProductDetect detects the position and type of products within the given @source.
 //
-// @source can be requested with either the image or image_url, PNG and JPG format only.
+// @source can be either image URL or image file (JPG or PNG).
 // Refer to https://developers.kakao.com/docs/latest/en/vision/dev-guide#recog-product for more details.
 func ProductDetect(source string) *ProductDetectInitializer {
 	url, file := CheckSourceType(source)

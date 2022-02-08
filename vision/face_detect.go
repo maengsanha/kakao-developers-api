@@ -83,7 +83,7 @@ type FaceDetectInitializer struct {
 
 // FaceDetect detects a face in the given @source.
 //
-// @source can be requested with either the image or image_url, PNG and JPG format only.
+// @source can be either image URL or image file (JPG or PNG).
 // Refer to https://developers.kakao.com/docs/latest/ko/vision/dev-guide#recog-face for more details.
 func FaceDetect(source string) *FaceDetectInitializer {
 	url, file := CheckSourceType(source)
@@ -105,8 +105,8 @@ func (fi *FaceDetectInitializer) AuthorizeWith(key string) *FaceDetectInitialize
 // ThresholdAt sets the Threshold to @val. (a value between 0 and 1.0)
 //
 // Threshold is a reference value to detect as a face.
-// *If this value is set too high, some faces may not be able to be detected as a face.
-// *If this value is set too low, other area can be detected as a face.
+// *If @val is set too high, some faces may not be able to be detected as a face.
+// *If @val is set too low, other area can be detected as a face.
 func (fi *FaceDetectInitializer) ThresholdAt(val float64) *FaceDetectInitializer {
 	if 0.1 <= val && val <= 1.0 {
 		fi.Threshold = val
@@ -128,9 +128,11 @@ func (fi *FaceDetectInitializer) Collect() (res FaceDetectResult, err error) {
 
 	if fi.Image != nil {
 		part, err := writer.CreateFormFile("image", filepath.Base(fi.Image.Name()))
+
 		if err != nil {
 			return res, err
 		}
+
 		io.Copy(part, fi.Image)
 	}
 

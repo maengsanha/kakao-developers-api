@@ -41,6 +41,7 @@ func (or OCRResult) String() string { return common.String(or) }
 
 // OCR detects and extracts text from the given @filepath.
 //
+// @filepath must be image file path.
 // Refer to https://developers.kakao.com/docs/latest/ko/vision/dev-guide#ocr for more details.
 func OCR(filepath string) *OCRInitializer {
 	switch format := strings.Split(filepath, "."); format[len(format)-1] {
@@ -74,32 +75,37 @@ func (oi *OCRInitializer) AuthorizeWith(key string) *OCRInitializer {
 // Collect returns the OCR result.
 func (oi *OCRInitializer) Collect() (res OCRResult, err error) {
 	client := new(http.Client)
-	body := new(bytes.Buffer)
-	writer := multipart.NewWriter(body)
-	part, err := writer.CreateFormFile("image", filepath.Base(oi.Image.Name()))
+
+	body := &bytes.Buffer{}
+	bodywriter := multipart.NewWriter(body)
+
+	filewriter, err := bodywriter.CreateFormFile("image", filepath.Base(oi.Image.Name()))
 	if err != nil {
+		fmt.Println("3")
 		return res, err
 	}
-	io.Copy(part, oi.Image)
-	defer writer.Close()
+	io.Copy(filewriter, oi.Image)
 
 	req, err := http.NewRequest(http.MethodPost, fmt.Sprintf("%s/text/ocr", prefix), body)
 	if err != nil {
+		fmt.Println("2")
 		return res, err
 	}
 	req.Close = true
 	req.Header.Set(common.Authorization, oi.AuthKey)
-	req.Header.Set("Content-Type", writer.FormDataContentType())
-
-	defer oi.Image.Close()
+	req.Header.Set("Content-Type", "multipart/form-data")
 
 	resp, err := client.Do(req)
 	if err != nil {
+		fmt.Println("4")
 		return res, err
 	}
 	defer resp.Body.Close()
+	defer bodywriter.Close()
+	defer oi.Image.Close()
 
 	if err = json.NewDecoder(resp.Body).Decode(&res); err != nil {
+		fmt.Println("1")
 		return res, err
 	}
 	return

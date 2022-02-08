@@ -36,6 +36,7 @@ func (tr ThumbnailCreateResult) SaveAs(filename string) error { return common.Sa
 
 // ThumbnailCreate crops the representative area out of the given image and creates a thumbnail image.
 //
+// @source can be either image URL or image file (JPG or PNG).
 // Refer to https://developers.kakao.com/docs/latest/ko/vision/dev-guide#create-thumbnail for more details.
 func ThumbnailCreate(source string) *ThumbnailCreateInitializer {
 	url, file := CheckSourceType(source)

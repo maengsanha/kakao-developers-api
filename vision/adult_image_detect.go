@@ -20,7 +20,7 @@ type AdultResult struct {
 	Adult  float64 `json:"adult"`
 }
 
-// AdultImageDetectResult represents a Adult Image Detection result.
+// AdultImageDetectResult represents an Adult Image Detection result.
 type AdultImageDetectResult struct {
 	Rid    string      `json:"rid"`
 	Result AdultResult `json:"result"`
@@ -45,6 +45,7 @@ type AdultImageDetectInitializer struct {
 
 // AdultImageDetect determines the level of nudity or adult content in the given @source.
 //
+// @source can be either the image file (JPG or PNG) or image_url.
 // Refer to https://developers.kakao.com/docs/latest/ko/vision/dev-guide#recog-adult-content for more details.
 func AdultImageDetect(source string) *AdultImageDetectInitializer {
 	url, file := CheckSourceType(source)

@@ -12,7 +12,7 @@ import (
 	"path/filepath"
 )
 
-// Thumbnail represents coordinates of the point starting the thumbnail image and its width, height
+// Thumbnail represents coordinates of the point starting the thumbnail image and its width, height.
 type Thumbnail struct {
 	X      int `json:"x"`
 	Y      int `json:"y"`
@@ -53,6 +53,8 @@ type ThumbnailDetectInitializer struct {
 }
 
 // ThumbnailDetect helps to create a thumbnail image by detecting the representative area out of the given @source.
+//
+// @source can be either image URL or image file (JPG or PNG).
 // Refer to https://developers.kakao.com/docs/latest/ko/vision/dev-guide#extract-thumbnail for more details.
 func ThumbnailDetect(source string) *ThumbnailDetectInitializer {
 	url, file := CheckSourceType(source)

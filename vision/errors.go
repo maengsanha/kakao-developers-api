@@ -38,7 +38,6 @@ func CheckFileSize(file os.File) {
 // }
 
 func CheckSourceType(source string) (string, *os.File) {
-	CheckFileFormat(source)
 	if source[0:4] == "http" {
 		return source, nil
 	} else {
@@ -46,6 +45,7 @@ func CheckSourceType(source string) (string, *os.File) {
 		if err != nil {
 			log.Panicln(err)
 		}
+		CheckFileFormat(source)
 		CheckFileSize(*file)
 		return "", file
 	}
