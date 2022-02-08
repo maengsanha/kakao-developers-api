@@ -92,6 +92,8 @@ func (ti *ThumbnailDetectInitializer) Collect() (res ThumbnailDetectResult, err 
 	writer := multipart.NewWriter(body)
 
 	if ti.Image != nil {
+		writer.WriteField("width", fmt.Sprintf("%d", ti.Width))
+		writer.WriteField("height", fmt.Sprintf("%d", ti.Height))
 		part, err := writer.CreateFormFile("image", filepath.Base(ti.Image.Name()))
 		if err != nil {
 			return res, err
