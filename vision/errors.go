@@ -2,6 +2,7 @@ package vision
 
 import (
 	"errors"
+	"image/jpeg"
 	"log"
 	"os"
 	"strings"
@@ -25,7 +26,7 @@ func CheckFileFormat(source string) {
 	}
 }
 
-func CheckFileSize(file os.File) {
+func CheckFileSize(file *os.File) {
 	if stat, _ := file.Stat(); stat.Size() > 2*1024*1024 {
 		panic(ErrOverTheFileSize)
 	} else {
@@ -33,9 +34,20 @@ func CheckFileSize(file os.File) {
 	}
 }
 
-// func CheckImagePixel(file *os.File) {
+func CheckImagePixel(source string) {
+	imgfile, _ := os.Open(source)
+	im, err := jpeg.Decode(imgfile)
+	if err != nil {
+		panic(errors.New("not valid image file"))
+	}
+	if imgsize := im.Bounds().Max; imgsize.X > 2048 || imgsize.Y > 2048 {
+		panic(ErrOverTheImagePixel)
+	}
+	if r := recover(); r != nil {
+		log.Panicln(r)
+	}
 
-// }
+}
 
 func CheckSourceType(source string) (string, *os.File) {
 	if source[0:4] == "http" {
@@ -43,10 +55,14 @@ func CheckSourceType(source string) (string, *os.File) {
 	} else {
 		file, err := os.Open(source)
 		if err != nil {
-			log.Panicln(err)
+			panic(errors.New("not valid file path"))
+		}
+		if r := recover(); r != nil {
+			log.Panicln(r)
 		}
 		CheckFileFormat(source)
-		CheckFileSize(*file)
+		CheckImagePixel(source)
+		CheckFileSize(file)
 		return "", file
 	}
 }
