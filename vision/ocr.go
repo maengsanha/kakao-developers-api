@@ -22,7 +22,7 @@ type OCRInitializer struct {
 
 // Result represents a document of a Optical Character Recognition result.
 type Result struct {
-	Boxes            []int    `json:"boxes"`
+	Boxes            [][]int  `json:"boxes"`
 	RecognitionWords []string `json:"recognition_words"`
 }
 
@@ -58,7 +58,7 @@ func OCR(filepath string) *OCRInitializer {
 
 	file, err := os.Open(filepath)
 	if err != nil {
-		fmt.Println(err)
+		log.Println(err)
 	}
 	CheckFileSize(file)
 	CheckImagePixel(filepath)
@@ -99,7 +99,6 @@ func (oi *OCRInitializer) Collect() (res OCRResult, err error) {
 	if err != nil {
 		return res, err
 	}
-	fmt.Println(resp)
 	defer resp.Body.Close()
 	defer bodywriter.Close()
 	defer oi.Image.Close()
