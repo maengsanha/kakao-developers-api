@@ -26,7 +26,7 @@ func SaveAsJSON(data interface{}, filename string) error {
 			return err
 		}
 
-		return ioutil.WriteFile(filename, indBuf.Bytes(), 0644)
+		return ioutil.WriteFile(filename, indBuf.Bytes(), 0o644)
 	default:
 		return ErrUnsupportedFormat
 	}
@@ -43,7 +43,7 @@ func SaveAsJSONorXML(data interface{}, filename string) error {
 		if bs, err := xml.MarshalIndent(data, "", "  "); err != nil {
 			return err
 		} else {
-			return ioutil.WriteFile(filename, bs, 0644)
+			return ioutil.WriteFile(filename, bs, 0o644)
 		}
 	default:
 		return ErrUnsupportedFormat
