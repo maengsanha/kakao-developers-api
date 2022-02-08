@@ -39,7 +39,7 @@ type ProductDetectResult struct {
 // String implements fmt.Stringer.
 func (pr ProductDetectResult) String() string { return common.String(pr) }
 
-// SaveAs saves fr to @filename
+// SaveAs saves pr to @filename
 //
 // The file extension must be .json.
 func (pr ProductDetectResult) SaveAs(filename string) error { return common.SaveAsJSON(pr, filename) }
