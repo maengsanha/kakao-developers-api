@@ -93,6 +93,7 @@ func (pi *ProductDetectInitializer) Collect() (res ProductDetectResult, err erro
 	body := new(bytes.Buffer)
 	writer := multipart.NewWriter(body)
 	if pi.Image != nil {
+		writer.WriteField("threshold", fmt.Sprintf("%f", pi.Threshold))
 		part, err := writer.CreateFormFile("image", filepath.Base(pi.Image.Name()))
 		if err != nil {
 			return res, err

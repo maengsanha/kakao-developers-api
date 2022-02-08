@@ -127,6 +127,7 @@ func (fi *FaceDetectInitializer) Collect() (res FaceDetectResult, err error) {
 	writer := multipart.NewWriter(body)
 
 	if fi.Image != nil {
+		writer.WriteField("threshold", fmt.Sprintf("%f", fi.Threshold))
 		part, err := writer.CreateFormFile("image", filepath.Base(fi.Image.Name()))
 
 		if err != nil {
