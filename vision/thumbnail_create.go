@@ -34,7 +34,7 @@ func (tr ThumbnailCreateResult) String() string { return common.String(tr) }
 // The file extension must be .json.
 func (tr ThumbnailCreateResult) SaveAs(filename string) error { return common.SaveAsJSON(tr, filename) }
 
-// ThumbnailCreate crops the representative area out of the given image and creates a thumbnail image.
+// ThumbnailCreate crops the representative area out of the given @source and creates a thumbnail image.
 //
 // @source can be either image URL or image file (JPG or PNG).
 // Refer to https://developers.kakao.com/docs/latest/ko/vision/dev-guide#create-thumbnail for more details.

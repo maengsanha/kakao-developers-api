@@ -42,6 +42,7 @@ func (or OCRResult) String() string { return common.String(or) }
 // OCR detects and extracts text from the given @filepath.
 //
 // @filepath must be image file path.
+// file format must be one of the BMP, DIB, JPEG, JPE, JP2, WEBP, PBM, PGM, PPM, SR, RAS, TIFF, TIF, PNG and JPG.
 // Refer to https://developers.kakao.com/docs/latest/ko/vision/dev-guide#ocr for more details.
 func OCR(filepath string) *OCRInitializer {
 	switch format := strings.Split(filepath, "."); format[len(format)-1] {
@@ -59,7 +60,8 @@ func OCR(filepath string) *OCRInitializer {
 	if err != nil {
 		fmt.Println(err)
 	}
-	CheckFileSize(*file)
+	CheckFileSize(file)
+	CheckImagePixel(filepath)
 	return &OCRInitializer{
 		AuthKey: common.KeyPrefix,
 		Image:   file,
@@ -81,14 +83,12 @@ func (oi *OCRInitializer) Collect() (res OCRResult, err error) {
 
 	filewriter, err := bodywriter.CreateFormFile("image", filepath.Base(oi.Image.Name()))
 	if err != nil {
-		fmt.Println("3")
 		return res, err
 	}
 	io.Copy(filewriter, oi.Image)
 
 	req, err := http.NewRequest(http.MethodPost, fmt.Sprintf("%s/text/ocr", prefix), body)
 	if err != nil {
-		fmt.Println("2")
 		return res, err
 	}
 	req.Close = true
@@ -97,15 +97,14 @@ func (oi *OCRInitializer) Collect() (res OCRResult, err error) {
 
 	resp, err := client.Do(req)
 	if err != nil {
-		fmt.Println("4")
 		return res, err
 	}
+	fmt.Println(resp)
 	defer resp.Body.Close()
 	defer bodywriter.Close()
 	defer oi.Image.Close()
 
 	if err = json.NewDecoder(resp.Body).Decode(&res); err != nil {
-		fmt.Println("1")
 		return res, err
 	}
 	return
