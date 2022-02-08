@@ -38,7 +38,7 @@ func CheckImagePixel(source string) {
 	imgfile, _ := os.Open(source)
 	im, err := jpeg.Decode(imgfile)
 	if err != nil {
-		panic(errors.New("not valid image file"))
+		panic(errors.New("invalid image file"))
 	}
 	if imgsize := im.Bounds().Max; imgsize.X > 2048 || imgsize.Y > 2048 {
 		panic(ErrOverTheImagePixel)
