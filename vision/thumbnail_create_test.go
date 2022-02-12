@@ -7,10 +7,11 @@ import (
 	"github.com/maengsanha/kakao-developers-client/vision"
 )
 
-func TestThumbnailCreateWithUrl(t *testing.T) {
-	source := "https://img.khan.co.kr/news/2021/09/30/l_2021093001003585000310901.jpg"
+func TestThumbnailCreateWithURL(t *testing.T) {
+	url := "https://img.khan.co.kr/news/2021/09/30/l_2021093001003585000310901.jpg"
 
-	if tr, err := vision.ThumbnailCreate(source).
+	if tr, err := vision.ThumbnailCreate().
+		WithURL(url).
 		AuthorizeWith(common.REST_API_KEY).
 		WidthTo(200).
 		HeightTo(200).
@@ -21,10 +22,11 @@ func TestThumbnailCreateWithUrl(t *testing.T) {
 	}
 }
 
-func TestThumbnailCreateWithUrlSaveAsJSON(t *testing.T) {
-	source := "https://img.khan.co.kr/news/2021/09/30/l_2021093001003585000310901.jpg"
+func TestThumbnailCreateWithURLSaveAsJSON(t *testing.T) {
+	url := "https://img.khan.co.kr/news/2021/09/30/l_2021093001003585000310901.jpg"
 
-	if tr, err := vision.ThumbnailCreate(source).
+	if tr, err := vision.ThumbnailCreate().
+		WithURL(url).
 		AuthorizeWith(common.REST_API_KEY).
 		WidthTo(200).
 		HeightTo(200).
@@ -36,9 +38,10 @@ func TestThumbnailCreateWithUrlSaveAsJSON(t *testing.T) {
 }
 
 func TestThumbnailCreateWithFile(t *testing.T) {
-	source := "/home/js/test4.jpg"
+	filepath := "/home/js/test4.jpg"
 
-	if tr, err := vision.ThumbnailCreate(source).
+	if tr, err := vision.ThumbnailCreate().
+		WithFile(filepath).
 		AuthorizeWith(common.REST_API_KEY).
 		WidthTo(200).
 		HeightTo(200).
@@ -50,9 +53,10 @@ func TestThumbnailCreateWithFile(t *testing.T) {
 }
 
 func TestThumbnailCreateWithFileSaveAsJSON(t *testing.T) {
-	source := "/home/js/test4.jpg"
+	filepath := "/home/js/test4.jpg"
 
-	if tr, err := vision.ThumbnailCreate(source).
+	if tr, err := vision.ThumbnailCreate().
+		WithFile(filepath).
 		AuthorizeWith(common.REST_API_KEY).
 		WidthTo(200).
 		HeightTo(200).

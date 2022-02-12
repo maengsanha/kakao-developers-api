@@ -20,7 +20,7 @@ type MultiTagResult struct {
 
 // MultiTagCreateResult represents a Multi-tag creation result.
 type MultiTagCreateResult struct {
-	Rid    string         `json:"rid"`
+	RID    string         `json:"rid"`
 	Result MultiTagResult `json:"result"`
 }
 
@@ -38,20 +38,31 @@ func (mr MultiTagCreateResult) SaveAs(filename string) error {
 type MultiTagCreateInitializer struct {
 	AuthKey  string
 	Image    *os.File
-	ImageUrl string
+	ImageURL string
 }
 
-// MultiTagCreate creates a tag according to image content(@source).
+// MultiTagCreate creates a tag according to image content.
 //
-// @source can be either image URL or image file (JPG or PNG).
+// Image can be either image URL or image file (JPG or PNG).
 // Refer to https://developers.kakao.com/docs/latest/ko/vision/dev-guide#create-multi-tag for more details.
-func MultiTagCreate(source string) *MultiTagCreateInitializer {
-	url, file := CheckSourceType(source)
+func MultiTagCreate() *MultiTagCreateInitializer {
 	return &MultiTagCreateInitializer{
 		AuthKey:  common.KeyPrefix,
-		Image:    file,
-		ImageUrl: url,
+		Image:    nil,
+		ImageURL: "",
 	}
+}
+
+// WithFile sets the file to request on @filepath.
+func (mi *MultiTagCreateInitializer) WithFile(filepath string) *MultiTagCreateInitializer {
+	mi.Image = OpenFile(filepath)
+	return mi
+}
+
+// WithURL sets the URL to request to @url.
+func (mi *MultiTagCreateInitializer) WithURL(url string) *MultiTagCreateInitializer {
+	mi.ImageURL = url
+	return mi
 }
 
 // AuthorizeWith sets the authorization key to @key.
@@ -75,7 +86,7 @@ func (mi *MultiTagCreateInitializer) Collect() (res MultiTagCreateResult, err er
 	}
 	defer writer.Close()
 
-	req, err := http.NewRequest(http.MethodPost, fmt.Sprintf("%s/multitag/generate?image_url=%s", prefix, mi.ImageUrl), body)
+	req, err := http.NewRequest(http.MethodPost, fmt.Sprintf("%s/multitag/generate?image_url=%s", prefix, mi.ImageURL), body)
 	if err != nil {
 		return res, err
 	}

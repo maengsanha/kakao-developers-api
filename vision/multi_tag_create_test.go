@@ -7,10 +7,11 @@ import (
 	"github.com/maengsanha/kakao-developers-client/vision"
 )
 
-func TestMultiTagCreateWithUrl(t *testing.T) {
-	source := "https://cdn-asia.heykorean.com/community/uploads/images/2019/06/1561461763.png"
+func TestMultiTagCreateWithURL(t *testing.T) {
+	url := "https://cdn-asia.heykorean.com/community/uploads/images/2019/06/1561461763.png"
 
-	if mr, err := vision.MultiTagCreate(source).
+	if mr, err := vision.MultiTagCreate().
+		WithURL(url).
 		AuthorizeWith(common.REST_API_KEY).
 		Collect(); err != nil {
 		t.Error(err)
@@ -19,10 +20,11 @@ func TestMultiTagCreateWithUrl(t *testing.T) {
 	}
 }
 
-func TestMultiTagCreateWithUrlSaveAsJson(t *testing.T) {
-	source := "https://cdn-asia.heykorean.com/community/uploads/images/2019/06/1561461763.png"
+func TestMultiTagCreateWithURLSaveAsJson(t *testing.T) {
+	url := "https://cdn-asia.heykorean.com/community/uploads/images/2019/06/1561461763.png"
 
-	if mr, err := vision.MultiTagCreate(source).
+	if mr, err := vision.MultiTagCreate().
+		WithURL(url).
 		AuthorizeWith(common.REST_API_KEY).
 		Collect(); err != nil {
 		t.Error(err)
@@ -32,9 +34,10 @@ func TestMultiTagCreateWithUrlSaveAsJson(t *testing.T) {
 }
 
 func TestMultiTagCreateWithFile(t *testing.T) {
-	source := "/home/js/test2.jpg"
+	filepath := "/home/js/test2.jpg"
 
-	if mr, err := vision.MultiTagCreate(source).
+	if mr, err := vision.MultiTagCreate().
+		WithFile(filepath).
 		AuthorizeWith(common.REST_API_KEY).
 		Collect(); err != nil {
 		t.Error(err)
@@ -44,9 +47,10 @@ func TestMultiTagCreateWithFile(t *testing.T) {
 }
 
 func TestMultiTagCreateWithFileSaveAsJson(t *testing.T) {
-	source := "/home/js/test2.jpg"
+	filepath := "/home/js/test2.jpg"
 
-	if mr, err := vision.MultiTagCreate(source).
+	if mr, err := vision.MultiTagCreate().
+		WithFile(filepath).
 		AuthorizeWith(common.REST_API_KEY).
 		Collect(); err != nil {
 		t.Error(err)

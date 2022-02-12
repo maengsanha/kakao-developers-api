@@ -61,7 +61,7 @@ type FaceResult struct {
 
 // FaceDetectResult represents a Face Detection result.
 type FaceDetectResult struct {
-	Rid    string     `json:"rid"`
+	RID    string     `json:"rid"`
 	Result FaceResult `json:"result"`
 }
 
@@ -77,23 +77,34 @@ func (fr FaceDetectResult) SaveAs(filename string) error { return common.SaveAsJ
 type FaceDetectInitializer struct {
 	AuthKey   string
 	Image     *os.File
-	ImageUrl  string
+	ImageURL  string
 	Threshold float64
 }
 
-// FaceDetect detects a face in the given @source.
+// FaceDetect detects a face in the given image.
 //
-// @source can be either image URL or image file (JPG or PNG).
+// Image can be either image URL or image file (JPG or PNG).
 // Refer to https://developers.kakao.com/docs/latest/ko/vision/dev-guide#recog-face for more details.
-func FaceDetect(source string) *FaceDetectInitializer {
-	url, file := CheckSourceType(source)
+func FaceDetect() *FaceDetectInitializer {
 	return &FaceDetectInitializer{
 		AuthKey:   common.KeyPrefix,
-		ImageUrl:  url,
-		Image:     file,
+		ImageURL:  "",
+		Image:     nil,
 		Threshold: 0.7,
 	}
 
+}
+
+// WithURL sets the URL to request to @url.
+func (fi *FaceDetectInitializer) WithURL(url string) *FaceDetectInitializer {
+	fi.ImageURL = url
+	return fi
+}
+
+// WithFile sets the file to request on @filepath.
+func (fi *FaceDetectInitializer) WithFile(filepath string) *FaceDetectInitializer {
+	fi.Image = OpenFile(filepath)
+	return fi
 }
 
 // AuthorizeWith sets the authorization key to @key.
@@ -139,7 +150,7 @@ func (fi *FaceDetectInitializer) Collect() (res FaceDetectResult, err error) {
 
 	defer writer.Close()
 
-	req, err := http.NewRequest(http.MethodPost, fmt.Sprintf("%s/face/detect?threshold=%f&image_url=%s", prefix, fi.Threshold, fi.ImageUrl), body)
+	req, err := http.NewRequest(http.MethodPost, fmt.Sprintf("%s/face/detect?threshold=%f&image_url=%s", prefix, fi.Threshold, fi.ImageURL), body)
 	if err != nil {
 		return res, err
 	}

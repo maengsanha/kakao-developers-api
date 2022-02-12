@@ -7,10 +7,11 @@ import (
 	"github.com/maengsanha/kakao-developers-client/vision"
 )
 
-func TestAdultImageDetectWithUrl(t *testing.T) {
-	source := "https://dimg.donga.com/wps/NEWS/IMAGE/2021/11/12/110211591.2.jpg"
+func TestAdultImageDetectWithURL(t *testing.T) {
+	url := "https://dimg.donga.com/wps/NEWS/IMAGE/2021/11/12/110211591.2.jpg"
 
-	if ar, err := vision.AdultImageDetect(source).
+	if ar, err := vision.AdultImageDetect().
+		WithURL(url).
 		AuthorizeWith(common.REST_API_KEY).
 		Collect(); err != nil {
 		t.Error(err)
@@ -19,10 +20,11 @@ func TestAdultImageDetectWithUrl(t *testing.T) {
 	}
 }
 
-func TestAdultImageDetectWithUrlSaveAsJson(t *testing.T) {
-	source := "https://dimg.donga.com/wps/NEWS/IMAGE/2021/11/12/110211591.2.jpg"
+func TestAdultImageDetectWithURLSaveAsJson(t *testing.T) {
+	url := "https://dimg.donga.com/wps/NEWS/IMAGE/2021/11/12/110211591.2.jpg"
 
-	if ar, err := vision.AdultImageDetect(source).
+	if ar, err := vision.AdultImageDetect().
+		WithURL(url).
 		AuthorizeWith(common.REST_API_KEY).
 		Collect(); err != nil {
 		t.Error(err)
@@ -32,9 +34,10 @@ func TestAdultImageDetectWithUrlSaveAsJson(t *testing.T) {
 }
 
 func TestAdultImageDetectWithFile(t *testing.T) {
-	source := "/home/js/test3.jpg"
+	filepath := "/home/js/test3.jpg"
 
-	if ar, err := vision.AdultImageDetect(source).
+	if ar, err := vision.AdultImageDetect().
+		WithFile(filepath).
 		AuthorizeWith(common.REST_API_KEY).
 		Collect(); err != nil {
 		t.Error(err)
@@ -44,9 +47,10 @@ func TestAdultImageDetectWithFile(t *testing.T) {
 }
 
 func TestAdultImageDetectWithFileSaveAsJson(t *testing.T) {
-	source := "/home/js/test3.jpg"
+	filepath := "/home/js/test3.jpg"
 
-	if ar, err := vision.AdultImageDetect(source).
+	if ar, err := vision.AdultImageDetect().
+		WithFile(filepath).
 		AuthorizeWith(common.REST_API_KEY).
 		Collect(); err != nil {
 		t.Error(err)

@@ -22,7 +22,7 @@ type AdultResult struct {
 
 // AdultImageDetectResult represents an Adult Image Detection result.
 type AdultImageDetectResult struct {
-	Rid    string      `json:"rid"`
+	RID    string      `json:"rid"`
 	Result AdultResult `json:"result"`
 }
 
@@ -40,20 +40,31 @@ func (ar AdultImageDetectResult) SaveAs(filename string) error {
 type AdultImageDetectInitializer struct {
 	AuthKey  string
 	Image    *os.File
-	ImageUrl string
+	ImageURL string
 }
 
-// AdultImageDetect determines the level of nudity or adult content in the given @source.
+// AdultImageDetect determines the level of nudity or adult content in the given image.
 //
-// @source can be either the image file (JPG or PNG) or image_url.
+// Image can be either the image file (JPG or PNG) or image URL.
 // Refer to https://developers.kakao.com/docs/latest/ko/vision/dev-guide#recog-adult-content for more details.
-func AdultImageDetect(source string) *AdultImageDetectInitializer {
-	url, file := CheckSourceType(source)
+func AdultImageDetect() *AdultImageDetectInitializer {
 	return &AdultImageDetectInitializer{
 		AuthKey:  common.KeyPrefix,
-		Image:    file,
-		ImageUrl: url,
+		Image:    nil,
+		ImageURL: "",
 	}
+}
+
+// WithFile sets the file to request on @filepath.
+func (ai *AdultImageDetectInitializer) WithFile(filepath string) *AdultImageDetectInitializer {
+	ai.Image = OpenFile(filepath)
+	return ai
+}
+
+// WithURL sets the URL to request to @url.
+func (ai *AdultImageDetectInitializer) WithURL(url string) *AdultImageDetectInitializer {
+	ai.ImageURL = url
+	return ai
 }
 
 // AuthorizeWith sets the authorization key to @key.
@@ -77,7 +88,7 @@ func (ai *AdultImageDetectInitializer) Collect() (res AdultImageDetectResult, er
 	}
 	defer writer.Close()
 
-	req, err := http.NewRequest(http.MethodPost, fmt.Sprintf("%s/adult/detect?image_url=%s", prefix, ai.ImageUrl), body)
+	req, err := http.NewRequest(http.MethodPost, fmt.Sprintf("%s/adult/detect?image_url=%s", prefix, ai.ImageURL), body)
 	if err != nil {
 		return res, err
 	}

@@ -16,14 +16,14 @@ import (
 type ThumbnailCreateInitializer struct {
 	AuthKey  string
 	Image    *os.File
-	ImageUrl string
+	ImageURL string
 	Width    int
 	Height   int
 }
 
 // ThumbnailCreateResult represents a Thumbnail creation result.
 type ThumbnailCreateResult struct {
-	ThumbnailImageUrl string `json:"thumbnail_image_url"`
+	ThumbnailImageURL string `json:"thumbnail_image_url"`
 }
 
 // String implements fmt.Stringer.
@@ -34,19 +34,30 @@ func (tr ThumbnailCreateResult) String() string { return common.String(tr) }
 // The file extension must be .json.
 func (tr ThumbnailCreateResult) SaveAs(filename string) error { return common.SaveAsJSON(tr, filename) }
 
-// ThumbnailCreate crops the representative area out of the given @source and creates a thumbnail image.
+// ThumbnailCreate crops the representative area out of the given image and creates a thumbnail image.
 //
-// @source can be either image URL or image file (JPG or PNG).
+// Image can be either image URL or image file (JPG or PNG).
 // Refer to https://developers.kakao.com/docs/latest/ko/vision/dev-guide#create-thumbnail for more details.
-func ThumbnailCreate(source string) *ThumbnailCreateInitializer {
-	url, file := CheckSourceType(source)
+func ThumbnailCreate() *ThumbnailCreateInitializer {
 	return &ThumbnailCreateInitializer{
 		AuthKey:  common.KeyPrefix,
-		Image:    file,
-		ImageUrl: url,
+		Image:    nil,
+		ImageURL: "",
 		Width:    0,
 		Height:   0,
 	}
+}
+
+// WithURL sets the URL to request to @url.
+func (ti *ThumbnailCreateInitializer) WithURL(url string) *ThumbnailCreateInitializer {
+	ti.ImageURL = url
+	return ti
+}
+
+// WithFile sets the file to request on @filepath.
+func (ti *ThumbnailCreateInitializer) WithFile(filepath string) *ThumbnailCreateInitializer {
+	ti.Image = OpenFile(filepath)
+	return ti
 }
 
 // AuthorizeWith sets the authorization key to @key.
@@ -86,7 +97,7 @@ func (ti *ThumbnailCreateInitializer) Collect() (res ThumbnailCreateResult, err 
 	defer writer.Close()
 
 	req, err := http.NewRequest(http.MethodPost, fmt.Sprintf("%s/thumbnail/crop?image_url=%s&width=%d&height=%d",
-		prefix, ti.ImageUrl, ti.Width, ti.Height), body)
+		prefix, ti.ImageURL, ti.Width, ti.Height), body)
 	if err != nil {
 		return res, err
 	}

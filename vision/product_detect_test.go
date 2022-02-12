@@ -7,9 +7,10 @@ import (
 	"github.com/maengsanha/kakao-developers-client/vision"
 )
 
-func TestProductDetectWithUrl(t *testing.T) {
-	source := "https://topguide.kr/wp-content/uploads/2020/03/image-689-1024x828.jpg"
-	if pr, err := vision.ProductDetect(source).
+func TestProductDetectWithURL(t *testing.T) {
+	url := "https://topguide.kr/wp-content/uploads/2020/03/image-689-1024x828.jpg"
+	if pr, err := vision.ProductDetect().
+		WithURL(url).
 		AuthorizeWith(common.REST_API_KEY).
 		ThresholdAt(0.7).
 		Collect(); err != nil {
@@ -19,9 +20,10 @@ func TestProductDetectWithUrl(t *testing.T) {
 	}
 }
 
-func TestProductDetectWithUrlSaveAsJSON(t *testing.T) {
-	source := "https://topguide.kr/wp-content/uploads/2020/03/image-689-1024x828.jpg"
-	if pr, err := vision.ProductDetect(source).
+func TestProductDetectWithURLSaveAsJSON(t *testing.T) {
+	url := "https://topguide.kr/wp-content/uploads/2020/03/image-689-1024x828.jpg"
+	if pr, err := vision.ProductDetect().
+		WithURL(url).
 		AuthorizeWith(common.REST_API_KEY).
 		ThresholdAt(0.7).
 		Collect(); err != nil {
@@ -32,8 +34,9 @@ func TestProductDetectWithUrlSaveAsJSON(t *testing.T) {
 }
 
 func TestProductDetectWithFile(t *testing.T) {
-	source := "/home/js/test2.jpg"
-	if pr, err := vision.ProductDetect(source).
+	filepath := "/home/js/test2.jpg"
+	if pr, err := vision.ProductDetect().
+		WithFile(filepath).
 		AuthorizeWith(common.REST_API_KEY).
 		ThresholdAt(0.7).
 		Collect(); err != nil {
@@ -44,8 +47,9 @@ func TestProductDetectWithFile(t *testing.T) {
 }
 
 func TestProductDetectWithFileSaveAsJSON(t *testing.T) {
-	source := "/home/js/test2.jpg"
-	if pr, err := vision.ProductDetect(source).
+	filepath := "/home/js/test2.jpg"
+	if pr, err := vision.ProductDetect().
+		WithFile(filepath).
 		AuthorizeWith(common.REST_API_KEY).
 		ThresholdAt(0.7).
 		Collect(); err != nil {

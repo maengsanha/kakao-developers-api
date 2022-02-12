@@ -32,7 +32,7 @@ type ProductResult struct {
 
 // ProductDetectResult represents a Product Detection result
 type ProductDetectResult struct {
-	Rid    string        `json:"rid"`
+	RID    string        `json:"rid"`
 	Result ProductResult `json:"result"`
 }
 
@@ -48,22 +48,33 @@ func (pr ProductDetectResult) SaveAs(filename string) error { return common.Save
 type ProductDetectInitializer struct {
 	AuthKey   string
 	Image     *os.File
-	ImageUrl  string
+	ImageURL  string
 	Threshold float64
 }
 
-// ProductDetect detects the position and type of products within the given @source.
+// ProductDetect detects the position and type of products within the given image.
 //
-// @source can be either image URL or image file (JPG or PNG).
+// Image can be either image URL or image file (JPG or PNG).
 // Refer to https://developers.kakao.com/docs/latest/en/vision/dev-guide#recog-product for more details.
-func ProductDetect(source string) *ProductDetectInitializer {
-	url, file := CheckSourceType(source)
+func ProductDetect() *ProductDetectInitializer {
 	return &ProductDetectInitializer{
 		AuthKey:   common.KeyPrefix,
-		Image:     file,
-		ImageUrl:  url,
+		Image:     nil,
+		ImageURL:  "",
 		Threshold: 0.8,
 	}
+}
+
+// WithFile sets the file to request on @filepath.
+func (pi *ProductDetectInitializer) WithFile(filepath string) *ProductDetectInitializer {
+	pi.Image = OpenFile(filepath)
+	return pi
+}
+
+// WithURL sets the URL to request to @url.
+func (pi *ProductDetectInitializer) WithURL(url string) *ProductDetectInitializer {
+	pi.ImageURL = url
+	return pi
 }
 
 // AuthorizeWith sets the authorization key to @key.
@@ -102,7 +113,7 @@ func (pi *ProductDetectInitializer) Collect() (res ProductDetectResult, err erro
 	}
 	defer writer.Close()
 
-	req, err := http.NewRequest(http.MethodPost, fmt.Sprintf("%s/product/detect?threshold=%f&image_url=%s", prefix, pi.Threshold, pi.ImageUrl), body)
+	req, err := http.NewRequest(http.MethodPost, fmt.Sprintf("%s/product/detect?threshold=%f&image_url=%s", prefix, pi.Threshold, pi.ImageURL), body)
 	if err != nil {
 		return res, err
 	}
