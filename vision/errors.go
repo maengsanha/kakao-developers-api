@@ -3,6 +3,7 @@ package vision
 import (
 	"errors"
 	"image/jpeg"
+	"image/png"
 	"log"
 	"os"
 	"strings"
@@ -17,18 +18,6 @@ func OpenFile(filepath string) *os.File {
 	if err != nil {
 		panic(errors.New("invalid file path"))
 	}
-	// Open the file for Decode.
-	imgfile, _ := os.Open(filepath)
-	im, err := jpeg.Decode(imgfile)
-
-	if err != nil {
-		panic(errors.New("invalid image file"))
-	}
-
-	// Check the image pixel.
-	if imgsize := im.Bounds().Max; imgsize.X > 2048 || imgsize.Y > 2048 {
-		panic(errors.New("image pixel must be 2048px or less"))
-	}
 
 	// Check the file size.
 	if stat, _ := file.Stat(); stat.Size() > 2*mb {
@@ -40,7 +29,28 @@ func OpenFile(filepath string) *os.File {
 
 	// Check the file format.
 	switch format := strings.Split(filepath, "."); format[len(format)-1] {
-	case "jpg", "png":
+	case "jpg":
+		// Open the file for Decode.
+		imgfile, _ := os.Open(filepath)
+		im, err := jpeg.Decode(imgfile)
+		if err != nil {
+			panic(errors.New("invalid image file"))
+		}
+		// Check the image pixel.
+		if imgsize := im.Bounds().Max; imgsize.X > 2048 || imgsize.Y > 2048 {
+			panic(errors.New("image pixel must be 2048px or less"))
+		}
+	case "png":
+		// Open the file for Decode.
+		imgfile, _ := os.Open(filepath)
+		im, err := png.Decode(imgfile)
+		if err != nil {
+			panic(errors.New("invalid image file"))
+		}
+		// Check the image pixel.
+		if imgsize := im.Bounds().Max; imgsize.X > 2048 || imgsize.Y > 2048 {
+			panic(errors.New("image pixel must be 2048px or less"))
+		}
 	default:
 		panic(errors.New("file format must be either jpg or png"))
 	}
