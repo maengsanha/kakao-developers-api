@@ -13,8 +13,8 @@ func TestThumbnailCreateWithURL(t *testing.T) {
 	if tr, err := vision.ThumbnailCreate().
 		WithURL(url).
 		AuthorizeWith(common.REST_API_KEY).
-		WidthTo(200).
-		HeightTo(200).
+		WidthTo(400).
+		HeightTo(400).
 		Collect(); err != nil {
 		t.Error(err)
 	} else {
@@ -28,8 +28,8 @@ func TestThumbnailCreateWithURLSaveAsJSON(t *testing.T) {
 	if tr, err := vision.ThumbnailCreate().
 		WithURL(url).
 		AuthorizeWith(common.REST_API_KEY).
-		WidthTo(200).
-		HeightTo(200).
+		WidthTo(400).
+		HeightTo(400).
 		Collect(); err != nil {
 		t.Error(err)
 	} else if tr.SaveAs("thumbnail_create_url_test.json"); err != nil {
@@ -43,8 +43,8 @@ func TestThumbnailCreateWithFile(t *testing.T) {
 	if tr, err := vision.ThumbnailCreate().
 		WithFile(filepath).
 		AuthorizeWith(common.REST_API_KEY).
-		WidthTo(200).
-		HeightTo(200).
+		WidthTo(100).
+		HeightTo(100).
 		Collect(); err != nil {
 		t.Error(err)
 	} else {
@@ -58,8 +58,8 @@ func TestThumbnailCreateWithFileSaveAsJSON(t *testing.T) {
 	if tr, err := vision.ThumbnailCreate().
 		WithFile(filepath).
 		AuthorizeWith(common.REST_API_KEY).
-		WidthTo(200).
-		HeightTo(200).
+		WidthTo(100).
+		HeightTo(100).
 		Collect(); err != nil {
 		t.Error(err)
 	} else if tr.SaveAs("thumbnail_create_file_test.json"); err != nil {
