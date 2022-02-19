@@ -41,7 +41,7 @@ type MultiTagCreateInitializer struct {
 	ImageURL string
 }
 
-// MultiTagCreate creates a tag according to image content.
+// MultiTagCreate creates a tag according to the given image.
 //
 // Image can be either image URL or image file (JPG or PNG).
 // Refer to https://developers.kakao.com/docs/latest/ko/vision/dev-guide#create-multi-tag for more details.

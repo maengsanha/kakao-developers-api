@@ -36,7 +36,7 @@ type ThumbnailDetectResult struct {
 // String implements fmt.Stringer.
 func (tr ThumbnailDetectResult) String() string { return common.String(tr) }
 
-// SaveAs saves tr to @filename
+// SaveAs saves tr to @filename.
 //
 // The file extension must be .json.
 func (tr ThumbnailDetectResult) SaveAs(filename string) error {
