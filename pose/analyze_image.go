@@ -69,13 +69,13 @@ func (ai *AnalyzeImageInitializer) WithFile(filepath string) *AnalyzeImageInitia
 }
 
 // AuthorizeWith sets the authorization key to @key.
-func (ii *AnalyzeImageInitializer) AuthorizeWith(key string) *AnalyzeImageInitializer {
-	ii.AuthKey = common.FormatKey(key)
-	return ii
+func (ai *AnalyzeImageInitializer) AuthorizeWith(key string) *AnalyzeImageInitializer {
+	ai.AuthKey = common.FormatKey(key)
+	return ai
 }
 
 // Collect returns the image analyze result.
-func (ii *AnalyzeImageInitializer) Collect() (res AnalyzeImageResult, err error) {
+func (ai *AnalyzeImageInitializer) Collect() (res AnalyzeImageResult, err error) {
 	client := new(http.Client)
 	body := &bytes.Buffer{}
 	writer := multipart.NewWriter(body)
@@ -83,20 +83,20 @@ func (ii *AnalyzeImageInitializer) Collect() (res AnalyzeImageResult, err error)
 		return
 	}
 
-	if ii.File != nil {
-		part, err := writer.CreateFormFile("file", filepath.Base(ii.File.Name()))
+	if ai.File != nil {
+		part, err := writer.CreateFormFile("file", filepath.Base(ai.File.Name()))
 		if err != nil {
 			return res, err
 		}
-		io.Copy(part, ii.File)
+		io.Copy(part, ai.File)
 	}
 	defer writer.Close()
 
 	var req *http.Request
-	if ii.File != nil {
-		req, err = http.NewRequest(http.MethodPost, fmt.Sprintf("%s?file=%s", prefix, filepath.Base(ii.File.Name())), body)
+	if ai.File != nil {
+		req, err = http.NewRequest(http.MethodPost, fmt.Sprintf("%s?file=%s", prefix, filepath.Base(ai.File.Name())), body)
 	} else {
-		req, err = http.NewRequest(http.MethodPost, fmt.Sprintf("%s?image_url=%s", prefix, ii.ImageURL), nil)
+		req, err = http.NewRequest(http.MethodPost, fmt.Sprintf("%s?image_url=%s", prefix, ai.ImageURL), nil)
 	}
 	if err != nil {
 		return
@@ -104,10 +104,10 @@ func (ii *AnalyzeImageInitializer) Collect() (res AnalyzeImageResult, err error)
 	fmt.Println(req.ContentLength)
 	req.Close = true
 
-	req.Header.Set(common.Authorization, ii.AuthKey)
+	req.Header.Set(common.Authorization, ai.AuthKey)
 	req.Header.Set("Content-type", "multipart/form-data")
 
-	defer ii.File.Close()
+	defer ai.File.Close()
 
 	resp, err := client.Do(req)
 	if err != nil {
