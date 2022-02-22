@@ -18,7 +18,7 @@ type AnalyzeVideoResult struct {
 }
 
 // AnalyzeVideoIterator is a lazy video analyzer.
-type AnalyzeVideoIterator struct {
+type AnalyzeVideoInitializer struct {
 	AuthKey     string
 	VideoURL    string
 	File        *os.File
@@ -29,24 +29,26 @@ type AnalyzeVideoIterator struct {
 // AnalyzeVideo detects people in each frame of the requested video and extracts key points.
 //
 // For more details visit https://developers.kakao.com/docs/latest/en/pose/dev-guide#job-submit.
-func AnalyzeVideo() *AnalyzeVideoIterator {
-	return &AnalyzeVideoIterator{
-		AuthKey:   common.KeyPrefix,
-		Smoothing: true,
+func AnalyzeVideo() *AnalyzeVideoInitializer {
+	return &AnalyzeVideoInitializer{
+		AuthKey:     common.KeyPrefix,
+		Smoothing:   true,
+		CallbackURL: "",
 	}
 }
 
-// WithURL sets @url to VideoURL.
-func (ai *AnalyzeVideoIterator) WithURL(url string) *AnalyzeVideoIterator {
-	return &AnalyzeVideoIterator{
-		AuthKey:   common.KeyPrefix,
-		VideoURL:  url,
-		Smoothing: true,
+// WithURL sets url to @VideoURL.
+func (ai *AnalyzeVideoInitializer) WithURL(url string) *AnalyzeVideoInitializer {
+	return &AnalyzeVideoInitializer{
+		AuthKey:     common.KeyPrefix,
+		VideoURL:    url,
+		Smoothing:   true,
+		CallbackURL: "",
 	}
 }
 
-// WithFile sets @filepath to File.
-func (ai *AnalyzeVideoIterator) WithFile(filepath string) *AnalyzeVideoIterator {
+// WithFile sets filepath to @File.
+func (ai *AnalyzeVideoInitializer) WithFile(filepath string) *AnalyzeVideoInitializer {
 	bs, err := os.Open(filepath)
 	if err != nil {
 		panic(err)
@@ -54,7 +56,7 @@ func (ai *AnalyzeVideoIterator) WithFile(filepath string) *AnalyzeVideoIterator 
 	if stat, _ := bs.Stat(); stat.Size() > 50*1024*1024 {
 		panic("up to 50MB are allowed")
 	} else {
-		return &AnalyzeVideoIterator{
+		return &AnalyzeVideoInitializer{
 			AuthKey: common.KeyPrefix,
 			File:    bs,
 		}
@@ -62,25 +64,25 @@ func (ai *AnalyzeVideoIterator) WithFile(filepath string) *AnalyzeVideoIterator 
 }
 
 // AuthorizeWith sets the authorization key to @key.
-func (ai *AnalyzeVideoIterator) AuthorizeWith(key string) *AnalyzeVideoIterator {
+func (ai *AnalyzeVideoInitializer) AuthorizeWith(key string) *AnalyzeVideoInitializer {
 	ai.AuthKey = common.FormatKey(key)
 	return ai
 }
 
 // SetSmoothing sets smoothing that apply the smoothing process to the position of the key points between the detected frames.
-func (ai *AnalyzeVideoIterator) SetSmoothing(set bool) *AnalyzeVideoIterator {
+func (ai *AnalyzeVideoInitializer) SetSmoothing(set bool) *AnalyzeVideoInitializer {
 	ai.Smoothing = set
 	return ai
 }
 
-// Callback sets a callback URL to receive a callback when the video analysis is completed.
-func (ai *AnalyzeVideoIterator) Callback(url string) *AnalyzeVideoIterator {
+// ReceiveTo sets a callback URL to receive a callback when the video analysis is completed.
+func (ai *AnalyzeVideoInitializer) ReceiveTo(url string) *AnalyzeVideoInitializer {
 	ai.CallbackURL = url
 	return ai
 }
 
 // Collect returns the result of AnalyzeVideo.
-func (ai *AnalyzeVideoIterator) Collect() (res AnalyzeVideoResult, err error) {
+func (ai *AnalyzeVideoInitializer) Collect() (res AnalyzeVideoResult, err error) {
 	client := new(http.Client)
 	body := new(bytes.Buffer)
 	writer := multipart.NewWriter(body)

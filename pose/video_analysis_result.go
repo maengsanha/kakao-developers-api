@@ -44,7 +44,7 @@ type Person struct {
 	Score      float64   `json:"score"`
 }
 
-// Cathegory containing the information about key points.
+// Category contains the information about key points.
 type Category struct {
 	Id             int      `json:"id"`
 	Keypoints      []string `json:"keypoints"`
@@ -53,7 +53,7 @@ type Category struct {
 	SuperCathegory string   `json:"supercathegory"`
 }
 
-// Info containing information about the analyzed video such as version, creation date, URL, description, etc.
+// Info contains information about the analyzed video such as version, creation date, URL, description, etc.
 type Info struct {
 	Contributer string  `json:"contributer"`
 	DateCreated string  `json:"date_created"`

@@ -1,80 +1,113 @@
 package pose
 
 import (
+	"bytes"
 	"encoding/json"
 	"fmt"
 	"internal/common"
-	"io/ioutil"
+	"io"
+	"mime/multipart"
 	"net/http"
+	"os"
+	"path/filepath"
 )
 
 // ImageAnalyzeResult represents a result of image analyze result.
-type ImageAnalyzeResult struct {
-	Person []struct {
-		Area       float64   `json:"area"`
-		Bbox       []float64 `json:"bbox"`
-		CathgoryID int       `json:"category_id"`
-		KeyPoints  []float64 `json:"keypoints"`
-		Score      float64   `json:"score"`
-	} `json:" "`
+type AnalyzeImageResult []struct {
+	Area       float64   `json:"area"`
+	BBox       []float64 `json:"bbox"`
+	CategoryId int       `json:"category_id"`
+	KeyPoints  []float64 `json:"keypoints"`
+	Score      float64   `json:"score"`
 }
 
 // String implements fmt.Stringer.
-func (ir ImageAnalyzeResult) String() string { return common.String(ir) }
+func (ar AnalyzeImageResult) String() string { return common.String(ar) }
 
 // SaveAs saves ir to @filename.
 //
 // The file extension could be .json.
-func (ir ImageAnalyzeResult) SaveAs(filename string) error {
-	return common.SaveAsJSONorXML(ir, filename)
+func (ar AnalyzeImageResult) SaveAs(filename string) error {
+	return common.SaveAsJSONorXML(ar, filename)
 }
 
 // ImageAnalyzeInitializer is a lazy image analyzer.
-type ImageAnalyzeInitializer struct {
-	AuthKey   string
-	ImageURL  string
-	ImageFile []byte
+type AnalyzeImageInitializer struct {
+	AuthKey  string
+	ImageURL string
+	File     *os.File
 }
 
+// ImageAnalyze detects people in the given image and extracts each person's 17 key points(person's eyes, nose, shoulders,
+// elbows, wrists, pelvis, knees, and ankles) to determine their pose.
+//
 // For more details visit https://developers.kakao.com/docs/latest/en/pose/dev-guide#image-pose-estimation.
-func ImageAnalyze(source string) *ImageAnalyzeInitializer {
-	if source[0:4] == "http" {
-		println("1")
-		return &ImageAnalyzeInitializer{
-			AuthKey:  common.KeyPrefix,
-			ImageURL: source,
-		}
+func AnalyzeImage() *AnalyzeImageInitializer {
+	return &AnalyzeImageInitializer{
+		AuthKey: common.KeyPrefix,
+	}
+}
+
+// WithURL sets url to @imageURL.
+func (ai *AnalyzeImageInitializer) WithURL(url string) *AnalyzeImageInitializer {
+	ai.ImageURL = url
+	return ai
+}
+
+// WithFile sets filepath to @File.
+func (ai *AnalyzeImageInitializer) WithFile(filepath string) *AnalyzeImageInitializer {
+	bs, err := os.Open(filepath)
+	if err != nil {
+		panic(err)
+	}
+	if stat, _ := bs.Stat(); stat.Size() > 2*1024*1024 {
+		panic("up to 2MB are allowed")
 	} else {
-		println("2")
-		bs, err := ioutil.ReadFile(source)
-		if err != nil {
-			panic(err)
-		}
-		return &ImageAnalyzeInitializer{
-			AuthKey:   common.KeyPrefix,
-			ImageFile: bs,
-		}
+		ai.File = bs
+		return ai
 	}
 }
 
 // AuthorizeWith sets the authorization key to @key.
-func (ii *ImageAnalyzeInitializer) AuthorizeWith(key string) *ImageAnalyzeInitializer {
+func (ii *AnalyzeImageInitializer) AuthorizeWith(key string) *AnalyzeImageInitializer {
 	ii.AuthKey = common.FormatKey(key)
 	return ii
 }
 
-func (ii *ImageAnalyzeInitializer) Collect() (res ImageAnalyzeResult, err error) {
+// Collect returns the image analyze result.
+func (ii *AnalyzeImageInitializer) Collect() (res AnalyzeImageResult, err error) {
 	client := new(http.Client)
-	req, err := http.NewRequest(http.MethodPost, fmt.Sprintf("%s?image_url=%s", prefix, ii.ImageURL), nil)
-	println("%s?image_url=%s", prefix, ii.ImageURL)
-	println()
+	body := &bytes.Buffer{}
+	writer := multipart.NewWriter(body)
 	if err != nil {
 		return
 	}
 
+	if ii.File != nil {
+		part, err := writer.CreateFormFile("file", filepath.Base(ii.File.Name()))
+		if err != nil {
+			return res, err
+		}
+		io.Copy(part, ii.File)
+	}
+	defer writer.Close()
+
+	var req *http.Request
+	if ii.File != nil {
+		req, err = http.NewRequest(http.MethodPost, fmt.Sprintf("%s?file=%s", prefix, filepath.Base(ii.File.Name())), body)
+	} else {
+		req, err = http.NewRequest(http.MethodPost, fmt.Sprintf("%s?image_url=%s", prefix, ii.ImageURL), nil)
+	}
+	if err != nil {
+		return
+	}
+	fmt.Println(req.ContentLength)
 	req.Close = true
+
 	req.Header.Set(common.Authorization, ii.AuthKey)
-	req.Header.Set("Content-type", "application/x-www-form-urlencoded")
+	req.Header.Set("Content-type", "multipart/form-data")
+
+	defer ii.File.Close()
 
 	resp, err := client.Do(req)
 	if err != nil {
