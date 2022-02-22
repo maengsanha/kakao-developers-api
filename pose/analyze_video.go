@@ -26,6 +26,16 @@ type AnalyzeVideoInitializer struct {
 	CallbackURL string
 }
 
+// String implements fmt.Stringer.
+func (ar AnalyzeVideoResult) String() string { return common.String(ar) }
+
+// SaveAs saves ar to @filename.
+//
+// The file extension could be .json.
+func (ar AnalyzeVideoResult) SaveAs(filename string) error {
+	return common.SaveAsJSONorXML(ar, filename)
+}
+
 // AnalyzeVideo detects people in each frame of the requested video and extracts key points.
 //
 // For more details visit https://developers.kakao.com/docs/latest/en/pose/dev-guide#job-submit.

@@ -12,7 +12,7 @@ import (
 	"path/filepath"
 )
 
-// AnalyzImageeResult represents a result of image analyze result.
+// AnalyzeImageeResult represents a result of image analyze result.
 type AnalyzeImageResult []struct {
 	Area       float64   `json:"area"`
 	BBox       []float64 `json:"bbox"`
@@ -24,7 +24,7 @@ type AnalyzeImageResult []struct {
 // String implements fmt.Stringer.
 func (ar AnalyzeImageResult) String() string { return common.String(ar) }
 
-// SaveAs saves ir to @filename.
+// SaveAs saves ar to @filename.
 //
 // The file extension could be .json.
 func (ar AnalyzeImageResult) SaveAs(filename string) error {
