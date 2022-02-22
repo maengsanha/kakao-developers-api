@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
+	"sync"
 )
 
 // ComplexAddress represents a document of an address search result.
@@ -95,77 +96,77 @@ func AddressSearch(query string) *AddressSearchIterator {
 }
 
 // FormatAs sets the request format to @format (json or xml).
-func (ai *AddressSearchIterator) FormatAs(format string) *AddressSearchIterator {
+func (it *AddressSearchIterator) FormatAs(format string) *AddressSearchIterator {
 	switch format {
 	case "json", "xml":
-		ai.Format = format
+		it.Format = format
 	default:
 		panic(common.ErrUnsupportedFormat)
 	}
 	if r := recover(); r != nil {
 		log.Panicln(r)
 	}
-	return ai
+	return it
 }
 
 // AuthorizeWith sets the authorization key to @key.
-func (ai *AddressSearchIterator) AuthorizeWith(key string) *AddressSearchIterator {
-	ai.AuthKey = common.FormatKey(key)
-	return ai
+func (it *AddressSearchIterator) AuthorizeWith(key string) *AddressSearchIterator {
+	it.AuthKey = common.FormatKey(key)
+	return it
 }
 
 // Analyze sets the analyze type to @typ (similar or exact).
-func (ai *AddressSearchIterator) Analyze(typ string) *AddressSearchIterator {
+func (it *AddressSearchIterator) Analyze(typ string) *AddressSearchIterator {
 	switch typ {
 	case "similar", "exact":
-		ai.AnalyzeType = typ
+		it.AnalyzeType = typ
 	default:
 		panic(errors.New("analyze type must be either similar or exact"))
 	}
 	if r := recover(); r != nil {
 		log.Panicln(r)
 	}
-	return ai
+	return it
 }
 
 // Result sets the result page number (a value between 1 and 45).
-func (ai *AddressSearchIterator) Result(page int) *AddressSearchIterator {
+func (it *AddressSearchIterator) Result(page int) *AddressSearchIterator {
 	if 1 <= page && page <= 45 {
-		ai.Page = page
+		it.Page = page
 	} else {
 		panic(common.ErrPageOutOfBound)
 	}
 	if r := recover(); r != nil {
 		log.Panicln(r)
 	}
-	return ai
+	return it
 }
 
 // Display sets the number of documents displayed on a single page (a value between 1 and 30).
-func (ai *AddressSearchIterator) Display(size int) *AddressSearchIterator {
+func (it *AddressSearchIterator) Display(size int) *AddressSearchIterator {
 	if 1 <= size && size <= 30 {
-		ai.Size = size
+		it.Size = size
 	} else {
 		panic(common.ErrSizeOutOfBound)
 	}
 	if r := recover(); r != nil {
 		log.Panicln(r)
 	}
-	return ai
+	return it
 }
 
 // Next returns the address search result and proceeds the iterator to the next page.
-func (ai *AddressSearchIterator) Next() (res AddressSearchResult, err error) {
+func (it *AddressSearchIterator) Next() (res AddressSearchResult, err error) {
 	// if there is no more result, return error
-	if ai.end {
-		return res, common.ErrEndPage
+	if it.end {
+		return res, Done
 	}
 
 	// at first, send request to the API server
 	client := new(http.Client)
 	req, err := http.NewRequest(http.MethodGet,
 		fmt.Sprintf("%ssearch/address.%s?query=%s&analyze_type=%s&page=%d&size=%d",
-			prefix, ai.Format, ai.Query, ai.AnalyzeType, ai.Page, ai.Size), nil)
+			prefix, it.Format, it.Query, it.AnalyzeType, it.Page, it.Size), nil)
 
 	if err != nil {
 		return
@@ -174,7 +175,7 @@ func (ai *AddressSearchIterator) Next() (res AddressSearchResult, err error) {
 	req.Close = true
 
 	// set authorization header
-	req.Header.Set(common.Authorization, ai.AuthKey)
+	req.Header.Set(common.Authorization, it.AuthKey)
 
 	resp, err := client.Do(req)
 	if err != nil {
@@ -184,19 +185,50 @@ func (ai *AddressSearchIterator) Next() (res AddressSearchResult, err error) {
 	// don't forget to close the response body
 	defer resp.Body.Close()
 
-	if ai.Format == "json" {
+	if it.Format == "json" {
 		if err = json.NewDecoder(resp.Body).Decode(&res); err != nil {
 			return
 		}
-	} else if ai.Format == "xml" {
+	} else if it.Format == "xml" {
 		if err = xml.NewDecoder(resp.Body).Decode(&res); err != nil {
 			return
 		}
 	}
 
-	ai.end = res.Meta.IsEnd || 45 < ai.Page
+	it.end = res.Meta.IsEnd || 45 < it.Page
 
-	ai.Page++
+	it.Page++
+
+	return
+}
+
+// CollectAll collects all the remaining address search results.
+func (it *AddressSearchIterator) CollectAll() (results AddressSearchResults) {
+	var (
+		items  = make(AddressSearchResults, 46-it.Page)
+		errors = make([]error, 46-it.Page)
+		wg     sync.WaitGroup
+	)
+
+	// FIXME: it needs pre-profiling
+	for page := it.Page; page <= 45; page++ {
+		wg.Add(1)
+		go func(page int) {
+			defer wg.Done()
+			worker := *it
+			items[page-it.Page], errors[page-it.Page] = worker.Result(page).Next()
+		}(page)
+	}
+	wg.Wait()
+
+	// filter out
+	for idx, err := range errors {
+		if err == nil {
+			results = append(results, items[idx])
+		}
+	}
+
+	it.end = true
 
 	return
 }

@@ -10,35 +10,49 @@ import (
 func TestAddressSearchWithJSON(t *testing.T) {
 	query := "을지로"
 
-	iter := local.AddressSearch(query).
+	it := local.AddressSearch(query).
 		AuthorizeWith(common.REST_API_KEY).
 		Analyze("similar").
 		FormatAs("json").
 		Display(20).
 		Result(1)
 
-	for ar, err := iter.Next(); err == nil; ar, err = iter.Next() {
-		t.Log(ar)
+	for {
+		item, err := it.Next()
+		if err == local.Done {
+			break
+		}
+		if err != nil {
+			t.Error(err)
+		}
+		t.Log(item)
 	}
 }
 
 func TestAddressSearchWithSaveAsJSON(t *testing.T) {
 	query := "을지로"
 
-	iter := local.AddressSearch(query).
+	it := local.AddressSearch(query).
 		AuthorizeWith(common.REST_API_KEY).
 		Analyze("similar").
 		FormatAs("json").
 		Display(20).
 		Result(1)
 
-	ars := local.AddressSearchResults{}
+	items := local.AddressSearchResults{}
 
-	for ar, err := iter.Next(); err == nil; ar, err = iter.Next() {
-		ars = append(ars, ar)
+	for {
+		item, err := it.Next()
+		if err == local.Done {
+			break
+		}
+		if err != nil {
+			t.Error(err)
+		}
+		items = append(items, item)
 	}
 
-	if err := ars.SaveAs("address_search_test.json"); err != nil {
+	if err := items.SaveAs("address_search_test.json"); err != nil {
 		t.Error(err)
 	}
 }
@@ -46,35 +60,65 @@ func TestAddressSearchWithSaveAsJSON(t *testing.T) {
 func TestAddressSearchWithXML(t *testing.T) {
 	query := "을지로"
 
-	iter := local.AddressSearch(query).
+	it := local.AddressSearch(query).
 		AuthorizeWith(common.REST_API_KEY).
 		Analyze("similar").
 		FormatAs("xml").
 		Display(30).
 		Result(1)
 
-	for ar, err := iter.Next(); err == nil; ar, err = iter.Next() {
-		t.Log(ar)
+	for {
+		item, err := it.Next()
+		if err == local.Done {
+			break
+		}
+		if err != nil {
+			t.Error(err)
+		}
+		t.Log(item)
 	}
 }
 
 func TestAddressSearchWithSaveAsXML(t *testing.T) {
 	query := "을지로"
 
-	iter := local.AddressSearch(query).
+	it := local.AddressSearch(query).
 		AuthorizeWith(common.REST_API_KEY).
 		Analyze("similar").
 		FormatAs("xml").
 		Display(30).
 		Result(1)
 
-	ars := local.AddressSearchResults{}
+	items := local.AddressSearchResults{}
 
-	for ar, err := iter.Next(); err == nil; ar, err = iter.Next() {
-		ars = append(ars, ar)
+	for {
+		item, err := it.Next()
+		if err == local.Done {
+			break
+		}
+		if err != nil {
+			t.Error(err)
+		}
+		items = append(items, item)
 	}
 
-	if err := ars.SaveAs("address_search_test.xml"); err != nil {
+	if err := items.SaveAs("address_search_test.xml"); err != nil {
 		t.Error(err)
+	}
+}
+
+func TestAddressSearchCollectAll(t *testing.T) {
+	query := "을지로"
+
+	items := local.AddressSearch(query).
+		AuthorizeWith(common.REST_API_KEY).
+		Analyze("similar").
+		FormatAs("json").
+		Display(30).
+		Result(1).
+		CollectAll()
+
+	for _, item := range items {
+		t.Log(item)
 	}
 }
