@@ -30,7 +30,7 @@ type ProductResult struct {
 	Objects []Product `json:"objects"`
 }
 
-// ProductDetectResult represents a Product Detection result
+// ProductDetectResult represents a Product Detection result.
 type ProductDetectResult struct {
 	RID    string        `json:"rid"`
 	Result ProductResult `json:"result"`
@@ -39,7 +39,7 @@ type ProductDetectResult struct {
 // String implements fmt.Stringer.
 func (pr ProductDetectResult) String() string { return common.String(pr) }
 
-// SaveAs saves pr to @filename
+// SaveAs saves pr to @filename.
 //
 // The file extension must be .json.
 func (pr ProductDetectResult) SaveAs(filename string) error { return common.SaveAsJSON(pr, filename) }

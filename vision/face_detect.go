@@ -41,7 +41,7 @@ type Gender struct {
 	Female float64 `json:"female"`
 }
 
-// FacialPoints represents array of coordinates of the detected face. (a value between 0 and 1.0)
+// FacialPoints represents arrays of coordinates of the detected face. (a value between 0 and 1.0)
 type FacialPoints struct {
 	Jaw          [][]float64 `json:"jaw"`
 	RightEyebrow [][]float64 `json:"right_eyebrow"`
@@ -116,8 +116,8 @@ func (fi *FaceDetectInitializer) AuthorizeWith(key string) *FaceDetectInitialize
 // ThresholdAt sets the Threshold to @val. (a value between 0 and 1.0)
 //
 // Threshold is a reference value to detect as a face.
-// *If @val is set too high, some faces may not be able to be detected as a face.
-// *If @val is set too low, other area can be detected as a face.
+// If @val is set too high, some faces may not be able to be detected as a face.
+// If @val is set too low, other area can be detected as a face.
 func (fi *FaceDetectInitializer) ThresholdAt(val float64) *FaceDetectInitializer {
 	if 0.1 <= val && val <= 1.0 {
 		fi.Threshold = val
