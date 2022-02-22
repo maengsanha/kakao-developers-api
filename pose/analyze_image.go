@@ -12,7 +12,7 @@ import (
 	"path/filepath"
 )
 
-// ImageAnalyzeResult represents a result of image analyze result.
+// AnalyzImageeResult represents a result of image analyze result.
 type AnalyzeImageResult []struct {
 	Area       float64   `json:"area"`
 	BBox       []float64 `json:"bbox"`
@@ -31,14 +31,14 @@ func (ar AnalyzeImageResult) SaveAs(filename string) error {
 	return common.SaveAsJSONorXML(ar, filename)
 }
 
-// ImageAnalyzeInitializer is a lazy image analyzer.
+// AnalyzeImageInitializer is a lazy image analyzer.
 type AnalyzeImageInitializer struct {
 	AuthKey  string
 	ImageURL string
 	File     *os.File
 }
 
-// ImageAnalyze detects people in the given image and extracts each person's 17 key points(person's eyes, nose, shoulders,
+// AnalyzeImage detects people in the given image and extracts each person's 17 key points(person's eyes, nose, shoulders,
 // elbows, wrists, pelvis, knees, and ankles) to determine their pose.
 //
 // For more details visit https://developers.kakao.com/docs/latest/en/pose/dev-guide#image-pose-estimation.
