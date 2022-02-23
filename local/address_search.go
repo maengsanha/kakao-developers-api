@@ -204,14 +204,21 @@ func (it *AddressSearchIterator) Next() (res AddressSearchResult, err error) {
 
 // CollectAll collects all the remaining address search results.
 func (it *AddressSearchIterator) CollectAll() (results AddressSearchResults) {
+	// pre-profile to guess the remaining pages
+	result, err := it.Next()
+	if err == nil {
+		results = append(results, result)
+	}
+
+	n := common.RemainingPages(result.Meta.PageableCount, it.Size, it.Page, 45)
+
 	var (
-		items  = make(AddressSearchResults, 46-it.Page)
-		errors = make([]error, 46-it.Page)
+		items  = make(AddressSearchResults, n)
+		errors = make([]error, n)
 		wg     sync.WaitGroup
 	)
 
-	// FIXME: it needs pre-profiling
-	for page := it.Page; page <= 45; page++ {
+	for page := it.Page; page < it.Page+n; page++ {
 		wg.Add(1)
 		go func(page int) {
 			defer wg.Done()
