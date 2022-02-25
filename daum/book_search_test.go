@@ -8,37 +8,70 @@ import (
 )
 
 func TestBookSearchWithJSON(t *testing.T) {
-	query := "밤은 짧아 걸어 아가씨야"
-
-	iter := daum.BookSearch(query).
-		AuthorizeWith(common.REST_API_KEY).
-		SortBy("accuracy").
-		Result(1).
-		Display(10).
-		Filter("title")
-
-	for br, err := iter.Next(); err == nil; br, err = iter.Next() {
-		t.Log(br)
-	}
-}
-
-func TestBookSearchWithSaveAsJSON(t *testing.T) {
 	query := "히가시노 게이고"
 
-	iter := daum.BookSearch(query).
+	it := daum.BookSearch(query).
 		AuthorizeWith(common.REST_API_KEY).
 		SortBy("latest").
 		Result(1).
 		Display(10).
 		Filter("person")
 
-	brs := daum.BookSearchResults{}
+	for {
+		item, err := it.Next()
+		if err == daum.ErrEndPage {
+			break
+		}
+		if err != nil {
+			t.Error(err)
 
-	for br, err := iter.Next(); err == nil; br, err = iter.Next() {
-		brs = append(brs, br)
+		}
+		t.Log(item)
 	}
 
-	if err := brs.SaveAs("book_search_test.json"); err != nil {
+}
+
+func TestBookSearchWithSaveAsJSON(t *testing.T) {
+	query := "히가시노 게이고"
+
+	it := daum.BookSearch(query).
+		AuthorizeWith(common.REST_API_KEY).
+		SortBy("latest").
+		Result(1).
+		Display(10).
+		Filter("person")
+
+	items := daum.BookSearchResults{}
+
+	for {
+		item, err := it.Next()
+		if err == daum.ErrEndPage {
+			break
+		}
+
+		if err != nil {
+			t.Error(err)
+			break
+		}
+		items = append(items, item)
+	}
+	if err := items.SaveAs("book_search_test.json"); err != nil {
 		t.Error(err)
+	}
+}
+
+func TestBookSearchCollectAll(t *testing.T) {
+	query := "히가시노 게이고"
+
+	items := daum.BookSearch(query).
+		AuthorizeWith(common.REST_API_KEY).
+		SortBy("latest").
+		Result(1).
+		Display(10).
+		Filter("person").
+		CollectAll()
+
+	for _, item := range items {
+		t.Log(item)
 	}
 }

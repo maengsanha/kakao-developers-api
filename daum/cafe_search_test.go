@@ -9,33 +9,60 @@ import (
 
 func TestCafeSearchWithJSON(t *testing.T) {
 	query := "손흥민"
-	iter := daum.CafeSearch(query).
+	it := daum.CafeSearch(query).
 		AuthorizeWith(common.REST_API_KEY).
 		SortBy("accuracy").
 		Display(10).
 		Result(1)
 
-	for cr, err := iter.Next(); err == nil; cr, err = iter.Next() {
-		t.Log(cr)
+	for {
+		item, err := it.Next()
+		if err == daum.ErrEndPage {
+			break
+		}
+		if err != nil {
+			t.Error(err)
+		}
+		t.Log(item)
 	}
 
 }
 
 func TestCafeSearchWithSaveAsJSON(t *testing.T) {
 	query := "손흥민"
-	iter := daum.CafeSearch(query).
+	it := daum.CafeSearch(query).
 		AuthorizeWith(common.REST_API_KEY).
 		SortBy("recency").
 		Display(5).
 		Result(1)
 
-	crs := daum.CafeSearchResults{}
+	items := daum.CafeSearchResults{}
 
-	for cr, err := iter.Next(); err == nil; cr, err = iter.Next() {
-		crs = append(crs, cr)
+	for {
+		item, err := it.Next()
+		if err == daum.ErrEndPage {
+			break
+		}
+		if err != nil {
+			t.Error(err)
+		}
+		items = append(items, item)
 	}
-
-	if err := crs.SaveAs("cafe_search_test.json"); err != nil {
+	if err := items.SaveAs("cafe_search_test.json"); err != nil {
 		t.Error(err)
+	}
+}
+
+func TestCafeSearchCollectAll(t *testing.T) {
+	query := "손흥민"
+	items := daum.CafeSearch(query).
+		AuthorizeWith(common.REST_API_KEY).
+		SortBy("accuracy").
+		Display(10).
+		Result(1).
+		CollectAll()
+
+	for _, item := range items {
+		t.Log(item)
 	}
 }

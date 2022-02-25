@@ -10,6 +10,7 @@ import (
 	"net/url"
 	"strconv"
 	"strings"
+	"sync"
 )
 
 // KeywordSearchIterator is a lazy keyword search iterator.
@@ -50,23 +51,23 @@ func PlaceSearchByKeyword(query string) *KeywordSearchIterator {
 }
 
 // FormatAs sets the request format to @format (json or xml).
-func (ki *KeywordSearchIterator) FormatAs(format string) *KeywordSearchIterator {
+func (it *KeywordSearchIterator) FormatAs(format string) *KeywordSearchIterator {
 	switch format {
 	case "json", "xml":
-		ki.Format = format
+		it.Format = format
 	default:
 		panic(common.ErrUnsupportedFormat)
 	}
 	if r := recover(); r != nil {
 		log.Panicln(r)
 	}
-	return ki
+	return it
 }
 
 // AuthorizeWith sets the authorization key to @key.
-func (ki *KeywordSearchIterator) AuthorizeWith(key string) *KeywordSearchIterator {
-	ki.AuthKey = common.FormatKey(key)
-	return ki
+func (it *KeywordSearchIterator) AuthorizeWith(key string) *KeywordSearchIterator {
+	it.AuthKey = common.FormatKey(key)
+	return it
 }
 
 // Category sets the category group code of k.
@@ -107,76 +108,76 @@ func (ki *KeywordSearchIterator) AuthorizeWith(key string) *KeywordSearchIterato
 // BK9: Bank
 //
 // AD5: Accommodation
-func (ki *KeywordSearchIterator) Category(groupcode string) *KeywordSearchIterator {
+func (it *KeywordSearchIterator) Category(groupcode string) *KeywordSearchIterator {
 	switch groupcode {
 	case "MT1", "CS2", "PS3", "SC4", "AC5", "PK6", "OL7", "SW8", "CT1",
 		"AG2", "PO3", "AT4", "FD6", "CE7", "HP8", "PM9", "BK9", "AD5", "":
-		ki.CategoryGroupCode = groupcode
+		it.CategoryGroupCode = groupcode
 	default:
 		panic(ErrUnsupportedCategoryGroupCode)
 	}
 	if r := recover(); r != nil {
 		log.Panicln(r)
 	}
-	return ki
+	return it
 }
 
 // WithCoordinates sets the X and Y coordinates of k.
-func (ki *KeywordSearchIterator) WithCoordinates(x, y float64) *KeywordSearchIterator {
-	ki.X = strconv.FormatFloat(x, 'f', -1, 64)
-	ki.Y = strconv.FormatFloat(y, 'f', -1, 64)
-	return ki
+func (it *KeywordSearchIterator) WithCoordinates(x, y float64) *KeywordSearchIterator {
+	it.X = strconv.FormatFloat(x, 'f', -1, 64)
+	it.Y = strconv.FormatFloat(y, 'f', -1, 64)
+	return it
 }
 
 // WithRadius searches places around a specific area along with @x and @y.
 //
 // @radius is the distance (a value between 0 and 20000) from the center coordinates to an axis of rotation in meters.
-func (ki *KeywordSearchIterator) WithRadius(radius int) *KeywordSearchIterator {
+func (it *KeywordSearchIterator) WithRadius(radius int) *KeywordSearchIterator {
 	if 0 <= radius && radius <= 20000 {
-		ki.Radius = radius
+		it.Radius = radius
 	} else {
 		panic(ErrRadiusOutOfBound)
 	}
 	if r := recover(); r != nil {
 		log.Panicln(r)
 	}
-	return ki
+	return it
 }
 
 // WithRect limits the search area, such as when searching places within the map screen.
-func (ki *KeywordSearchIterator) WithRect(xMin, yMin, xMax, yMax float64) *KeywordSearchIterator {
-	ki.Rect = strings.Join([]string{
+func (it *KeywordSearchIterator) WithRect(xMin, yMin, xMax, yMax float64) *KeywordSearchIterator {
+	it.Rect = strings.Join([]string{
 		strconv.FormatFloat(xMin, 'f', -1, 64),
 		strconv.FormatFloat(yMin, 'f', -1, 64),
 		strconv.FormatFloat(xMax, 'f', -1, 64),
 		strconv.FormatFloat(yMax, 'f', -1, 64)}, ",")
-	return ki
+	return it
 }
 
 // Result sets the result page number (a value between 1 and 45).
-func (ki *KeywordSearchIterator) Result(page int) *KeywordSearchIterator {
+func (it *KeywordSearchIterator) Result(page int) *KeywordSearchIterator {
 	if 1 <= page && page <= 45 {
-		ki.Page = page
+		it.Page = page
 	} else {
 		panic(common.ErrPageOutOfBound)
 	}
 	if r := recover(); r != nil {
 		log.Panicln(r)
 	}
-	return ki
+	return it
 }
 
 // Display sets the number of documents displayed on a single page (a value between 1 and 45).
-func (ki *KeywordSearchIterator) Display(size int) *KeywordSearchIterator {
+func (it *KeywordSearchIterator) Display(size int) *KeywordSearchIterator {
 	if 1 <= size && size <= 45 {
-		ki.Size = size
+		it.Size = size
 	} else {
 		panic(common.ErrSizeOutOfBound)
 	}
 	if r := recover(); r != nil {
 		log.Panicln(r)
 	}
-	return ki
+	return it
 }
 
 // SortBy sets the sorting order of the document results to @order.
@@ -184,30 +185,30 @@ func (ki *KeywordSearchIterator) Display(size int) *KeywordSearchIterator {
 // @order can be accuracy or distance. (default is accuracy)
 //
 // In the case of distance, X and Y coordinates are required as a reference coordinates.
-func (ki *KeywordSearchIterator) SortBy(order string) *KeywordSearchIterator {
+func (it *KeywordSearchIterator) SortBy(order string) *KeywordSearchIterator {
 	switch order {
 	case "accuracy", "distance":
-		ki.Sort = order
+		it.Sort = order
 	default:
 		panic(common.ErrUnsupportedSortingOrder)
 	}
 	if r := recover(); r != nil {
 		log.Panicln(r)
 	}
-	return ki
+	return it
 }
 
 // Next returns the place search result and proceeds the iterator to the next page.
-func (ki *KeywordSearchIterator) Next() (res PlaceSearchResult, err error) {
-	if ki.end {
-		return res, common.ErrEndPage
+func (it *KeywordSearchIterator) Next() (res PlaceSearchResult, err error) {
+	if it.end {
+		return res, Done
 	}
 
 	client := new(http.Client)
 
 	req, err := http.NewRequest(http.MethodGet,
 		fmt.Sprintf("%ssearch/keyword.%s?query=%s&category_group_code=%s&x=%s&y=%s&radius=%d&rect=%s&page=%d&size=%d&sort=%s",
-			prefix, ki.Format, ki.Query, ki.CategoryGroupCode, ki.X, ki.Y, ki.Radius, ki.Rect, ki.Page, ki.Size, ki.Sort), nil)
+			prefix, it.Format, it.Query, it.CategoryGroupCode, it.X, it.Y, it.Radius, it.Rect, it.Page, it.Size, it.Sort), nil)
 
 	if err != nil {
 		return
@@ -215,7 +216,7 @@ func (ki *KeywordSearchIterator) Next() (res PlaceSearchResult, err error) {
 
 	req.Close = true
 
-	req.Header.Set(common.Authorization, ki.AuthKey)
+	req.Header.Set(common.Authorization, it.AuthKey)
 
 	resp, err := client.Do(req)
 	if err != nil {
@@ -224,19 +225,55 @@ func (ki *KeywordSearchIterator) Next() (res PlaceSearchResult, err error) {
 
 	defer resp.Body.Close()
 
-	if ki.Format == "json" {
+	if it.Format == "json" {
 		if err = json.NewDecoder(resp.Body).Decode(&res); err != nil {
 			return
 		}
-	} else if ki.Format == "xml" {
+	} else if it.Format == "xml" {
 		if err = xml.NewDecoder(resp.Body).Decode(&res); err != nil {
 			return
 		}
 	}
 
-	ki.end = res.Meta.IsEnd || 45 < ki.Page
+	it.end = res.Meta.IsEnd || 45 < it.Page
 
-	ki.Page++
+	it.Page++
 
+	return
+}
+
+// CollectAll collects all the remaining keyword search results.
+func (it *KeywordSearchIterator) CollectAll() (results PlaceSearchResults) {
+	result, err := it.Next()
+	if err == nil {
+		results = append(results, result)
+	}
+
+	n := common.RemainingPages(result.Meta.PageableCount, it.Size, it.Page, 45)
+
+	var (
+		items  = make(PlaceSearchResults, n)
+		errors = make([]error, n)
+		wg     sync.WaitGroup
+	)
+
+	for page := it.Page; page < it.Page+n; page++ {
+		wg.Add(1)
+		go func(page int) {
+			defer wg.Done()
+			worker := *it
+			items[page-it.Page], errors[page-it.Page] = worker.Result(page).Next()
+		}(page)
+	}
+
+	wg.Wait()
+
+	for idx, err := range errors {
+		if err == nil {
+			results = append(results, items[idx])
+		}
+	}
+
+	it.end = true
 	return
 }
