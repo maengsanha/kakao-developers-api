@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
+	"sync"
 	"time"
 )
 
@@ -62,56 +63,56 @@ func ImageSearch(query string) *ImageSearchIterator {
 }
 
 // AuthorizeWith sets the authorization key to @key.
-func (ii *ImageSearchIterator) AuthorizeWith(key string) *ImageSearchIterator {
-	ii.AuthKey = common.FormatKey(key)
-	return ii
+func (it *ImageSearchIterator) AuthorizeWith(key string) *ImageSearchIterator {
+	it.AuthKey = common.FormatKey(key)
+	return it
 }
 
 // SortBy sets the sorting order of the document results to @order.
 //
 // @order can be accuracy or recency. (default is accuracy)
-func (ii *ImageSearchIterator) SortBy(order string) *ImageSearchIterator {
+func (it *ImageSearchIterator) SortBy(order string) *ImageSearchIterator {
 	switch order {
 	case "accuracy", "recency":
-		ii.Sort = order
+		it.Sort = order
 	default:
 		panic(common.ErrUnsupportedSortingOrder)
 	}
 	if r := recover(); r != nil {
 		log.Panicln(r)
 	}
-	return ii
+	return it
 }
 
 // Result sets the result page number (a value between 1 and 50).
-func (ii *ImageSearchIterator) Result(page int) *ImageSearchIterator {
+func (it *ImageSearchIterator) Result(page int) *ImageSearchIterator {
 	if 1 <= page && page <= 50 {
-		ii.Page = page
+		it.Page = page
 	} else {
 		panic(common.ErrPageOutOfBound)
 	}
 	if r := recover(); r != nil {
 		log.Panicln(r)
 	}
-	return ii
+	return it
 }
 
 // Display sets the number of documents displayed on a single page (a value between 1 and 80).
-func (ii *ImageSearchIterator) Display(size int) *ImageSearchIterator {
+func (it *ImageSearchIterator) Display(size int) *ImageSearchIterator {
 	if 1 <= size && size <= 80 {
-		ii.Size = size
+		it.Size = size
 	} else {
 		panic(common.ErrSizeOutOfBound)
 	}
 	if r := recover(); r != nil {
 		log.Panicln(r)
 	}
-	return ii
+	return it
 }
 
 // Next returns the image search result and proceeds the iterator to the next page.
-func (ii *ImageSearchIterator) Next() (res ImageSearchResult, err error) {
-	if ii.end {
+func (it *ImageSearchIterator) Next() (res ImageSearchResult, err error) {
+	if it.end {
 		return res, ErrEndPage
 	}
 
@@ -119,7 +120,7 @@ func (ii *ImageSearchIterator) Next() (res ImageSearchResult, err error) {
 
 	req, err := http.NewRequest(http.MethodGet,
 		fmt.Sprintf("%simage?query=%s&sort=%s&page=%d&size=%d",
-			prefix, ii.Query, ii.Sort, ii.Page, ii.Size), nil)
+			prefix, it.Query, it.Sort, it.Page, it.Size), nil)
 
 	if err != nil {
 		return
@@ -127,7 +128,7 @@ func (ii *ImageSearchIterator) Next() (res ImageSearchResult, err error) {
 
 	req.Close = true
 
-	req.Header.Set(common.Authorization, ii.AuthKey)
+	req.Header.Set(common.Authorization, it.AuthKey)
 
 	resp, err := client.Do(req)
 	if err != nil {
@@ -140,9 +141,46 @@ func (ii *ImageSearchIterator) Next() (res ImageSearchResult, err error) {
 		return
 	}
 
-	ii.end = res.Meta.IsEnd || 50 < ii.Page
+	it.end = res.Meta.IsEnd || 50 < it.Page
 
-	ii.Page++
+	it.Page++
+
+	return
+}
+
+// CollectAll collects all the remaining image search results.
+func (it *ImageSearchIterator) CollectAll() (results ImageSearchResults) {
+
+	result, err := it.Next()
+	if err == nil {
+		results = append(results, result)
+	}
+
+	n := common.RemainingPages(result.Meta.PageableCount, it.Size, it.Page, 50)
+
+	var (
+		items  = make(ImageSearchResults, n)
+		errors = make([]error, n)
+		wg     sync.WaitGroup
+	)
+
+	for page := it.Page; page < it.Page+n; page++ {
+		wg.Add(1)
+		go func(page int) {
+			defer wg.Done()
+			worker := *it
+			items[page-it.Page], errors[page-it.Page] = worker.Result(page).Next()
+		}(page)
+	}
+	wg.Wait()
+
+	for idx, err := range errors {
+		if err == nil {
+			results = append(results, items[idx])
+		}
+	}
+
+	it.end = true
 
 	return
 }
