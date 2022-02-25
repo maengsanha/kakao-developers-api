@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
+	"sync"
 )
 
 // BookResult represents a document of a Daum Book search result.
@@ -65,62 +66,61 @@ func BookSearch(query string) *BookSearchIterator {
 }
 
 // AuthorizeWith sets the authorization key to @key.
-func (bi *BookSearchIterator) AuthorizeWith(key string) *BookSearchIterator {
-	bi.AuthKey = common.FormatKey(key)
-	return bi
+func (it *BookSearchIterator) AuthorizeWith(key string) *BookSearchIterator {
+	it.AuthKey = common.FormatKey(key)
+	return it
 }
 
 // SortBy sets the sorting order of the document results to @order.
 //
-// @order can be accuracy or latest. (default is accuracy)
-func (bi *BookSearchIterator) SortBy(order string) *BookSearchIterator {
+// @order can be accuracy or latest (default is accuracy).
+func (it *BookSearchIterator) SortBy(order string) *BookSearchIterator {
 	switch order {
 	case "accuracy", "latest":
-		bi.Sort = order
+		it.Sort = order
 	default:
 		panic(common.ErrUnsupportedSortingOrder)
 	}
 	if r := recover(); r != nil {
 		log.Panicln(r)
 	}
-	return bi
+	return it
 }
 
 // Result sets the result page number (a value between 1 and 50).
-func (bi *BookSearchIterator) Result(page int) *BookSearchIterator {
+func (it *BookSearchIterator) Result(page int) *BookSearchIterator {
 	if 1 <= page && page <= 50 {
-		bi.Page = page
+		it.Page = page
 	} else {
 		panic(common.ErrPageOutOfBound)
 	}
 	if r := recover(); r != nil {
 		log.Panicln(r)
 	}
-	return bi
+	return it
 }
 
 // Display sets the number of documents displayed on a single page (a value between 1 and 50).
-func (bi *BookSearchIterator) Display(size int) *BookSearchIterator {
+func (it *BookSearchIterator) Display(size int) *BookSearchIterator {
 	if 1 <= size && size <= 50 {
-		bi.Size = size
+		it.Size = size
 	} else {
 		panic(common.ErrSizeOutOfBound)
 	}
 	if r := recover(); r != nil {
 		log.Panicln(r)
 	}
-	return bi
+	return it
 }
 
 // Filter limits the search field.
 //
 // @target can be one of the following options:
-//
 // title, isbn, publisher, person
-func (bi *BookSearchIterator) Filter(target string) *BookSearchIterator {
+func (it *BookSearchIterator) Filter(target string) *BookSearchIterator {
 	switch target {
 	case "title", "isbn", "publisher", "person", "":
-		bi.Target = target
+		it.Target = target
 	default:
 		panic(errors.New(
 			`target must be one of the following options:
@@ -129,19 +129,19 @@ func (bi *BookSearchIterator) Filter(target string) *BookSearchIterator {
 	if r := recover(); r != nil {
 		log.Panicln(r)
 	}
-	return bi
+	return it
 }
 
 // Next returns the book search result and proceeds the iterator to the next page.
-func (bi *BookSearchIterator) Next() (res BookSearchResult, err error) {
-	if bi.end {
+func (it *BookSearchIterator) Next() (res BookSearchResult, err error) {
+	if it.end {
 		return res, ErrEndPage
 	}
 
 	client := new(http.Client)
 	req, err := http.NewRequest(http.MethodGet,
 		fmt.Sprintf("https://dapi.kakao.com/v3/search/book?query=%s&sort=%s&page=%d&size=%d&target=%s",
-			bi.Query, bi.Sort, bi.Page, bi.Size, bi.Target), nil)
+			it.Query, it.Sort, it.Page, it.Size, it.Target), nil)
 
 	if err != nil {
 		return
@@ -149,7 +149,7 @@ func (bi *BookSearchIterator) Next() (res BookSearchResult, err error) {
 
 	req.Close = true
 
-	req.Header.Set(common.Authorization, bi.AuthKey)
+	req.Header.Set(common.Authorization, it.AuthKey)
 
 	resp, err := client.Do(req)
 	if err != nil {
@@ -161,10 +161,42 @@ func (bi *BookSearchIterator) Next() (res BookSearchResult, err error) {
 	if err = json.NewDecoder(resp.Body).Decode(&res); err != nil {
 		return
 	}
+	it.Page++
+	it.end = res.Meta.IsEnd || 50 < it.Page
 
-	bi.Page++
+	return
+}
 
-	bi.end = res.Meta.IsEnd || 50 < bi.Page
+// CollectAll collects all the remaining book search results.
+func (it *BookSearchIterator) CollectAll() (results BookSearchResults) {
+	result, err := it.Next()
+	if err == nil {
+		results = append(results, result)
+	}
+	n := common.RemainingPages(result.Meta.PageableCount, it.Size, it.Page, 50)
+
+	var (
+		items  = make(BookSearchResults, n)
+		errors = make([]error, n)
+		wg     sync.WaitGroup
+	)
+
+	for page := it.Page; page < it.Page+n; page++ {
+		wg.Add(1)
+		go func(page int) {
+			defer wg.Done()
+			worker := *it
+			items[page-it.Page], errors[page-it.Page] = worker.Result(page).Next()
+		}(page)
+	}
+	wg.Wait()
+
+	for idx, err := range errors {
+		if err == nil {
+			results = append(results, items[idx])
+		}
+	}
+	it.end = true
 
 	return
 }

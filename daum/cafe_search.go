@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
+	"sync"
 )
 
 // CafeResult represents a document of a Daum Cafe search result.
@@ -56,63 +57,63 @@ func CafeSearch(query string) *CafeSearchIterator {
 }
 
 // AuthorizeWith sets the authorization key to @key.
-func (ci *CafeSearchIterator) AuthorizeWith(key string) *CafeSearchIterator {
-	ci.AuthKey = common.FormatKey(key)
-	return ci
+func (it *CafeSearchIterator) AuthorizeWith(key string) *CafeSearchIterator {
+	it.AuthKey = common.FormatKey(key)
+	return it
 }
 
 // SortBy sets the sorting order of the document results to @order.
 //
 // @order can be accuracy or recency. (default is accuracy)
-func (ci *CafeSearchIterator) SortBy(order string) *CafeSearchIterator {
+func (it *CafeSearchIterator) SortBy(order string) *CafeSearchIterator {
 	switch order {
 	case "accuracy", "recency":
-		ci.Sort = order
+		it.Sort = order
 	default:
 		panic(common.ErrUnsupportedSortingOrder)
 	}
 	if r := recover(); r != nil {
 		log.Panicln(r)
 	}
-	return ci
+	return it
 }
 
 // Result sets the result page number (a value between 1 and 50).
-func (ci *CafeSearchIterator) Result(page int) *CafeSearchIterator {
+func (it *CafeSearchIterator) Result(page int) *CafeSearchIterator {
 	if 1 <= page && page <= 50 {
-		ci.Page = page
+		it.Page = page
 	} else {
 		panic(common.ErrPageOutOfBound)
 	}
 	if r := recover(); r != nil {
 		log.Panicln(r)
 	}
-	return ci
+	return it
 }
 
 // Display sets the number of documents displayed on a single page (a value between 1 and 50).
-func (ci *CafeSearchIterator) Display(size int) *CafeSearchIterator {
+func (it *CafeSearchIterator) Display(size int) *CafeSearchIterator {
 	if 1 <= size && size <= 50 {
-		ci.Size = size
+		it.Size = size
 	} else {
 		panic(common.ErrSizeOutOfBound)
 	}
 	if r := recover(); r != nil {
 		log.Panicln(r)
 	}
-	return ci
+	return it
 }
 
 // Next returns the cafe search result and proceeds the iterator to the next page.
-func (ci *CafeSearchIterator) Next() (res CafeSearchResult, err error) {
-	if ci.end {
+func (it *CafeSearchIterator) Next() (res CafeSearchResult, err error) {
+	if it.end {
 		return res, ErrEndPage
 	}
 
 	client := new(http.Client)
 	req, err := http.NewRequest(http.MethodGet,
 		fmt.Sprintf("%scafe?query=%s&sort=%s&page=%d&size=%d",
-			prefix, ci.Query, ci.Sort, ci.Page, ci.Size), nil)
+			prefix, it.Query, it.Sort, it.Page, it.Size), nil)
 
 	if err != nil {
 		return
@@ -120,7 +121,7 @@ func (ci *CafeSearchIterator) Next() (res CafeSearchResult, err error) {
 
 	req.Close = true
 
-	req.Header.Set(common.Authorization, ci.AuthKey)
+	req.Header.Set(common.Authorization, it.AuthKey)
 
 	resp, err := client.Do(req)
 	if err != nil {
@@ -133,9 +134,45 @@ func (ci *CafeSearchIterator) Next() (res CafeSearchResult, err error) {
 		return
 	}
 
-	ci.Page++
+	it.Page++
 
-	ci.end = res.Meta.IsEnd || 50 < ci.Page
+	it.end = res.Meta.IsEnd || 50 < it.Page
 
+	return
+}
+
+// CollectAll collects all the remaining cafe search results.
+func (it *CafeSearchIterator) CollectAll() (results CafeSearchResults) {
+	result, err := it.Next()
+	if err == nil {
+		results = append(results, result)
+	}
+
+	n := common.RemainingPages(result.Meta.PageableCount, it.Size, it.Page, 50)
+
+	var (
+		items  = make(CafeSearchResults, n)
+		errors = make([]error, n)
+		wg     sync.WaitGroup
+	)
+
+	for page := it.Page; page < it.Page+n; page++ {
+		wg.Add(1)
+		go func(page int) {
+			defer wg.Done()
+			worker := *it
+			items[page-it.Page], errors[page-it.Page] = worker.Result(page).Next()
+		}(page)
+	}
+
+	wg.Wait()
+
+	for idx, err := range errors {
+		if err == nil {
+			results = append(results, items[idx])
+		}
+	}
+
+	it.end = true
 	return
 }

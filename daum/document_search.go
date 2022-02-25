@@ -8,15 +8,14 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
-	"time"
 )
 
 // WebResult represents a document of a Daum search result.
 type WebResult struct {
-	Title    string    `json:"title"`
-	Contents string    `json:"contents"`
-	URL      string    `json:"url"`
-	Datetime time.Time `json:"datetime"`
+	Title    string `json:"title"`
+	Contents string `json:"contents"`
+	URL      string `json:"url"`
+	Datetime string `json:"datetime"`
 }
 
 // DocumentSearchResult represents a Daum search result.
