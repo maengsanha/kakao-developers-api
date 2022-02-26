@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
+	"sync"
 )
 
 // WebResult represents a document of a Daum search result.
@@ -140,6 +141,42 @@ func (it *DocumentSearchIterator) Next() (res DocumentSearchResult, err error) {
 	it.end = res.Meta.IsEnd || 50 < it.Page
 
 	it.Page++
+
+	return
+}
+
+// CollectAll collects all the remaining document search results.
+func (it *DocumentSearchIterator) CollectAll() (results DocumentSearchResults) {
+	result, err := it.Next()
+	if err == nil {
+		results = append(results, result)
+	}
+
+	n := common.RemainingPages(result.Meta.PageableCount, it.Size, it.Page, 50)
+
+	var (
+		items  = make(DocumentSearchResults, n)
+		errors = make([]error, n)
+		wg     sync.WaitGroup
+	)
+
+	for page := it.Page; page < it.Page+n; page++ {
+		wg.Add(1)
+		go func(page int) {
+			defer wg.Done()
+			worker := *it
+			items[page-it.Page], errors[page-it.Page] = worker.Result(page).Next()
+		}(page)
+	}
+	wg.Wait()
+
+	for idx, err := range errors {
+		if err == nil {
+			results = append(results, items[idx])
+		}
+	}
+
+	it.end = true
 
 	return
 }

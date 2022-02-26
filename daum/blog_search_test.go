@@ -13,8 +13,8 @@ func TestBlogSearchWithJSON(t *testing.T) {
 	it := daum.BlogSearch(query).
 		AuthorizeWith(common.REST_API_KEY).
 		SortBy("accuracy").
-		Result(10).
-		Display(50)
+		Display(50).
+		Result(10)
 
 	for {
 		item, err := it.Next()
@@ -34,8 +34,8 @@ func TestBlogSearchWithSaveAsJSON(t *testing.T) {
 	it := daum.BlogSearch(query).
 		AuthorizeWith(common.REST_API_KEY).
 		SortBy("recency").
-		Result(1).
-		Display(30)
+		Display(30).
+		Result(1)
 
 	items := daum.BlogSearchResults{}
 
@@ -52,5 +52,20 @@ func TestBlogSearchWithSaveAsJSON(t *testing.T) {
 
 	if err := items.SaveAs("blog_search_test.json"); err != nil {
 		t.Error(err)
+	}
+}
+
+func TestBlogSearchCollectAll(t *testing.T) {
+	query := "Imitation Game"
+
+	items := daum.BlogSearch(query).
+		AuthorizeWith(common.REST_API_KEY).
+		SortBy("recency").
+		Display(50).
+		Result(1).
+		CollectAll()
+
+	for _, item := range items {
+		t.Log(item)
 	}
 }

@@ -54,3 +54,18 @@ func TestDocumentSearchWithSaveAsJSON(t *testing.T) {
 		t.Error(err)
 	}
 }
+
+func TestDocumentSearchCollectAll(t *testing.T) {
+	query := "Alan Turing"
+
+	items := daum.DocumentSearch(query).
+		AuthorizeWith(common.REST_API_KEY).
+		SortBy("recency").
+		Result(1).
+		Display(50).
+		CollectAll()
+
+	for _, item := range items {
+		t.Log(item)
+	}
+}
