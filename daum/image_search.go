@@ -113,7 +113,7 @@ func (it *ImageSearchIterator) Display(size int) *ImageSearchIterator {
 // Next returns the image search result and proceeds the iterator to the next page.
 func (it *ImageSearchIterator) Next() (res ImageSearchResult, err error) {
 	if it.end {
-		return res, ErrEndPage
+		return res, Done
 	}
 
 	client := new(http.Client)

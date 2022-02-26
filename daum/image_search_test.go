@@ -18,7 +18,7 @@ func TestImageSearchWithJSON(t *testing.T) {
 
 	for {
 		item, err := it.Next()
-		if err == daum.ErrEndPage {
+		if err == daum.Done {
 			break
 		}
 		if err != nil {
@@ -39,7 +39,7 @@ func TestImageSearchWithSaveAsJSON(t *testing.T) {
 
 	for {
 		item, err := it.Next()
-		if err == daum.ErrEndPage {
+		if err == daum.Done {
 			break
 		}
 		if err != nil {

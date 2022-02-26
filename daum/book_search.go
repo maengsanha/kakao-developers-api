@@ -135,7 +135,7 @@ func (it *BookSearchIterator) Filter(target string) *BookSearchIterator {
 // Next returns the book search result and proceeds the iterator to the next page.
 func (it *BookSearchIterator) Next() (res BookSearchResult, err error) {
 	if it.end {
-		return res, ErrEndPage
+		return res, Done
 	}
 
 	client := new(http.Client)

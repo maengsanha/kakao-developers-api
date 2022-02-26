@@ -17,7 +17,7 @@ func TestCafeSearchWithJSON(t *testing.T) {
 
 	for {
 		item, err := it.Next()
-		if err == daum.ErrEndPage {
+		if err == daum.Done {
 			break
 		}
 		if err != nil {
@@ -40,7 +40,7 @@ func TestCafeSearchWithSaveAsJSON(t *testing.T) {
 
 	for {
 		item, err := it.Next()
-		if err == daum.ErrEndPage {
+		if err == daum.Done {
 			break
 		}
 		if err != nil {

@@ -195,7 +195,7 @@ func (it *CategorySearchIterator) SortBy(order string) *CategorySearchIterator {
 // Next returns the place search result.
 func (it *CategorySearchIterator) Next() (res PlaceSearchResult, err error) {
 	if it.end {
-		return res, common.ErrEndPage
+		return res, Done
 	}
 
 	client := new(http.Client)

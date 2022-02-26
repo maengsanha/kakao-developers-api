@@ -111,7 +111,7 @@ func (it *VideoSearchIterator) Display(size int) *VideoSearchIterator {
 // Next returns the video search result and proceeds the iterator to the next page.
 func (it *VideoSearchIterator) Next() (res VideoSearchResult, err error) {
 	if it.end {
-		return res, ErrEndPage
+		return res, Done
 	}
 
 	client := new(http.Client)

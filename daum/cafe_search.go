@@ -107,7 +107,7 @@ func (it *CafeSearchIterator) Display(size int) *CafeSearchIterator {
 // Next returns the cafe search result and proceeds the iterator to the next page.
 func (it *CafeSearchIterator) Next() (res CafeSearchResult, err error) {
 	if it.end {
-		return res, ErrEndPage
+		return res, Done
 	}
 
 	client := new(http.Client)

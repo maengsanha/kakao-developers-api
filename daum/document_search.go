@@ -59,64 +59,64 @@ func DocumentSearch(query string) *DocumentSearchIterator {
 }
 
 // AuthorizeWith sets the authorization key to @key.
-func (di *DocumentSearchIterator) AuthorizeWith(key string) *DocumentSearchIterator {
-	di.AuthKey = common.FormatKey(key)
-	return di
+func (it *DocumentSearchIterator) AuthorizeWith(key string) *DocumentSearchIterator {
+	it.AuthKey = common.FormatKey(key)
+	return it
 }
 
 // SortBy sets the sorting order of the document results to @order.
 //
 // @order can be accuracy or recency. (default is accuracy)
-func (di *DocumentSearchIterator) SortBy(order string) *DocumentSearchIterator {
+func (it *DocumentSearchIterator) SortBy(order string) *DocumentSearchIterator {
 	switch order {
 	case "accuracy", "recency":
-		di.Sort = order
+		it.Sort = order
 	default:
 		panic(common.ErrUnsupportedSortingOrder)
 	}
 	if r := recover(); r != nil {
 		log.Panicln(r)
 	}
-	return di
+	return it
 }
 
 // Result sets the result page number (a value between 1 and 50).
-func (di *DocumentSearchIterator) Result(page int) *DocumentSearchIterator {
+func (it *DocumentSearchIterator) Result(page int) *DocumentSearchIterator {
 	if 1 <= page && page <= 50 {
-		di.Page = page
+		it.Page = page
 	} else {
 		panic(common.ErrPageOutOfBound)
 	}
 	if r := recover(); r != nil {
 		log.Panicln(r)
 	}
-	return di
+	return it
 }
 
 // Display sets the number of documents displayed on a single page (a value between 1 and 50).
-func (di *DocumentSearchIterator) Display(size int) *DocumentSearchIterator {
+func (it *DocumentSearchIterator) Display(size int) *DocumentSearchIterator {
 	if 1 <= size && size <= 50 {
-		di.Size = size
+		it.Size = size
 	} else {
 		panic(common.ErrSizeOutOfBound)
 	}
 	if r := recover(); r != nil {
 		log.Panicln(r)
 	}
-	return di
+	return it
 }
 
 // Next returns the document search result and proceeds the iterator to the next page.
-func (di *DocumentSearchIterator) Next() (res DocumentSearchResult, err error) {
-	if di.end {
-		return res, ErrEndPage
+func (it *DocumentSearchIterator) Next() (res DocumentSearchResult, err error) {
+	if it.end {
+		return res, Done
 	}
 
 	client := new(http.Client)
 
 	req, err := http.NewRequest(http.MethodGet,
 		fmt.Sprintf("%sweb?query=%s&sort=%s&page=%d&size=%d",
-			prefix, di.Query, di.Sort, di.Page, di.Size), nil)
+			prefix, it.Query, it.Sort, it.Page, it.Size), nil)
 
 	if err != nil {
 		return
@@ -124,7 +124,7 @@ func (di *DocumentSearchIterator) Next() (res DocumentSearchResult, err error) {
 
 	req.Close = true
 
-	req.Header.Set(common.Authorization, di.AuthKey)
+	req.Header.Set(common.Authorization, it.AuthKey)
 
 	resp, err := client.Do(req)
 	if err != nil {
@@ -137,9 +137,9 @@ func (di *DocumentSearchIterator) Next() (res DocumentSearchResult, err error) {
 		return
 	}
 
-	di.end = res.Meta.IsEnd || 50 < di.Page
+	it.end = res.Meta.IsEnd || 50 < it.Page
 
-	di.Page++
+	it.Page++
 
 	return
 }

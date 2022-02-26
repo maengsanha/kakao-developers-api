@@ -56,64 +56,64 @@ func BlogSearch(query string) *BlogSearchIterator {
 }
 
 // AuthorizeWith sets the authorization key to @key.
-func (bi *BlogSearchIterator) AuthorizeWith(key string) *BlogSearchIterator {
-	bi.AuthKey = common.FormatKey(key)
-	return bi
+func (it *BlogSearchIterator) AuthorizeWith(key string) *BlogSearchIterator {
+	it.AuthKey = common.FormatKey(key)
+	return it
 }
 
 // SortBy sets the sorting order of the document results to @order.
 //
 // @order can be accuracy or recency. (default is accuracy)
-func (bi *BlogSearchIterator) SortBy(order string) *BlogSearchIterator {
+func (it *BlogSearchIterator) SortBy(order string) *BlogSearchIterator {
 	switch order {
 	case "accuracy", "recency":
-		bi.Sort = order
+		it.Sort = order
 	default:
 		panic(common.ErrUnsupportedSortingOrder)
 	}
 	if r := recover(); r != nil {
 		log.Panicln(r)
 	}
-	return bi
+	return it
 }
 
 // Result sets the result page number (a value between 1 and 50).
-func (bi *BlogSearchIterator) Result(page int) *BlogSearchIterator {
+func (it *BlogSearchIterator) Result(page int) *BlogSearchIterator {
 	if 1 <= page && page <= 50 {
-		bi.Page = page
+		it.Page = page
 	} else {
 		panic(common.ErrPageOutOfBound)
 	}
 	if r := recover(); r != nil {
 		log.Panicln(r)
 	}
-	return bi
+	return it
 }
 
 // Display sets the number of documents displayed on a single page (a value between 1 and 50).
-func (bi *BlogSearchIterator) Display(size int) *BlogSearchIterator {
+func (it *BlogSearchIterator) Display(size int) *BlogSearchIterator {
 	if 1 <= size && size <= 50 {
-		bi.Size = size
+		it.Size = size
 	} else {
 		panic(common.ErrSizeOutOfBound)
 	}
 	if r := recover(); r != nil {
 		log.Panicln(r)
 	}
-	return bi
+	return it
 }
 
 // Next returns the blog search result and proceeds the iterator to the next page.
-func (bi *BlogSearchIterator) Next() (res BlogSearchResult, err error) {
-	if bi.end {
-		return res, ErrEndPage
+func (it *BlogSearchIterator) Next() (res BlogSearchResult, err error) {
+	if it.end {
+		return res, Done
 	}
 
 	client := new(http.Client)
 
 	req, err := http.NewRequest(http.MethodGet,
 		fmt.Sprintf("%sblog?query=%s&sort=%s&page=%d&size=%d",
-			prefix, bi.Query, bi.Sort, bi.Page, bi.Size), nil)
+			prefix, it.Query, it.Sort, it.Page, it.Size), nil)
 
 	if err != nil {
 		return
@@ -121,7 +121,7 @@ func (bi *BlogSearchIterator) Next() (res BlogSearchResult, err error) {
 
 	req.Close = true
 
-	req.Header.Set(common.Authorization, bi.AuthKey)
+	req.Header.Set(common.Authorization, it.AuthKey)
 
 	resp, err := client.Do(req)
 	if err != nil {
@@ -134,9 +134,9 @@ func (bi *BlogSearchIterator) Next() (res BlogSearchResult, err error) {
 		return
 	}
 
-	bi.end = res.Meta.IsEnd || 50 < bi.Page
+	it.end = res.Meta.IsEnd || 50 < it.Page
 
-	bi.Page++
+	it.Page++
 
 	return
 }

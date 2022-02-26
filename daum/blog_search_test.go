@@ -10,33 +10,47 @@ import (
 func TestBlogSearchWithJSON(t *testing.T) {
 	query := "Imitation Game"
 
-	iter := daum.BlogSearch(query).
+	it := daum.BlogSearch(query).
 		AuthorizeWith(common.REST_API_KEY).
 		SortBy("accuracy").
 		Result(10).
 		Display(50)
 
-	for br, err := iter.Next(); err == nil; br, err = iter.Next() {
-		t.Log(br)
+	for {
+		item, err := it.Next()
+		if err == daum.Done {
+			break
+		}
+		if err != nil {
+			t.Error(err)
+		}
+		t.Log(item)
 	}
 }
 
 func TestBlogSearchWithSaveAsJSON(t *testing.T) {
 	query := "Imitation Game"
 
-	iter := daum.BlogSearch(query).
+	it := daum.BlogSearch(query).
 		AuthorizeWith(common.REST_API_KEY).
 		SortBy("recency").
 		Result(1).
 		Display(30)
 
-	brs := daum.BlogSearchResults{}
+	items := daum.BlogSearchResults{}
 
-	for br, err := iter.Next(); err == nil; br, err = iter.Next() {
-		brs = append(brs, br)
+	for {
+		item, err := it.Next()
+		if err == daum.Done {
+			break
+		}
+		if err != nil {
+			t.Error(err)
+		}
+		items = append(items, item)
 	}
 
-	if err := brs.SaveAs("blog_search_test.json"); err != nil {
+	if err := items.SaveAs("blog_search_test.json"); err != nil {
 		t.Error(err)
 	}
 }
