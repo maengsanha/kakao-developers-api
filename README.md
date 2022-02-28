@@ -58,7 +58,7 @@ func main() {
 #### License
 
 This library is licensed under the Apache License, Version 2.0;
-
+<br/>
 see [LICENSE](https://github.com/maengsanha/kakao-developers-client/blob/master/LICENSE) for the full license text.
 
 #### References
