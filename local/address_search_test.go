@@ -122,3 +122,19 @@ func TestAddressSearchCollectAll(t *testing.T) {
 		t.Log(item)
 	}
 }
+
+func TestAddressSearchCollectAll2(t *testing.T) {
+	query := "을지로"
+
+	ch := local.AddressSearch(query).
+		AuthorizeWith(common.REST_API_KEY).
+		Analyze("similar").
+		FormatAs("json").
+		Display(30).
+		Result(1).
+		CollectAll2()
+
+	for item := range ch {
+		t.Log(item)
+	}
+}
