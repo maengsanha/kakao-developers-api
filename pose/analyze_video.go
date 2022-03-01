@@ -9,7 +9,6 @@ import (
 	"mime/multipart"
 	"net/http"
 	"os"
-	"path/filepath"
 )
 
 // AnalyzeVideoResult returns the result code of analyze video.
@@ -21,9 +20,10 @@ type AnalyzeVideoResult struct {
 type AnalyzeVideoInitializer struct {
 	AuthKey     string
 	VideoURL    string
-	File        *os.File
+	Filename    string
 	Smoothing   bool
 	CallbackURL string
+	withFile    bool
 }
 
 // String implements fmt.Stringer.
@@ -47,30 +47,18 @@ func AnalyzeVideo() *AnalyzeVideoInitializer {
 	}
 }
 
-// WithURL sets url to @VideoURL.
+// WithURL sets url to @url.
 func (ai *AnalyzeVideoInitializer) WithURL(url string) *AnalyzeVideoInitializer {
-	return &AnalyzeVideoInitializer{
-		AuthKey:     common.KeyPrefix,
-		VideoURL:    url,
-		Smoothing:   true,
-		CallbackURL: "",
-	}
+	ai.VideoURL = url
+	ai.withFile = false
+	return ai
 }
 
-// WithFile sets filepath to @File.
-func (ai *AnalyzeVideoInitializer) WithFile(filepath string) *AnalyzeVideoInitializer {
-	bs, err := os.Open(filepath)
-	if err != nil {
-		panic(err)
-	}
-	if stat, _ := bs.Stat(); stat.Size() > 50*1024*1024 {
-		panic("up to 50MB are allowed")
-	} else {
-		return &AnalyzeVideoInitializer{
-			AuthKey: common.KeyPrefix,
-			File:    bs,
-		}
-	}
+// WithFile sets filepath to @filename.
+func (ai *AnalyzeVideoInitializer) WithFile(filename string) *AnalyzeVideoInitializer {
+	ai.Filename = filename
+	ai.withFile = true
+	return ai
 }
 
 // AuthorizeWith sets the authorization key to @key.
@@ -93,42 +81,52 @@ func (ai *AnalyzeVideoInitializer) ReceiveTo(url string) *AnalyzeVideoInitialize
 
 // Collect returns the result of AnalyzeVideo.
 func (ai *AnalyzeVideoInitializer) Collect() (res AnalyzeVideoResult, err error) {
-	client := new(http.Client)
-	body := new(bytes.Buffer)
-	writer := multipart.NewWriter(body)
-	if err != nil {
-		return
-	}
-
-	if ai.File != nil {
-		part, err := writer.CreateFormFile("file", filepath.Base(ai.File.Name()))
+	var req *http.Request
+	if ai.withFile {
+		file, err := os.Open(ai.Filename)
 		if err != nil {
 			return res, err
 		}
-		io.Copy(part, ai.File)
-	}
-	defer writer.Close()
 
-	var req *http.Request
-	if ai.File != nil {
-		req, err = http.NewRequest(http.MethodPost, fmt.Sprintf("%s/job?file=%s", prefix, ai.File.Name()), body)
+		if stat, _ := file.Stat(); 50*1024*1024 < stat.Size() {
+			return res, common.ErrTooLargeFile
+		}
+
+		defer file.Close()
+
+		body := &bytes.Buffer{}
+		writer := multipart.NewWriter(body)
+		part, err := writer.CreateFormFile("file", ai.Filename)
+		if err != nil {
+			return res, err
+		}
+
+		_, err = io.Copy(part, file)
+		if err != nil {
+			return res, err
+		}
+
+		writer.Close()
+
+		req, err = http.NewRequest(http.MethodPost, fmt.Sprintf("%s/job", prefix), body)
+		if err != nil {
+			return res, err
+		}
+
+		req.Header.Add("Content-Type", writer.FormDataContentType())
 	} else {
 		req, err = http.NewRequest(http.MethodPost, fmt.Sprintf("%s/job?video_url=%s", prefix, ai.VideoURL), nil)
-	}
-
-	if err != nil {
-		return
+		if err != nil {
+			return
+		}
+		req.Header.Add("Content-Type", "application/x-www-form-urlencoded")
 	}
 
 	req.Close = true
 
-	req.Header.Set(common.Authorization, ai.AuthKey)
-	if ai.File != nil {
-		req.Header.Set("Content-Type", "multipart/form-data")
-	} else {
-		req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-	}
+	req.Header.Add(common.Authorization, ai.AuthKey)
 
+	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
 		return
