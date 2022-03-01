@@ -9,7 +9,6 @@ import (
 	"mime/multipart"
 	"net/http"
 	"os"
-	"path/filepath"
 )
 
 // MultiTagResult represents a document of a Multi-tag creation result.
@@ -37,8 +36,9 @@ func (mr MultiTagCreateResult) SaveAs(filename string) error {
 // MultiTagCreateInitializer is a lazy Multi-tag creator.
 type MultiTagCreateInitializer struct {
 	AuthKey  string
-	Image    *os.File
+	Filename string
 	ImageURL string
+	withFile bool
 }
 
 // MultiTagCreate creates a tag according to the given image.
@@ -48,20 +48,22 @@ type MultiTagCreateInitializer struct {
 func MultiTagCreate() *MultiTagCreateInitializer {
 	return &MultiTagCreateInitializer{
 		AuthKey:  common.KeyPrefix,
-		Image:    nil,
+		Filename: "",
 		ImageURL: "",
 	}
 }
 
-// WithFile sets the file to request on @filepath.
-func (mi *MultiTagCreateInitializer) WithFile(filepath string) *MultiTagCreateInitializer {
-	mi.Image = OpenFile(filepath)
+// WithFile sets image path to @filename.
+func (mi *MultiTagCreateInitializer) WithFile(filename string) *MultiTagCreateInitializer {
+	mi.Filename = filename
+	mi.withFile = true
 	return mi
 }
 
-// WithURL sets the URL to request to @url.
+// WithURL sets url to @url.
 func (mi *MultiTagCreateInitializer) WithURL(url string) *MultiTagCreateInitializer {
 	mi.ImageURL = url
+	mi.withFile = false
 	return mi
 }
 
@@ -73,32 +75,54 @@ func (mi *MultiTagCreateInitializer) AuthorizeWith(key string) *MultiTagCreateIn
 
 // Collect returns the Multi-tag creation result.
 func (mi *MultiTagCreateInitializer) Collect() (res MultiTagCreateResult, err error) {
-	client := new(http.Client)
-	body := new(bytes.Buffer)
-	writer := multipart.NewWriter(body)
+	client := &http.Client{}
+	var req *http.Request
+	if mi.withFile {
 
-	if mi.Image != nil {
-		part, err := writer.CreateFormFile("image", filepath.Base(mi.Image.Name()))
+		file, err := os.Open(mi.Filename)
 		if err != nil {
 			return res, err
 		}
-		io.Copy(part, mi.Image)
-	}
-	defer writer.Close()
+		if stat, _ := file.Stat(); 2*1024*1024 < stat.Size() {
+			return res, err
+		}
 
-	req, err := http.NewRequest(http.MethodPost, fmt.Sprintf("%s/multitag/generate?image_url=%s", prefix, mi.ImageURL), body)
+		defer file.Close()
+
+		body := &bytes.Buffer{}
+		writer := multipart.NewWriter(body)
+
+		part, err := writer.CreateFormFile("image", mi.Filename)
+		if err != nil {
+			return res, err
+		}
+
+		_, err = io.Copy(part, file)
+		if err != nil {
+			return res, err
+		}
+
+		writer.Close()
+
+		req, err = http.NewRequest(http.MethodPost, fmt.Sprintf("%s/multitag/generate", prefix), body)
+		if err != nil {
+			return res, err
+		}
+		req.Header.Add("Content-Type", writer.FormDataContentType())
+
+	} else {
+		req, err = http.NewRequest(http.MethodPost, fmt.Sprintf("%s/multitag/generate?image_url=%s", prefix, mi.ImageURL), nil)
+		if err != nil {
+			return res, err
+		}
+	}
 	if err != nil {
 		return res, err
 	}
+
 	req.Close = true
 
-	req.Header.Set(common.Authorization, mi.AuthKey)
-	if mi.Image != nil {
-		req.Header.Set("Content-Type", writer.FormDataContentType())
-	} else {
-		req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-	}
-	defer mi.Image.Close()
+	req.Header.Add(common.Authorization, mi.AuthKey)
 
 	resp, err := client.Do(req)
 	if err != nil {

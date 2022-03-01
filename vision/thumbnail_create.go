@@ -9,16 +9,16 @@ import (
 	"mime/multipart"
 	"net/http"
 	"os"
-	"path/filepath"
 )
 
 // ThumbnailCreateInitializer is a lazy thumbnail creator.
 type ThumbnailCreateInitializer struct {
 	AuthKey  string
-	Image    *os.File
+	Filename string
 	ImageURL string
 	Width    int
 	Height   int
+	withFile bool
 }
 
 // ThumbnailCreateResult represents a Thumbnail creation result.
@@ -41,22 +41,24 @@ func (tr ThumbnailCreateResult) SaveAs(filename string) error { return common.Sa
 func ThumbnailCreate() *ThumbnailCreateInitializer {
 	return &ThumbnailCreateInitializer{
 		AuthKey:  common.KeyPrefix,
-		Image:    nil,
+		Filename: "",
 		ImageURL: "",
 		Width:    0,
 		Height:   0,
 	}
 }
 
-// WithURL sets the URL to request to @url.
+// WithURL sets url to @url.
 func (ti *ThumbnailCreateInitializer) WithURL(url string) *ThumbnailCreateInitializer {
 	ti.ImageURL = url
+	ti.withFile = false
 	return ti
 }
 
-// WithFile sets the file to request on @filepath.
-func (ti *ThumbnailCreateInitializer) WithFile(filepath string) *ThumbnailCreateInitializer {
-	ti.Image = OpenFile(filepath)
+// WithFile sets image path to @filename.
+func (ti *ThumbnailCreateInitializer) WithFile(filename string) *ThumbnailCreateInitializer {
+	ti.Filename = filename
+	ti.withFile = true
 	return ti
 }
 
@@ -80,35 +82,54 @@ func (ti *ThumbnailCreateInitializer) HeightTo(ratio int) *ThumbnailCreateInitia
 
 // Collect returns the thumbnail creation result.
 func (ti *ThumbnailCreateInitializer) Collect() (res ThumbnailCreateResult, err error) {
-	client := new(http.Client)
-	body := new(bytes.Buffer)
-	writer := multipart.NewWriter(body)
+	var req *http.Request
+	client := &http.Client{}
 
-	if ti.Image != nil {
+	if ti.withFile {
+
+		file, err := os.Open(ti.Filename)
+		if err != nil {
+			return res, err
+		}
+
+		if stat, _ := file.Stat(); 2*1024*1024 < stat.Size() {
+			return res, err
+		}
+
+		defer file.Close()
+
+		body := &bytes.Buffer{}
+		writer := multipart.NewWriter(body)
 		writer.WriteField("width", fmt.Sprintf("%d", ti.Width))
 		writer.WriteField("height", fmt.Sprintf("%d", ti.Height))
-		part, err := writer.CreateFormFile("image", filepath.Base(ti.Image.Name()))
+		part, err := writer.CreateFormFile("image", ti.Filename)
 
 		if err != nil {
 			return res, err
 		}
-		io.Copy(part, ti.Image)
-	}
-	defer writer.Close()
+		_, err = io.Copy(part, file)
+		if err != nil {
+			return res, err
+		}
 
-	req, err := http.NewRequest(http.MethodPost, fmt.Sprintf("%s/thumbnail/crop?image_url=%s&width=%d&height=%d",
-		prefix, ti.ImageURL, ti.Width, ti.Height), body)
-	if err != nil {
-		return res, err
-	}
-	req.Close = true
-	req.Header.Set(common.Authorization, ti.AuthKey)
-	if ti.Image != nil {
-		req.Header.Set("Content-Type", writer.FormDataContentType())
+		writer.Close()
+		req, err = http.NewRequest(http.MethodPost, fmt.Sprintf("%s/thumbnail/crop",
+			prefix), body)
+		if err != nil {
+			return res, err
+		}
+		req.Header.Add("Content-Type", writer.FormDataContentType())
+
 	} else {
-		req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+		req, err = http.NewRequest(http.MethodPost, fmt.Sprintf("%s/thumbnail/crop?image_url=%s&width=%d&height=%d",
+			prefix, ti.ImageURL, ti.Width, ti.Height), nil)
+		if err != nil {
+			return res, err
+		}
 	}
-	defer ti.Image.Close()
+
+	req.Close = true
+	req.Header.Add(common.Authorization, ti.AuthKey)
 
 	resp, err := client.Do(req)
 	if err != nil {

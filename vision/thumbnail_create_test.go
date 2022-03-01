@@ -38,13 +38,13 @@ func TestThumbnailCreateWithURLSaveAsJSON(t *testing.T) {
 }
 
 func TestThumbnailCreateWithFile(t *testing.T) {
-	filepath := "/home/js/test4.jpg"
+	filename := "/home/js/test4.jpg"
 
 	if tr, err := vision.ThumbnailCreate().
-		WithFile(filepath).
+		WithFile(filename).
 		AuthorizeWith(common.REST_API_KEY).
-		WidthTo(100).
-		HeightTo(100).
+		WidthTo(500).
+		HeightTo(500).
 		Collect(); err != nil {
 		t.Error(err)
 	} else {
@@ -53,10 +53,10 @@ func TestThumbnailCreateWithFile(t *testing.T) {
 }
 
 func TestThumbnailCreateWithFileSaveAsJSON(t *testing.T) {
-	filepath := "/home/js/test4.jpg"
+	filename := "/home/js/test4.jpg"
 
 	if tr, err := vision.ThumbnailCreate().
-		WithFile(filepath).
+		WithFile(filename).
 		AuthorizeWith(common.REST_API_KEY).
 		WidthTo(100).
 		HeightTo(100).

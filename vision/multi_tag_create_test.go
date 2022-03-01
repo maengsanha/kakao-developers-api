@@ -34,10 +34,10 @@ func TestMultiTagCreateWithURLSaveAsJson(t *testing.T) {
 }
 
 func TestMultiTagCreateWithFile(t *testing.T) {
-	filepath := "/home/js/test2.jpg"
+	filename := "/home/js/test2.jpg"
 
 	if mr, err := vision.MultiTagCreate().
-		WithFile(filepath).
+		WithFile(filename).
 		AuthorizeWith(common.REST_API_KEY).
 		Collect(); err != nil {
 		t.Error(err)
@@ -47,10 +47,10 @@ func TestMultiTagCreateWithFile(t *testing.T) {
 }
 
 func TestMultiTagCreateWithFileSaveAsJson(t *testing.T) {
-	filepath := "/home/js/test2.jpg"
+	filename := "/home/js/test2.jpg"
 
 	if mr, err := vision.MultiTagCreate().
-		WithFile(filepath).
+		WithFile(filename).
 		AuthorizeWith(common.REST_API_KEY).
 		Collect(); err != nil {
 		t.Error(err)
