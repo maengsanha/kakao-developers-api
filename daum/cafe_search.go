@@ -110,7 +110,7 @@ func (it *CafeSearchIterator) Next() (res CafeSearchResult, err error) {
 		return res, Done
 	}
 
-	client := new(http.Client)
+	client := &http.Client{}
 	req, err := http.NewRequest(http.MethodGet,
 		fmt.Sprintf("%scafe?query=%s&sort=%s&page=%d&size=%d",
 			prefix, it.Query, it.Sort, it.Page, it.Size), nil)

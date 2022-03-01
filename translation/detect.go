@@ -62,7 +62,7 @@ func (di *DetectInitializer) AuthorizeWith(key string) *DetectInitializer {
 
 // Collect returns the language detection result.
 func (di *DetectInitializer) Collect() (res DetectResult, err error) {
-	client := new(http.Client)
+	client := &http.Client{}
 	req, err := http.NewRequest(http.MethodGet,
 		fmt.Sprintf("%s/v3/translation/language/detect?query=%s", prefix, di.Query), nil)
 	if err != nil {

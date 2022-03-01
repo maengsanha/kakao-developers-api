@@ -32,12 +32,12 @@ go get -u github.com/maengsanha/kakao-developers-client
   - Text translation
   - Language detection
 
-* [ ] Pose
+* [x] Pose
   - Analyze image
   - Analyze video
   - check video analysis results
 
-* [ ] Vision
+* [x] Vision
   - Face detection
   - Product detection
   - Adult image detection
@@ -50,10 +50,38 @@ go get -u github.com/maengsanha/kakao-developers-client
 ```go
 package main
 
+import (
+  "log"
+
+  "github.com/maengsanha/kakao-developers-client/local"
+)
+
 func main() {
-  // TODO
+  it := local.AddressSearch("을지로").
+              AuthorizeWith(YOUR_REST_API_KEY).
+              Analyze("similar").
+              FormatAs("json").
+              Display(30).
+              Result(1)
+
+  for {
+    item, err := it.Next()
+    if err == local.Done {
+      break
+    }
+    if err != nil {
+      log.Panicln(err)
+    }
+    log.Println(item)
+  }
 }
 ```
+
+#### Documentation
+
+There are API documentations for each features in the [Go package site](https://pkg.go.dev/github.com/maengsanha/kakao-developers-client).
+<br/>
+See [official development guides](https://developers.kakao.com/) for more details.
 
 #### License
 

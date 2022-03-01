@@ -127,7 +127,7 @@ func (ci *CoordToAddressInitializer) Input(coord string) *CoordToAddressInitiali
 
 // Collect returns the land-lot number address(with post number) and road name address.
 func (ci *CoordToAddressInitializer) Collect() (res CoordToAddressResult, err error) {
-	client := new(http.Client)
+	client := &http.Client{}
 	req, err := http.NewRequest(http.MethodGet,
 		fmt.Sprintf("%sgeo/coord2address.%s?x=%s&y=%s&input_coord=%s",
 			prefix, ci.Format, ci.X, ci.Y, ci.InputCoord), nil)

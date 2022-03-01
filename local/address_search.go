@@ -163,7 +163,7 @@ func (it *AddressSearchIterator) Next() (res AddressSearchResult, err error) {
 	}
 
 	// at first, send request to the API server
-	client := new(http.Client)
+	client := &http.Client{}
 	req, err := http.NewRequest(http.MethodGet,
 		fmt.Sprintf("%ssearch/address.%s?query=%s&analyze_type=%s&page=%d&size=%d",
 			prefix, it.Format, it.Query, it.AnalyzeType, it.Page, it.Size), nil)
@@ -238,30 +238,4 @@ func (it *AddressSearchIterator) CollectAll() (results AddressSearchResults) {
 	it.end = true
 
 	return
-}
-
-func (it *AddressSearchIterator) CollectAll2() <-chan AddressSearchResult {
-	ch := make(chan AddressSearchResult, 45)
-	defer close(ch)
-
-	// pre-profile to guess the remaining pages
-	result, err := it.Next()
-	if err == nil {
-		ch <- result
-	}
-
-	n := common.RemainingPages(result.Meta.PageableCount, it.Size, it.Page, 45)
-
-	for page := it.Page; page < it.Page+n; page++ {
-		go func(page int) {
-			worker := *it
-			if result, err := worker.Result(page).Next(); err == nil {
-				ch <- result
-			}
-		}(page)
-	}
-
-	it.end = true
-
-	return ch
 }

@@ -135,7 +135,10 @@ func (fi *FaceDetectInitializer) ThresholdAt(val float64) *FaceDetectInitializer
 // Collect returns the face detection result.
 func (fi *FaceDetectInitializer) Collect() (res FaceDetectResult, err error) {
 	client := &http.Client{}
+<<<<<<< HEAD
 	var req *http.Request
+=======
+>>>>>>> upstream/master
 
 	if fi.withFile {
 

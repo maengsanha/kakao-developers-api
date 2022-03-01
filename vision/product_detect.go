@@ -102,6 +102,7 @@ func (pi *ProductDetectInitializer) ThresholdAt(val float64) *ProductDetectIniti
 
 // Collect returns the product detection result.
 func (pi *ProductDetectInitializer) Collect() (res ProductDetectResult, err error) {
+<<<<<<< HEAD
 	var req *http.Request
 	client := &http.Client{}
 	if pi.withFile {
@@ -118,6 +119,12 @@ func (pi *ProductDetectInitializer) Collect() (res ProductDetectResult, err erro
 
 		body := &bytes.Buffer{}
 		writer := multipart.NewWriter(body)
+=======
+	client := &http.Client{}
+	body := new(bytes.Buffer)
+	writer := multipart.NewWriter(body)
+	if pi.Image != nil {
+>>>>>>> upstream/master
 		writer.WriteField("threshold", fmt.Sprintf("%f", pi.Threshold))
 		part, err := writer.CreateFormFile("image", pi.Filename)
 		if err != nil {

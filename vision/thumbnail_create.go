@@ -82,8 +82,14 @@ func (ti *ThumbnailCreateInitializer) HeightTo(ratio int) *ThumbnailCreateInitia
 
 // Collect returns the thumbnail creation result.
 func (ti *ThumbnailCreateInitializer) Collect() (res ThumbnailCreateResult, err error) {
+<<<<<<< HEAD
 	var req *http.Request
 	client := &http.Client{}
+=======
+	client := &http.Client{}
+	body := new(bytes.Buffer)
+	writer := multipart.NewWriter(body)
+>>>>>>> upstream/master
 
 	if ti.withFile {
 

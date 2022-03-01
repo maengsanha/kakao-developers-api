@@ -138,7 +138,7 @@ func (it *BookSearchIterator) Next() (res BookSearchResult, err error) {
 		return res, Done
 	}
 
-	client := new(http.Client)
+	client := &http.Client{}
 	req, err := http.NewRequest(http.MethodGet,
 		fmt.Sprintf("https://dapi.kakao.com/v3/search/book?query=%s&sort=%s&page=%d&size=%d&target=%s",
 			it.Query, it.Sort, it.Page, it.Size, it.Target), nil)

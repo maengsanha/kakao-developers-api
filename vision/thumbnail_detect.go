@@ -100,8 +100,14 @@ func (ti *ThumbnailDetectInitializer) HeightTo(ratio int) *ThumbnailDetectInitia
 
 // Collect returns the thumbnail detection result.
 func (ti *ThumbnailDetectInitializer) Collect() (res ThumbnailDetectResult, err error) {
+<<<<<<< HEAD
 	var req *http.Request
 	client := &http.Client{}
+=======
+	client := &http.Client{}
+	body := new(bytes.Buffer)
+	writer := multipart.NewWriter(body)
+>>>>>>> upstream/master
 
 	if ti.withFile {
 
