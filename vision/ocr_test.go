@@ -8,9 +8,9 @@ import (
 )
 
 func TestOCR(t *testing.T) {
-	filepath := "/home/js/test6.jpeg"
+	filename := "iu.png"
 
-	if or, err := vision.OCR(filepath).
+	if or, err := vision.OCR(filename).
 		AuthorizeWith(common.REST_API_KEY).
 		Collect(); err != nil {
 		t.Error(err)
@@ -19,11 +19,13 @@ func TestOCR(t *testing.T) {
 	}
 }
 func TestOCRSaveAsJSON(t *testing.T) {
-	filepath := "/home/js/test6.jpeg"
+	filename := "test4.jpg"
 
-	if _, err := vision.OCR(filepath).
+	if or, err := vision.OCR(filename).
 		AuthorizeWith(common.REST_API_KEY).
 		Collect(); err != nil {
 		t.Error(err)
+	} else if err = or.SaveAs("ocr_test.json"); err != nil {
+		t.Log(err)
 	}
 }
