@@ -8,6 +8,7 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
+	"sync"
 	"time"
 )
 
@@ -60,64 +61,64 @@ func VideoSearch(query string) *VideoSearchIterator {
 }
 
 // AuthorizeWith sets the authorization key to @key.
-func (vi *VideoSearchIterator) AuthorizeWith(key string) *VideoSearchIterator {
-	vi.AuthKey = common.FormatKey(key)
-	return vi
+func (it *VideoSearchIterator) AuthorizeWith(key string) *VideoSearchIterator {
+	it.AuthKey = common.FormatKey(key)
+	return it
 }
 
 // SortBy sets the sorting order of the document results to @order.
 //
 // @order can be accuracy or recency. (default is accuracy)
-func (vi *VideoSearchIterator) SortBy(order string) *VideoSearchIterator {
+func (it *VideoSearchIterator) SortBy(order string) *VideoSearchIterator {
 	switch order {
 	case "accuracy", "recency":
-		vi.Sort = order
+		it.Sort = order
 	default:
 		panic(common.ErrUnsupportedSortingOrder)
 	}
 	if r := recover(); r != nil {
 		log.Panicln(r)
 	}
-	return vi
+	return it
 }
 
 // Result sets the result page number (a value between 1 and 15).
-func (vi *VideoSearchIterator) Result(page int) *VideoSearchIterator {
+func (it *VideoSearchIterator) Result(page int) *VideoSearchIterator {
 	if 1 <= page && page <= 15 {
-		vi.Page = page
+		it.Page = page
 	} else {
 		panic(common.ErrPageOutOfBound)
 	}
 	if r := recover(); r != nil {
 		log.Panicln(r)
 	}
-	return vi
+	return it
 }
 
 // Display sets the number of documents displayed on a single page (a value between 1 and 30).
-func (vi *VideoSearchIterator) Display(size int) *VideoSearchIterator {
+func (it *VideoSearchIterator) Display(size int) *VideoSearchIterator {
 	if 1 <= size && size <= 30 {
-		vi.Size = size
+		it.Size = size
 	} else {
 		panic(common.ErrSizeOutOfBound)
 	}
 	if r := recover(); r != nil {
 		log.Panicln(r)
 	}
-	return vi
+	return it
 }
 
 // Next returns the video search result and proceeds the iterator to the next page.
-func (vi *VideoSearchIterator) Next() (res VideoSearchResult, err error) {
-	if vi.end {
-		return res, ErrEndPage
+func (it *VideoSearchIterator) Next() (res VideoSearchResult, err error) {
+	if it.end {
+		return res, Done
 	}
 
 	client := new(http.Client)
 
 	req, err := http.NewRequest(http.MethodGet,
 		fmt.Sprintf("%svclip?query=%s&sort=%s&page=%d&size=%d",
-			prefix, vi.Query, vi.Sort, vi.Page, vi.Size), nil)
+			prefix, it.Query, it.Sort, it.Page, it.Size), nil)
 
 	if err != nil {
 		return
@@ -125,7 +126,7 @@ func (vi *VideoSearchIterator) Next() (res VideoSearchResult, err error) {
 
 	req.Close = true
 
-	req.Header.Set(common.Authorization, vi.AuthKey)
+	req.Header.Set(common.Authorization, it.AuthKey)
 
 	resp, err := client.Do(req)
 	if err != nil {
@@ -138,9 +139,46 @@ func (vi *VideoSearchIterator) Next() (res VideoSearchResult, err error) {
 		return
 	}
 
-	vi.end = res.Meta.IsEnd || 15 < vi.Page
+	it.end = res.Meta.IsEnd || 15 < it.Page
 
-	vi.Page++
+	it.Page++
+
+	return
+}
+
+// CollectAll collects all the remaining video search results.
+func (it *VideoSearchIterator) CollectAll() (results VideoSearchResults) {
+
+	result, err := it.Next()
+	if err == nil {
+		results = append(results, result)
+	}
+
+	n := common.RemainingPages(result.Meta.PageableCount, it.Size, it.Page, 15)
+
+	var (
+		items  = make(VideoSearchResults, n)
+		errors = make([]error, n)
+		wg     sync.WaitGroup
+	)
+
+	for page := it.Page; page < it.Page+n; page++ {
+		wg.Add(1)
+		go func(page int) {
+			defer wg.Done()
+			worker := *it
+			items[page-it.Page], errors[page-it.Page] = worker.Result(page).Next()
+		}(page)
+	}
+	wg.Wait()
+
+	for idx, err := range errors {
+		if err == nil {
+			results = append(results, items[idx])
+		}
+	}
+
+	it.end = true
 
 	return
 }

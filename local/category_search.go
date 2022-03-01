@@ -9,6 +9,7 @@ import (
 	"net/http"
 	"strconv"
 	"strings"
+	"sync"
 )
 
 // CategorySearchIterator is a lazy category search iterator.
@@ -103,104 +104,104 @@ func PlaceSearchByCategory(groupcode string) *CategorySearchIterator {
 }
 
 // FormatAs sets the request format to @format (json or xml).
-func (ci *CategorySearchIterator) FormatAs(format string) *CategorySearchIterator {
+func (it *CategorySearchIterator) FormatAs(format string) *CategorySearchIterator {
 	switch format {
 	case "json", "xml":
-		ci.Format = format
+		it.Format = format
 	default:
 		panic(common.ErrUnsupportedFormat)
 	}
 	if r := recover(); r != nil {
 		log.Panicln(r)
 	}
-	return ci
+	return it
 }
 
 // Authorization sets the authorization key to @key.
-func (ci *CategorySearchIterator) AuthorizeWith(key string) *CategorySearchIterator {
-	ci.AuthKey = common.FormatKey(key)
-	return ci
+func (it *CategorySearchIterator) AuthorizeWith(key string) *CategorySearchIterator {
+	it.AuthKey = common.FormatKey(key)
+	return it
 }
 
 // WithRadius searches places around a specific area along with @x and @y.
 //
 // @radius is the distance (a value between 0 and 20000) from the center coordinates to an axis of rotation in meters.
-func (ci *CategorySearchIterator) WithRadius(x, y float64, radius int) *CategorySearchIterator {
-	if 0 <= ci.Radius && ci.Radius <= 20000 {
-		ci.X = strconv.FormatFloat(x, 'f', -1, 64)
-		ci.Y = strconv.FormatFloat(y, 'f', -1, 64)
-		ci.Radius = radius
+func (it *CategorySearchIterator) WithRadius(x, y float64, radius int) *CategorySearchIterator {
+	if 0 <= it.Radius && it.Radius <= 20000 {
+		it.X = strconv.FormatFloat(x, 'f', -1, 64)
+		it.Y = strconv.FormatFloat(y, 'f', -1, 64)
+		it.Radius = radius
 	} else {
 		panic(ErrRadiusOutOfBound)
 	}
 	if r := recover(); r != nil {
 		log.Panicln(r)
 	}
-	return ci
+	return it
 }
 
 // WithRect limits the search area, such as when searching places within the map screen.
-func (ci *CategorySearchIterator) WithRect(xMin, yMin, xMax, yMax float64) *CategorySearchIterator {
-	ci.Rect = strings.Join([]string{
+func (it *CategorySearchIterator) WithRect(xMin, yMin, xMax, yMax float64) *CategorySearchIterator {
+	it.Rect = strings.Join([]string{
 		strconv.FormatFloat(xMin, 'f', -1, 64),
 		strconv.FormatFloat(yMin, 'f', -1, 64),
 		strconv.FormatFloat(xMax, 'f', -1, 64),
 		strconv.FormatFloat(yMax, 'f', -1, 64)}, ",")
-	return ci
+	return it
 }
 
 // Result sets the result page number (a value between 1 and 45).
-func (ci *CategorySearchIterator) Result(page int) *CategorySearchIterator {
+func (it *CategorySearchIterator) Result(page int) *CategorySearchIterator {
 	if 1 <= page && page <= 45 {
-		ci.Page = page
+		it.Page = page
 	} else {
 		panic(common.ErrPageOutOfBound)
 	}
 	if r := recover(); r != nil {
 		log.Panicln(r)
 	}
-	return ci
+	return it
 }
 
 // Display sets the number of documents displayed on a single page (a value between 1 and 15).
-func (ci *CategorySearchIterator) Display(size int) *CategorySearchIterator {
+func (it *CategorySearchIterator) Display(size int) *CategorySearchIterator {
 	if 1 <= size && size <= 15 {
-		ci.Size = size
+		it.Size = size
 	} else {
 		panic(common.ErrSizeOutOfBound)
 	}
 	if r := recover(); r != nil {
 		log.Panicln(r)
 	}
-	return ci
+	return it
 }
 
 // SortBy sets the ordering type of c to @order.
 //
 // @order can be accuracy or distance. (default is accuracy)
-func (ci *CategorySearchIterator) SortBy(order string) *CategorySearchIterator {
+func (it *CategorySearchIterator) SortBy(order string) *CategorySearchIterator {
 	switch order {
 	case "accuracy", "distance":
-		ci.Sort = order
+		it.Sort = order
 	default:
 		panic(common.ErrUnsupportedSortingOrder)
 	}
 	if r := recover(); r != nil {
 		log.Panicln(r)
 	}
-	return ci
+	return it
 }
 
 // Next returns the place search result.
-func (ci *CategorySearchIterator) Next() (res PlaceSearchResult, err error) {
-	if ci.end {
-		return res, common.ErrEndPage
+func (it *CategorySearchIterator) Next() (res PlaceSearchResult, err error) {
+	if it.end {
+		return res, Done
 	}
 
 	client := new(http.Client)
 	req, err := http.NewRequest(http.MethodGet,
 		fmt.Sprintf("%ssearch/category.%s?category_group_code=%s&page=%d&size=%d&sort=%s&x=%s&y=%s&radius=%d&rect=%s",
-			prefix, ci.Format, ci.CategoryGroupCode, ci.Page, ci.Size, ci.Sort, ci.X, ci.Y, ci.Radius, ci.Rect), nil)
+			prefix, it.Format, it.CategoryGroupCode, it.Page, it.Size, it.Sort, it.X, it.Y, it.Radius, it.Rect), nil)
 
 	if err != nil {
 		return
@@ -208,7 +209,7 @@ func (ci *CategorySearchIterator) Next() (res PlaceSearchResult, err error) {
 
 	req.Close = true
 
-	req.Header.Set(common.Authorization, ci.AuthKey)
+	req.Header.Set(common.Authorization, it.AuthKey)
 
 	resp, err := client.Do(req)
 	if err != nil {
@@ -217,19 +218,56 @@ func (ci *CategorySearchIterator) Next() (res PlaceSearchResult, err error) {
 
 	defer resp.Body.Close()
 
-	if ci.Format == "json" {
+	if it.Format == "json" {
 		if err = json.NewDecoder(resp.Body).Decode(&res); err != nil {
 			return
 		}
-	} else if ci.Format == "xml" {
+	} else if it.Format == "xml" {
 		if err = xml.NewDecoder(resp.Body).Decode(&res); err != nil {
 			return
 		}
 	}
 
-	ci.end = res.Meta.IsEnd || 45 < ci.Page
+	it.end = res.Meta.IsEnd || 45 < it.Page
 
-	ci.Page++
+	it.Page++
+
+	return
+}
+
+// CollectAll collects all the remaining category search results.
+func (it *CategorySearchIterator) CollectAll() (results PlaceSearchResults) {
+
+	result, err := it.Next()
+	if err == nil {
+		results = append(results, result)
+	}
+
+	n := common.RemainingPages(result.Meta.PageableCount, it.Size, it.Page, 45)
+
+	var (
+		items  = make(PlaceSearchResults, n)
+		errors = make([]error, n)
+		wg     sync.WaitGroup
+	)
+
+	for page := it.Page; page < it.Page+n; page++ {
+		wg.Add(1)
+		go func(page int) {
+			defer wg.Done()
+			worker := *it
+			items[page-it.Page], errors[page-it.Page] = worker.Result(page).Next()
+		}(page)
+	}
+	wg.Wait()
+
+	for idx, err := range errors {
+		if err == nil {
+			results = append(results, items[idx])
+		}
+	}
+
+	it.end = true
 
 	return
 }

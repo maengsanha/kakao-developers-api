@@ -13,15 +13,22 @@ func TestCategorySearchWithJSON(t *testing.T) {
 	radius := 2000
 	groupcode := "MT1"
 
-	iter := local.PlaceSearchByCategory(groupcode).
+	it := local.PlaceSearchByCategory(groupcode).
 		FormatAs("json").
 		AuthorizeWith(common.REST_API_KEY).
 		WithRadius(x, y, radius).
 		Display(15).
 		Result(1)
 
-	for pr, err := iter.Next(); err == nil; pr, err = iter.Next() {
-		t.Log(pr)
+	for {
+		item, err := it.Next()
+		if err == local.Done {
+			break
+		}
+		if err != nil {
+			t.Error(err)
+		}
+		t.Log(item)
 	}
 }
 
@@ -31,20 +38,27 @@ func TestCategorySearchWithSaveAsJSON(t *testing.T) {
 	radius := 2000
 	groupcode := "MT1"
 
-	iter := local.PlaceSearchByCategory(groupcode).
+	it := local.PlaceSearchByCategory(groupcode).
 		FormatAs("json").
 		AuthorizeWith(common.REST_API_KEY).
 		WithRadius(x, y, radius).
 		Display(15).
 		Result(1)
 
-	prs := local.PlaceSearchResults{}
+	items := local.PlaceSearchResults{}
 
-	for pr, err := iter.Next(); err == nil; pr, err = iter.Next() {
-		prs = append(prs, pr)
+	for {
+		item, err := it.Next()
+		if err == local.Done {
+			break
+		}
+		if err != nil {
+			t.Error(err)
+		}
+		items = append(items, item)
 	}
 
-	if err := prs.SaveAs("category_search_test.json"); err != nil {
+	if err := items.SaveAs("category_search_test.json"); err != nil {
 		t.Error(err)
 	}
 }
@@ -56,15 +70,22 @@ func TestCategorySearchWithXML(t *testing.T) {
 	xmax := 128.05897078335276
 	ymax := 38.506051888130406
 
-	iter := local.PlaceSearchByCategory(groupcode).
+	it := local.PlaceSearchByCategory(groupcode).
 		FormatAs("xml").
 		AuthorizeWith(common.REST_API_KEY).
 		WithRect(xmin, ymin, xmax, ymax).
 		Display(15).
 		Result(1)
 
-	for pr, err := iter.Next(); err == nil; pr, err = iter.Next() {
-		t.Log(pr)
+	for {
+		item, err := it.Next()
+		if err == local.Done {
+			break
+		}
+		if err != nil {
+			t.Error(err)
+		}
+		t.Log(item)
 	}
 }
 
@@ -74,20 +95,46 @@ func TestCategorySearchWithSaveAsXML(t *testing.T) {
 	radius := 2000
 	groupcode := "MT1"
 
-	iter := local.PlaceSearchByCategory(groupcode).
+	it := local.PlaceSearchByCategory(groupcode).
 		FormatAs("xml").
 		AuthorizeWith(common.REST_API_KEY).
 		WithRadius(x, y, radius).
 		Display(15).
 		Result(1)
 
-	prs := local.PlaceSearchResults{}
+	items := local.PlaceSearchResults{}
 
-	for pr, err := iter.Next(); err == nil; pr, err = iter.Next() {
-		prs = append(prs, pr)
+	for {
+		item, err := it.Next()
+		if err == local.Done {
+			break
+		}
+		if err != nil {
+			t.Error(err)
+		}
+		items = append(items, item)
 	}
 
-	if err := prs.SaveAs("category_search_test.xml"); err != nil {
+	if err := items.SaveAs("category_search_test.xml"); err != nil {
 		t.Error(err)
+	}
+}
+
+func TestCategorySearchCollectAll(t *testing.T) {
+	var x float64 = 127.06283102249932
+	var y float64 = 37.514322572335935
+	radius := 2000
+	groupcode := "MT1"
+
+	items := local.PlaceSearchByCategory(groupcode).
+		FormatAs("xml").
+		AuthorizeWith(common.REST_API_KEY).
+		WithRadius(x, y, radius).
+		Display(15).
+		Result(1).
+		CollectAll()
+
+	for _, item := range items {
+		t.Log(item)
 	}
 }

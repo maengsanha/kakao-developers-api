@@ -20,7 +20,7 @@ type OCRInitializer struct {
 }
 
 // Result represents a document of a Optical Character Recognition result.
-type Result struct {
+type Result []struct {
 	Boxes            [][]float64 `json:"boxes"`
 	RecognitionWords []string    `json:"recognition_words"`
 }

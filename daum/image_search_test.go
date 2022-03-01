@@ -10,31 +10,60 @@ import (
 func TestImageSearchWithJSON(t *testing.T) {
 	query := "g2"
 
-	iter := daum.ImageSearch(query).
+	it := daum.ImageSearch(query).
 		AuthorizeWith(common.REST_API_KEY).
 		SortBy("accuracy").
 		Display(1).
 		Result(1)
 
-	for ir, err := iter.Next(); err == nil; ir, err = iter.Next() {
-		t.Log(ir)
+	for {
+		item, err := it.Next()
+		if err == daum.Done {
+			break
+		}
+		if err != nil {
+			t.Error(err)
+		}
+		t.Log(item)
 	}
 }
 
 func TestImageSearchWithSaveAsJSON(t *testing.T) {
 	query := "g2"
 
-	iter := daum.ImageSearch(query).
+	it := daum.ImageSearch(query).
 		AuthorizeWith(common.REST_API_KEY).
 		SortBy("recency")
 
-	irs := daum.ImageSearchResults{}
+	items := daum.ImageSearchResults{}
 
-	for ir, err := iter.Next(); err == nil; ir, err = iter.Next() {
-		irs = append(irs, ir)
+	for {
+		item, err := it.Next()
+		if err == daum.Done {
+			break
+		}
+		if err != nil {
+			t.Error(err)
+		}
+		items = append(items, item)
 	}
 
-	if err := irs.SaveAs("image_search_test.json"); err != nil {
+	if err := items.SaveAs("image_search_test.json"); err != nil {
 		t.Error(err)
+	}
+}
+
+func TestImageSearchCollectAll(t *testing.T) {
+	query := "g2"
+
+	items := daum.ImageSearch(query).
+		AuthorizeWith(common.REST_API_KEY).
+		SortBy("accuracy").
+		Display(30).
+		Result(1).
+		CollectAll()
+
+	for _, item := range items {
+		t.Log(item)
 	}
 }

@@ -10,33 +10,62 @@ import (
 func TestDocumentSearchWithJSON(t *testing.T) {
 	query := "Alan Turing"
 
-	iter := daum.DocumentSearch(query).
+	it := daum.DocumentSearch(query).
 		AuthorizeWith(common.REST_API_KEY).
 		SortBy("accuracy").
 		Result(10).
 		Display(50)
 
-	for dr, err := iter.Next(); err == nil; dr, err = iter.Next() {
-		t.Log(dr)
+	for {
+		item, err := it.Next()
+		if err == daum.Done {
+			break
+		}
+		if err != nil {
+			t.Error(err)
+		}
+		t.Log(item)
 	}
 }
 
 func TestDocumentSearchWithSaveAsJSON(t *testing.T) {
 	query := "Alan Turing"
 
-	iter := daum.DocumentSearch(query).
+	it := daum.DocumentSearch(query).
 		AuthorizeWith(common.REST_API_KEY).
 		SortBy("recency").
 		Result(1).
 		Display(30)
 
-	drs := daum.DocumentSearchResults{}
+	items := daum.DocumentSearchResults{}
 
-	for dr, err := iter.Next(); err == nil; dr, err = iter.Next() {
-		drs = append(drs, dr)
+	for {
+		item, err := it.Next()
+		if err == daum.Done {
+			break
+		}
+		if err != nil {
+			t.Error(err)
+		}
+		items = append(items, item)
 	}
 
-	if err := drs.SaveAs("document_search_test.json"); err != nil {
+	if err := items.SaveAs("document_search_test.json"); err != nil {
 		t.Error(err)
+	}
+}
+
+func TestDocumentSearchCollectAll(t *testing.T) {
+	query := "Alan Turing"
+
+	items := daum.DocumentSearch(query).
+		AuthorizeWith(common.REST_API_KEY).
+		SortBy("recency").
+		Result(1).
+		Display(50).
+		CollectAll()
+
+	for _, item := range items {
+		t.Log(item)
 	}
 }

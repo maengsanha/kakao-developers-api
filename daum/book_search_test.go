@@ -19,7 +19,11 @@ func TestBookSearchWithJSON(t *testing.T) {
 
 	for {
 		item, err := it.Next()
+<<<<<<< HEAD
 		if err == daum.ErrEndPage {
+=======
+		if err == daum.Done {
+>>>>>>> upstream/master
 			break
 		}
 		if err != nil {
@@ -45,7 +49,11 @@ func TestBookSearchWithSaveAsJSON(t *testing.T) {
 
 	for {
 		item, err := it.Next()
+<<<<<<< HEAD
 		if err == daum.ErrEndPage {
+=======
+		if err == daum.Done {
+>>>>>>> upstream/master
 			break
 		}
 

@@ -1,7 +1,5 @@
 package daum
 
-import "errors"
+import "internal/common"
 
-var (
-	ErrEndPage = errors.New("page reaches the end")
-)
+var Done = common.ErrEndPage
