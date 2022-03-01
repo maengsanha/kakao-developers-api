@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	_ "image/jpeg"
 	"internal/common"
 	"io"
 	"mime/multipart"
