@@ -8,4 +8,5 @@ var (
 	ErrSizeOutOfBound          = errors.New("size out of bound")
 	ErrEndPage                 = errors.New("page reaches the end")
 	ErrUnsupportedSortingOrder = errors.New("unsupported sorting order")
+	ErrTooLargeFile            = errors.New("file size exceeds limit")
 )
