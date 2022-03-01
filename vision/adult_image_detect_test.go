@@ -34,7 +34,7 @@ func TestAdultImageDetectWithURLSaveAsJson(t *testing.T) {
 }
 
 func TestAdultImageDetectWithFile(t *testing.T) {
-	filename := "/home/js/test3.jpg"
+	filename := "test3.jpg"
 
 	if ar, err := vision.AdultImageDetect().
 		WithFile(filename).
@@ -47,7 +47,7 @@ func TestAdultImageDetectWithFile(t *testing.T) {
 }
 
 func TestAdultImageDetectWithFileSaveAsJson(t *testing.T) {
-	filename := "/home/js/test3.jpg"
+	filename := "test3.jpg"
 
 	if ar, err := vision.AdultImageDetect().
 		WithFile(filename).

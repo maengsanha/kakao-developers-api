@@ -6,9 +6,11 @@ import (
 	"fmt"
 	"internal/common"
 	"io"
+	"log"
 	"mime/multipart"
 	"net/http"
 	"os"
+	"strings"
 )
 
 // AdultResult represents a document of a detected adult image result.
@@ -57,6 +59,15 @@ func AdultImageDetect() *AdultImageDetectInitializer {
 
 // WithFile sets image path to @filename.
 func (ai *AdultImageDetectInitializer) WithFile(filename string) *AdultImageDetectInitializer {
+
+	switch format := strings.Split(filename, "."); format[len(format)-1] {
+	case "jpg", "png":
+	default:
+		panic(common.ErrUnsupportedFormat)
+	}
+	if r := recover(); r != nil {
+		log.Panicln(r)
+	}
 	ai.Filename = filename
 	ai.withFile = true
 	return ai
@@ -78,12 +89,7 @@ func (ai *AdultImageDetectInitializer) AuthorizeWith(key string) *AdultImageDete
 // Collect returns the adult image detection result.
 func (ai *AdultImageDetectInitializer) Collect() (res AdultImageDetectResult, err error) {
 	client := &http.Client{}
-<<<<<<< HEAD
 	var req *http.Request
-=======
-	body := new(bytes.Buffer)
-	writer := multipart.NewWriter(body)
->>>>>>> upstream/master
 
 	if ai.withFile {
 
@@ -93,7 +99,7 @@ func (ai *AdultImageDetectInitializer) Collect() (res AdultImageDetectResult, er
 		}
 
 		if stat, _ := file.Stat(); 2*1024*1024 < stat.Size() {
-			return res, err
+			return res, common.ErrTooLargeFile
 		}
 
 		defer file.Close()

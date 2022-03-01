@@ -34,7 +34,7 @@ func TestProductDetectWithURLSaveAsJSON(t *testing.T) {
 }
 
 func TestProductDetectWithFile(t *testing.T) {
-	filename := "/home/js/test2.jpg"
+	filename := "test2.jpg"
 	if pr, err := vision.ProductDetect().
 		WithFile(filename).
 		AuthorizeWith(common.REST_API_KEY).
@@ -47,7 +47,7 @@ func TestProductDetectWithFile(t *testing.T) {
 }
 
 func TestProductDetectWithFileSaveAsJSON(t *testing.T) {
-	filename := "/home/js/test2.jpg"
+	filename := "test2.jpg"
 	if pr, err := vision.ProductDetect().
 		WithFile(filename).
 		AuthorizeWith(common.REST_API_KEY).

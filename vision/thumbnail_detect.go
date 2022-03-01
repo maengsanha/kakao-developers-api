@@ -6,9 +6,11 @@ import (
 	"fmt"
 	"internal/common"
 	"io"
+	"log"
 	"mime/multipart"
 	"net/http"
 	"os"
+	"strings"
 )
 
 // Thumbnail represents coordinates of the point starting the thumbnail image and its width, height.
@@ -68,6 +70,14 @@ func ThumbnailDetect() *ThumbnailDetectInitializer {
 
 // WithFile sets image path to @filename.
 func (ti *ThumbnailDetectInitializer) WithFile(filename string) *ThumbnailDetectInitializer {
+	switch format := strings.Split(filename, "."); format[len(format)-1] {
+	case "jpg", "png":
+	default:
+		panic(common.ErrUnsupportedFormat)
+	}
+	if r := recover(); r != nil {
+		log.Panicln(r)
+	}
 	ti.Filename = filename
 	ti.withFile = true
 	return ti
@@ -100,14 +110,8 @@ func (ti *ThumbnailDetectInitializer) HeightTo(ratio int) *ThumbnailDetectInitia
 
 // Collect returns the thumbnail detection result.
 func (ti *ThumbnailDetectInitializer) Collect() (res ThumbnailDetectResult, err error) {
-<<<<<<< HEAD
 	var req *http.Request
 	client := &http.Client{}
-=======
-	client := &http.Client{}
-	body := new(bytes.Buffer)
-	writer := multipart.NewWriter(body)
->>>>>>> upstream/master
 
 	if ti.withFile {
 
@@ -117,7 +121,7 @@ func (ti *ThumbnailDetectInitializer) Collect() (res ThumbnailDetectResult, err 
 		}
 
 		if stat, _ := file.Stat(); 2*1024*1024 < stat.Size() {
-			return res, err
+			return res, common.ErrTooLargeFile
 		}
 
 		defer file.Close()

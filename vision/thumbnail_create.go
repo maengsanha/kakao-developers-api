@@ -6,9 +6,11 @@ import (
 	"fmt"
 	"internal/common"
 	"io"
+	"log"
 	"mime/multipart"
 	"net/http"
 	"os"
+	"strings"
 )
 
 // ThumbnailCreateInitializer is a lazy thumbnail creator.
@@ -50,6 +52,7 @@ func ThumbnailCreate() *ThumbnailCreateInitializer {
 
 // WithURL sets url to @url.
 func (ti *ThumbnailCreateInitializer) WithURL(url string) *ThumbnailCreateInitializer {
+
 	ti.ImageURL = url
 	ti.withFile = false
 	return ti
@@ -57,6 +60,14 @@ func (ti *ThumbnailCreateInitializer) WithURL(url string) *ThumbnailCreateInitia
 
 // WithFile sets image path to @filename.
 func (ti *ThumbnailCreateInitializer) WithFile(filename string) *ThumbnailCreateInitializer {
+	switch format := strings.Split(filename, "."); format[len(format)-1] {
+	case "jpg", "png":
+	default:
+		panic(common.ErrUnsupportedFormat)
+	}
+	if r := recover(); r != nil {
+		log.Panicln(r)
+	}
 	ti.Filename = filename
 	ti.withFile = true
 	return ti
@@ -82,14 +93,8 @@ func (ti *ThumbnailCreateInitializer) HeightTo(ratio int) *ThumbnailCreateInitia
 
 // Collect returns the thumbnail creation result.
 func (ti *ThumbnailCreateInitializer) Collect() (res ThumbnailCreateResult, err error) {
-<<<<<<< HEAD
 	var req *http.Request
 	client := &http.Client{}
-=======
-	client := &http.Client{}
-	body := new(bytes.Buffer)
-	writer := multipart.NewWriter(body)
->>>>>>> upstream/master
 
 	if ti.withFile {
 
@@ -99,7 +104,7 @@ func (ti *ThumbnailCreateInitializer) Collect() (res ThumbnailCreateResult, err 
 		}
 
 		if stat, _ := file.Stat(); 2*1024*1024 < stat.Size() {
-			return res, err
+			return res, common.ErrTooLargeFile
 		}
 
 		defer file.Close()

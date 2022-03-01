@@ -6,9 +6,11 @@ import (
 	"fmt"
 	"internal/common"
 	"io"
+	"log"
 	"mime/multipart"
 	"net/http"
 	"os"
+	"strings"
 )
 
 // MultiTagResult represents a document of a Multi-tag creation result.
@@ -55,6 +57,14 @@ func MultiTagCreate() *MultiTagCreateInitializer {
 
 // WithFile sets image path to @filename.
 func (mi *MultiTagCreateInitializer) WithFile(filename string) *MultiTagCreateInitializer {
+	switch format := strings.Split(filename, "."); format[len(format)-1] {
+	case "jpg", "png":
+	default:
+		panic(common.ErrUnsupportedFormat)
+	}
+	if r := recover(); r != nil {
+		log.Panicln(r)
+	}
 	mi.Filename = filename
 	mi.withFile = true
 	return mi
@@ -76,20 +86,15 @@ func (mi *MultiTagCreateInitializer) AuthorizeWith(key string) *MultiTagCreateIn
 // Collect returns the Multi-tag creation result.
 func (mi *MultiTagCreateInitializer) Collect() (res MultiTagCreateResult, err error) {
 	client := &http.Client{}
-<<<<<<< HEAD
 	var req *http.Request
 	if mi.withFile {
-=======
-	body := new(bytes.Buffer)
-	writer := multipart.NewWriter(body)
->>>>>>> upstream/master
 
 		file, err := os.Open(mi.Filename)
 		if err != nil {
 			return res, err
 		}
 		if stat, _ := file.Stat(); 2*1024*1024 < stat.Size() {
-			return res, err
+			return res, common.ErrTooLargeFile
 		}
 
 		defer file.Close()

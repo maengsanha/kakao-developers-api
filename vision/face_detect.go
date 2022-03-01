@@ -11,6 +11,7 @@ import (
 	"mime/multipart"
 	"net/http"
 	"os"
+	"strings"
 )
 
 // Face represents data of the detected face.
@@ -104,6 +105,14 @@ func (fi *FaceDetectInitializer) WithURL(url string) *FaceDetectInitializer {
 
 // WithFile sets image path to @filename.
 func (fi *FaceDetectInitializer) WithFile(filename string) *FaceDetectInitializer {
+	switch format := strings.Split(filename, "."); format[len(format)-1] {
+	case "jpg", "png":
+	default:
+		panic(common.ErrUnsupportedFormat)
+	}
+	if r := recover(); r != nil {
+		log.Panicln(r)
+	}
 	fi.Filename = filename
 	fi.withFile = true
 	return fi
@@ -135,10 +144,7 @@ func (fi *FaceDetectInitializer) ThresholdAt(val float64) *FaceDetectInitializer
 // Collect returns the face detection result.
 func (fi *FaceDetectInitializer) Collect() (res FaceDetectResult, err error) {
 	client := &http.Client{}
-<<<<<<< HEAD
 	var req *http.Request
-=======
->>>>>>> upstream/master
 
 	if fi.withFile {
 
@@ -148,7 +154,7 @@ func (fi *FaceDetectInitializer) Collect() (res FaceDetectResult, err error) {
 		}
 
 		if stat, _ := file.Stat(); 2*1024*1024 < stat.Size() {
-			return res, err
+			return res, common.ErrTooLargeFile
 		}
 
 		defer file.Close()

@@ -3,13 +3,14 @@ package vision
 import (
 	"bytes"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"internal/common"
 	"io"
+	"log"
 	"mime/multipart"
 	"net/http"
 	"os"
+	"strings"
 )
 
 // OCRInitializer is a lazy Optical Character Recognition.
@@ -42,6 +43,15 @@ func (or OCRResult) String() string { return common.String(or) }
 // File format must be one of the BMP, DIB, JPEG, JPE, JP2, WEBP, PBM, PGM, PPM, SR, RAS, TIFF, TIF, PNG and JPG.
 // Refer to https://developers.kakao.com/docs/latest/ko/vision/dev-guide#ocr for more details.
 func OCR(filename string) *OCRInitializer {
+	switch format := strings.Split(filename, "."); format[len(format)-1] {
+	case "jpg", "png", "bmp", "jpeg", "jpe", "jp2", "webp", "pbm", "pgm", "ppm", "sr",
+		"ras", "tiff", "tif", "dib":
+	default:
+		panic(common.ErrUnsupportedFormat)
+	}
+	if r := recover(); r != nil {
+		log.Panicln(r)
+	}
 	return &OCRInitializer{
 		AuthKey:  common.KeyPrefix,
 		Filename: filename,
@@ -64,7 +74,7 @@ func (oi *OCRInitializer) Collect() (res OCRResult, err error) {
 	defer file.Close()
 
 	if stat, _ := file.Stat(); 2*1024*1024 < stat.Size() {
-		return res, errors.New("too large file")
+		return res, common.ErrTooLargeFile
 	}
 
 	body := &bytes.Buffer{}

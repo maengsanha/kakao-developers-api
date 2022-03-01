@@ -34,7 +34,7 @@ func TestMultiTagCreateWithURLSaveAsJson(t *testing.T) {
 }
 
 func TestMultiTagCreateWithFile(t *testing.T) {
-	filename := "/home/js/test2.jpg"
+	filename := "test2.jpg"
 
 	if mr, err := vision.MultiTagCreate().
 		WithFile(filename).
@@ -47,7 +47,7 @@ func TestMultiTagCreateWithFile(t *testing.T) {
 }
 
 func TestMultiTagCreateWithFileSaveAsJson(t *testing.T) {
-	filename := "/home/js/test2.jpg"
+	filename := "test2.jpg"
 
 	if mr, err := vision.MultiTagCreate().
 		WithFile(filename).

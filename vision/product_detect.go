@@ -11,6 +11,7 @@ import (
 	"mime/multipart"
 	"net/http"
 	"os"
+	"strings"
 )
 
 // Product represents coordinates of the detected product area box.
@@ -67,6 +68,14 @@ func ProductDetect() *ProductDetectInitializer {
 
 // WithFile sets image path to @filename.
 func (pi *ProductDetectInitializer) WithFile(filename string) *ProductDetectInitializer {
+	switch format := strings.Split(filename, "."); format[len(format)-1] {
+	case "jpg", "png":
+	default:
+		panic(common.ErrUnsupportedFormat)
+	}
+	if r := recover(); r != nil {
+		log.Panicln(r)
+	}
 	pi.Filename = filename
 	pi.withFile = true
 	return pi
@@ -102,7 +111,6 @@ func (pi *ProductDetectInitializer) ThresholdAt(val float64) *ProductDetectIniti
 
 // Collect returns the product detection result.
 func (pi *ProductDetectInitializer) Collect() (res ProductDetectResult, err error) {
-<<<<<<< HEAD
 	var req *http.Request
 	client := &http.Client{}
 	if pi.withFile {
@@ -110,35 +118,25 @@ func (pi *ProductDetectInitializer) Collect() (res ProductDetectResult, err erro
 		if err != nil {
 			return res, err
 		}
-
 		if stat, _ := file.Stat(); 2*1024*1024 < stat.Size() {
-			return res, err
+			return res, common.ErrTooLargeFile
 		}
-
 		defer file.Close()
 
 		body := &bytes.Buffer{}
 		writer := multipart.NewWriter(body)
-=======
-	client := &http.Client{}
-	body := new(bytes.Buffer)
-	writer := multipart.NewWriter(body)
-	if pi.Image != nil {
->>>>>>> upstream/master
 		writer.WriteField("threshold", fmt.Sprintf("%f", pi.Threshold))
 		part, err := writer.CreateFormFile("image", pi.Filename)
 		if err != nil {
 			return res, err
 		}
-
 		_, err = io.Copy(part, file)
 		if err != nil {
 			return res, err
 		}
-
 		writer.Close()
 
-		req, err := http.NewRequest(http.MethodPost, fmt.Sprintf("%s/product/detect", prefix), body)
+		req, err = http.NewRequest(http.MethodPost, fmt.Sprintf("%s/product/detect", prefix), body)
 		if err != nil {
 			return res, err
 		}
@@ -152,16 +150,13 @@ func (pi *ProductDetectInitializer) Collect() (res ProductDetectResult, err erro
 	if err != nil {
 		return
 	}
-
 	req.Close = true
-
 	req.Header.Add(common.Authorization, pi.AuthKey)
 
 	resp, err := client.Do(req)
 	if err != nil {
 		return res, err
 	}
-
 	defer resp.Body.Close()
 
 	if err = json.NewDecoder(resp.Body).Decode(&res); err != nil {

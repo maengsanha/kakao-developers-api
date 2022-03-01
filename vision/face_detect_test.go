@@ -34,7 +34,7 @@ func TestFaceDetectWithURLSaveAsJSON(t *testing.T) {
 }
 
 func TestFaceDetectWithFile(t *testing.T) {
-	filename := "/home/js/test.jpg"
+	filename := "test.jpg"
 
 	if fr, err := vision.FaceDetect().
 		WithFile(filename).
@@ -48,7 +48,7 @@ func TestFaceDetectWithFile(t *testing.T) {
 }
 
 func TestFaceDetectWithFileSaveAsJSON(t *testing.T) {
-	filename := "/home/js/test.jpg"
+	filename := "test.jpg"
 
 	if fr, err := vision.FaceDetect().
 		WithFile(filename).

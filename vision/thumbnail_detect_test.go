@@ -38,7 +38,7 @@ func TestThumbnailDetectWithURLSaveAsJSON(t *testing.T) {
 }
 
 func TestThumbnailDetectWithFile(t *testing.T) {
-	filename := "/home/js/test4.jpg"
+	filename := "test4.jpg"
 
 	if tr, err := vision.ThumbnailDetect().
 		WithFile(filename).
@@ -53,7 +53,7 @@ func TestThumbnailDetectWithFile(t *testing.T) {
 }
 
 func TestThumbnailDetectWithFileSaveAsJSON(t *testing.T) {
-	filename := "/home/js/test4.jpg"
+	filename := "test4.jpg"
 
 	if tr, err := vision.ThumbnailDetect().
 		WithFile(filename).
