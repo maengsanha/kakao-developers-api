@@ -55,10 +55,10 @@ import "github.com/maengsanha/kakao-developers-client/local"
 func main() {
   it := local.AddressSearch("을지로").
               AuthorizeWith("deadbeef").
-		          Analyze("similar").
-		          FormatAs("json").
-		          Display(30).
-		          Result(1)
+              Analyze("similar").
+              FormatAs("json").
+              Display(30).
+              Result(1)
 
 	for {
 		item, err := it.Next()
