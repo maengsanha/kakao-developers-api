@@ -239,29 +239,3 @@ func (it *AddressSearchIterator) CollectAll() (results AddressSearchResults) {
 
 	return
 }
-
-func (it *AddressSearchIterator) CollectAll2() <-chan AddressSearchResult {
-	ch := make(chan AddressSearchResult, 45)
-	defer close(ch)
-
-	// pre-profile to guess the remaining pages
-	result, err := it.Next()
-	if err == nil {
-		ch <- result
-	}
-
-	n := common.RemainingPages(result.Meta.PageableCount, it.Size, it.Page, 45)
-
-	for page := it.Page; page < it.Page+n; page++ {
-		go func(page int) {
-			worker := *it
-			if result, err := worker.Result(page).Next(); err == nil {
-				ch <- result
-			}
-		}(page)
-	}
-
-	it.end = true
-
-	return ch
-}
