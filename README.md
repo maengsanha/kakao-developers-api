@@ -32,7 +32,7 @@ go get -u github.com/maengsanha/kakao-developers-client
   - Text translation
   - Language detection
 
-* [ ] Pose
+* [x] Pose
   - Analyze image
   - Analyze video
   - check video analysis results
@@ -51,7 +51,23 @@ go get -u github.com/maengsanha/kakao-developers-client
 package main
 
 func main() {
-  // TODO
+  it := local.AddressSearch("을지로").
+		AuthorizeWith("deadbeef").
+		Analyze("similar").
+		FormatAs("json").
+		Display(30).
+		Result(1)
+
+	for {
+		item, err := it.Next()
+		if err == local.Done {
+			break
+		}
+		if err != nil {
+			t.Error(err)
+		}
+		t.Log(item)
+	}
 }
 ```
 
