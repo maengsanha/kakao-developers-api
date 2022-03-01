@@ -37,7 +37,7 @@ go get -u github.com/maengsanha/kakao-developers-client
   - Analyze video
   - check video analysis results
 
-* [ ] Vision
+* [x] Vision
   - Face detection
   - Product detection
   - Adult image detection
@@ -50,13 +50,15 @@ go get -u github.com/maengsanha/kakao-developers-client
 ```go
 package main
 
+import "github.com/maengsanha/kakao-developers-client/local"
+
 func main() {
   it := local.AddressSearch("을지로").
-		AuthorizeWith("deadbeef").
-		Analyze("similar").
-		FormatAs("json").
-		Display(30).
-		Result(1)
+              AuthorizeWith("deadbeef").
+		          Analyze("similar").
+		          FormatAs("json").
+		          Display(30).
+		          Result(1)
 
 	for {
 		item, err := it.Next()
