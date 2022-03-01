@@ -21,10 +21,10 @@ func TestVideoAnalyzeWithURL(t *testing.T) {
 }
 
 func TestVideoAnalyzeWithFile(t *testing.T) {
-	file_path := "/Users/goryne/Downloads/testvideo.mp4"
+	filename := "testvideo.mp4"
 
 	if vr, err := pose.AnalyzeVideo().
-		WithFile(file_path).
+		WithFile(filename).
 		AuthorizeWith(common.REST_API_KEY).
 		Collect(); err != nil {
 		t.Error(err)

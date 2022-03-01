@@ -9,7 +9,6 @@ import (
 	"mime/multipart"
 	"net/http"
 	"os"
-	"path/filepath"
 )
 
 // AnalyzeImageeResult represents a result of image analyze result.
@@ -35,7 +34,8 @@ func (ar AnalyzeImageResult) SaveAs(filename string) error {
 type AnalyzeImageInitializer struct {
 	AuthKey  string
 	ImageURL string
-	File     *os.File
+	Filename string
+	withFile bool
 }
 
 // AnalyzeImage detects people in the given image and extracts each person's 17 key points(person's eyes, nose, shoulders,
@@ -48,24 +48,18 @@ func AnalyzeImage() *AnalyzeImageInitializer {
 	}
 }
 
-// WithURL sets url to @imageURL.
+// WithURL sets url to @url.
 func (ai *AnalyzeImageInitializer) WithURL(url string) *AnalyzeImageInitializer {
 	ai.ImageURL = url
+	ai.withFile = false
 	return ai
 }
 
-// WithFile sets filepath to @File.
-func (ai *AnalyzeImageInitializer) WithFile(filepath string) *AnalyzeImageInitializer {
-	bs, err := os.Open(filepath)
-	if err != nil {
-		panic(err)
-	}
-	if stat, _ := bs.Stat(); stat.Size() > 2*1024*1024 {
-		panic("up to 2MB are allowed")
-	} else {
-		ai.File = bs
-		return ai
-	}
+// WithFile sets image path to @filename.
+func (ai *AnalyzeImageInitializer) WithFile(filename string) *AnalyzeImageInitializer {
+	ai.Filename = filename
+	ai.withFile = true
+	return ai
 }
 
 // AuthorizeWith sets the authorization key to @key.
@@ -76,39 +70,54 @@ func (ai *AnalyzeImageInitializer) AuthorizeWith(key string) *AnalyzeImageInitia
 
 // Collect returns the image analyze result.
 func (ai *AnalyzeImageInitializer) Collect() (res AnalyzeImageResult, err error) {
-	client := new(http.Client)
-	body := &bytes.Buffer{}
-	writer := multipart.NewWriter(body)
-	if err != nil {
-		return
-	}
-
-	if ai.File != nil {
-		part, err := writer.CreateFormFile("file", filepath.Base(ai.File.Name()))
+	var req *http.Request
+	if ai.withFile {
+		file, err := os.Open(ai.Filename)
 		if err != nil {
 			return res, err
 		}
-		io.Copy(part, ai.File)
-	}
-	defer writer.Close()
 
-	var req *http.Request
-	if ai.File != nil {
-		req, err = http.NewRequest(http.MethodPost, fmt.Sprintf("%s?file=%s", prefix, filepath.Base(ai.File.Name())), body)
+		if stat, _ := file.Stat(); 2*1024*1024 < stat.Size() {
+			return res, common.ErrTooLargeFile
+		}
+
+		defer file.Close()
+
+		body := &bytes.Buffer{}
+		writer := multipart.NewWriter(body)
+		part, err := writer.CreateFormFile("file", ai.Filename)
+		if err != nil {
+			return res, err
+		}
+
+		_, err = io.Copy(part, file)
+		if err != nil {
+			return res, err
+		}
+
+		writer.Close()
+
+		req, err = http.NewRequest(http.MethodPost, prefix, body)
+		if err != nil {
+			return res, err
+		}
+
+		req.Header.Add("Content-Type", writer.FormDataContentType())
 	} else {
 		req, err = http.NewRequest(http.MethodPost, fmt.Sprintf("%s?image_url=%s", prefix, ai.ImageURL), nil)
+		if err != nil {
+			return res, err
+		}
 	}
 	if err != nil {
 		return
 	}
-	fmt.Println(req.ContentLength)
+
 	req.Close = true
 
-	req.Header.Set(common.Authorization, ai.AuthKey)
-	req.Header.Set("Content-type", "multipart/form-data")
+	req.Header.Add(common.Authorization, ai.AuthKey)
 
-	defer ai.File.Close()
-
+	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
 		return
