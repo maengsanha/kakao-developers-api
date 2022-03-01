@@ -50,28 +50,38 @@ go get -u github.com/maengsanha/kakao-developers-client
 ```go
 package main
 
-import "github.com/maengsanha/kakao-developers-client/local"
+import (
+  "log"
+
+  "github.com/maengsanha/kakao-developers-client/local"
+)
 
 func main() {
   it := local.AddressSearch("을지로").
-              AuthorizeWith("deadbeef").
+              AuthorizeWith(YOUR_REST_API_KEY).
               Analyze("similar").
               FormatAs("json").
               Display(30).
               Result(1)
 
-	for {
-		item, err := it.Next()
-		if err == local.Done {
-			break
-		}
-		if err != nil {
-			t.Error(err)
-		}
-		t.Log(item)
-	}
+  for {
+    item, err := it.Next()
+    if err == local.Done {
+      break
+    }
+    if err != nil {
+      log.Panicln(err)
+    }
+    log.Println(item)
+  }
 }
 ```
+
+#### Documentation
+
+There are API documentations for each features in the [Go package site](https://pkg.go.dev/github.com/maengsanha/kakao-developers-client).
+<br/>
+See [official development guides](https://developers.kakao.com/) for more details.
 
 #### License
 
