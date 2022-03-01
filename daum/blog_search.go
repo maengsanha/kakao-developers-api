@@ -110,7 +110,7 @@ func (it *BlogSearchIterator) Next() (res BlogSearchResult, err error) {
 		return res, Done
 	}
 
-	client := new(http.Client)
+	client := &http.Client{}
 
 	req, err := http.NewRequest(http.MethodGet,
 		fmt.Sprintf("%sblog?query=%s&sort=%s&page=%d&size=%d",

@@ -198,7 +198,7 @@ func (it *CategorySearchIterator) Next() (res PlaceSearchResult, err error) {
 		return res, Done
 	}
 
-	client := new(http.Client)
+	client := &http.Client{}
 	req, err := http.NewRequest(http.MethodGet,
 		fmt.Sprintf("%ssearch/category.%s?category_group_code=%s&page=%d&size=%d&sort=%s&x=%s&y=%s&radius=%d&rect=%s",
 			prefix, it.Format, it.CategoryGroupCode, it.Page, it.Size, it.Sort, it.X, it.Y, it.Radius, it.Rect), nil)

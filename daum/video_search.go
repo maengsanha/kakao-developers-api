@@ -114,7 +114,7 @@ func (it *VideoSearchIterator) Next() (res VideoSearchResult, err error) {
 		return res, Done
 	}
 
-	client := new(http.Client)
+	client := &http.Client{}
 
 	req, err := http.NewRequest(http.MethodGet,
 		fmt.Sprintf("%svclip?query=%s&sort=%s&page=%d&size=%d",

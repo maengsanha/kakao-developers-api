@@ -73,7 +73,7 @@ func (mi *MultiTagCreateInitializer) AuthorizeWith(key string) *MultiTagCreateIn
 
 // Collect returns the Multi-tag creation result.
 func (mi *MultiTagCreateInitializer) Collect() (res MultiTagCreateResult, err error) {
-	client := new(http.Client)
+	client := &http.Client{}
 	body := new(bytes.Buffer)
 	writer := multipart.NewWriter(body)
 

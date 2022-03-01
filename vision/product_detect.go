@@ -100,7 +100,7 @@ func (pi *ProductDetectInitializer) ThresholdAt(val float64) *ProductDetectIniti
 
 // Collect returns the product detection result.
 func (pi *ProductDetectInitializer) Collect() (res ProductDetectResult, err error) {
-	client := new(http.Client)
+	client := &http.Client{}
 	body := new(bytes.Buffer)
 	writer := multipart.NewWriter(body)
 	if pi.Image != nil {

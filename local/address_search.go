@@ -163,7 +163,7 @@ func (it *AddressSearchIterator) Next() (res AddressSearchResult, err error) {
 	}
 
 	// at first, send request to the API server
-	client := new(http.Client)
+	client := &http.Client{}
 	req, err := http.NewRequest(http.MethodGet,
 		fmt.Sprintf("%ssearch/address.%s?query=%s&analyze_type=%s&page=%d&size=%d",
 			prefix, it.Format, it.Query, it.AnalyzeType, it.Page, it.Size), nil)

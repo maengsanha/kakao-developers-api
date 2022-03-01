@@ -204,7 +204,7 @@ func (it *KeywordSearchIterator) Next() (res PlaceSearchResult, err error) {
 		return res, Done
 	}
 
-	client := new(http.Client)
+	client := &http.Client{}
 
 	req, err := http.NewRequest(http.MethodGet,
 		fmt.Sprintf("%ssearch/keyword.%s?query=%s&category_group_code=%s&x=%s&y=%s&radius=%d&rect=%s&page=%d&size=%d&sort=%s",

@@ -158,7 +158,7 @@ func (ti *TransCoordInitializer) Output(coord string) *TransCoordInitializer {
 // Collect returns the coordinate system conversion result.
 func (ti *TransCoordInitializer) Collect() (res TransCoordResult, err error) {
 	// at first, send request to the API server
-	client := new(http.Client)
+	client := &http.Client{}
 	req, err := http.NewRequest(http.MethodGet,
 		fmt.Sprintf("https://dapi.kakao.com/v2/local/geo/transcoord.%s?x=%s&y=%s&input_coord=%s&output_coord=%s",
 			ti.Format, ti.X, ti.Y, ti.InputCoord, ti.OutputCoord), nil)

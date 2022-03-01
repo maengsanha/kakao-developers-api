@@ -144,7 +144,7 @@ func (ci *CoordToDistrictInitializer) Output(coord string) *CoordToDistrictIniti
 
 // Collect returns the coordinate conversion result.
 func (ci *CoordToDistrictInitializer) Collect() (res CoordToDistrictResult, err error) {
-	client := new(http.Client)
+	client := &http.Client{}
 	req, err := http.NewRequest(http.MethodGet,
 		fmt.Sprintf("%sgeo/coord2regioncode.%s?x=%s&y=%s&input_coord=%s&output_coord=%s",
 			prefix, ci.Format, ci.X, ci.Y, ci.InputCoord, ci.OutputCoord), nil)

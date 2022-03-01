@@ -132,7 +132,7 @@ func (fi *FaceDetectInitializer) ThresholdAt(val float64) *FaceDetectInitializer
 
 // Collect returns the face detection result.
 func (fi *FaceDetectInitializer) Collect() (res FaceDetectResult, err error) {
-	client := new(http.Client)
+	client := &http.Client{}
 
 	body := new(bytes.Buffer)
 	writer := multipart.NewWriter(body)

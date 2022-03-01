@@ -173,7 +173,7 @@ func (ti *TranslateInitializer) To(target string) *TranslateInitializer {
 
 // Collect returns the translation result.
 func (ti *TranslateInitializer) Collect() (res TranslateResult, err error) {
-	client := new(http.Client)
+	client := &http.Client{}
 	req, err := http.NewRequest(http.MethodGet,
 		fmt.Sprintf("%s/v2/translation/translate?src_lang=%s&target_lang=%s&query=%s",
 			prefix, ti.SrcLang, ti.TargetLang, ti.Query), nil)

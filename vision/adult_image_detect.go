@@ -75,7 +75,7 @@ func (ai *AdultImageDetectInitializer) AuthorizeWith(key string) *AdultImageDete
 
 // Collect returns the adult image detection result.
 func (ai *AdultImageDetectInitializer) Collect() (res AdultImageDetectResult, err error) {
-	client := new(http.Client)
+	client := &http.Client{}
 	body := new(bytes.Buffer)
 	writer := multipart.NewWriter(body)
 

@@ -96,7 +96,7 @@ func (ci *CheckVideoInitializer) AuthorizeWith(key string) *CheckVideoInitialize
 
 // Collect returns the check video result.
 func (ci *CheckVideoInitializer) Collect() (res CheckVideoResult, err error) {
-	client := new(http.Client)
+	client := &http.Client{}
 	req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("%s/job/%s", prefix, ci.JobId), nil)
 
 	if err != nil {
