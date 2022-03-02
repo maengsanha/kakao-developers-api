@@ -52,7 +52,6 @@ func ThumbnailCreate() *ThumbnailCreateInitializer {
 
 // WithURL sets url to @url.
 func (ti *ThumbnailCreateInitializer) WithURL(url string) *ThumbnailCreateInitializer {
-
 	ti.ImageURL = url
 	ti.withFile = false
 	return ti
@@ -94,7 +93,6 @@ func (ti *ThumbnailCreateInitializer) HeightTo(ratio int) *ThumbnailCreateInitia
 // Collect returns the thumbnail creation result.
 func (ti *ThumbnailCreateInitializer) Collect() (res ThumbnailCreateResult, err error) {
 	var req *http.Request
-	client := &http.Client{}
 
 	if ti.withFile {
 
@@ -142,6 +140,7 @@ func (ti *ThumbnailCreateInitializer) Collect() (res ThumbnailCreateResult, err 
 	req.Close = true
 	req.Header.Add(common.Authorization, ti.AuthKey)
 
+	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
 		return res, err

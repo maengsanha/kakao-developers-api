@@ -111,7 +111,6 @@ func (ti *ThumbnailDetectInitializer) HeightTo(ratio int) *ThumbnailDetectInitia
 // Collect returns the thumbnail detection result.
 func (ti *ThumbnailDetectInitializer) Collect() (res ThumbnailDetectResult, err error) {
 	var req *http.Request
-	client := &http.Client{}
 
 	if ti.withFile {
 
@@ -157,16 +156,16 @@ func (ti *ThumbnailDetectInitializer) Collect() (res ThumbnailDetectResult, err 
 
 	req.Close = true
 	req.Header.Add(common.Authorization, ti.AuthKey)
-
+	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
-		return res, err
+		return
 	}
 
 	defer resp.Body.Close()
 
 	if err = json.NewDecoder(resp.Body).Decode(&res); err != nil {
-		return res, err
+		return
 	}
 	return
 }

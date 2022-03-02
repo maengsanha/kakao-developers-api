@@ -127,8 +127,6 @@ func (fi *FaceDetectInitializer) AuthorizeWith(key string) *FaceDetectInitialize
 // ThresholdAt sets the Threshold to @val. (a value between 0 and 1.0)
 //
 // Threshold is a reference value to detect as a face.
-// If @val is set too high, some faces may not be able to be detected as a face.
-// If @val is set too low, other area can be detected as a face.
 func (fi *FaceDetectInitializer) ThresholdAt(val float64) *FaceDetectInitializer {
 	if 0.1 <= val && val <= 1.0 {
 		fi.Threshold = val
@@ -143,7 +141,6 @@ func (fi *FaceDetectInitializer) ThresholdAt(val float64) *FaceDetectInitializer
 
 // Collect returns the face detection result.
 func (fi *FaceDetectInitializer) Collect() (res FaceDetectResult, err error) {
-	client := &http.Client{}
 	var req *http.Request
 
 	if fi.withFile {
@@ -183,22 +180,23 @@ func (fi *FaceDetectInitializer) Collect() (res FaceDetectResult, err error) {
 	} else {
 		req, err = http.NewRequest(http.MethodPost, fmt.Sprintf("%s/face/detect?threshold=%f&image_url=%s", prefix, fi.Threshold, fi.ImageURL), nil)
 		if err != nil {
-			return res, err
+			return
 		}
 	}
 
 	req.Close = true
 
 	req.Header.Add(common.Authorization, fi.AuthKey)
+	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
-		return res, err
+		return
 	}
 
 	defer resp.Body.Close()
 
 	if err = json.NewDecoder(resp.Body).Decode(&res); err != nil {
-		return res, err
+		return
 	}
 	return
 

@@ -112,7 +112,7 @@ func (pi *ProductDetectInitializer) ThresholdAt(val float64) *ProductDetectIniti
 // Collect returns the product detection result.
 func (pi *ProductDetectInitializer) Collect() (res ProductDetectResult, err error) {
 	var req *http.Request
-	client := &http.Client{}
+
 	if pi.withFile {
 		file, err := os.Open(pi.Filename)
 		if err != nil {
@@ -144,7 +144,7 @@ func (pi *ProductDetectInitializer) Collect() (res ProductDetectResult, err erro
 	} else {
 		req, err = http.NewRequest(http.MethodPost, fmt.Sprintf("%s/product/detect?threshold=%f&image_url=%s", prefix, pi.Threshold, pi.ImageURL), nil)
 		if err != nil {
-			return res, err
+			return
 		}
 	}
 	if err != nil {
@@ -152,15 +152,15 @@ func (pi *ProductDetectInitializer) Collect() (res ProductDetectResult, err erro
 	}
 	req.Close = true
 	req.Header.Add(common.Authorization, pi.AuthKey)
-
+	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
-		return res, err
+		return
 	}
 	defer resp.Body.Close()
 
 	if err = json.NewDecoder(resp.Body).Decode(&res); err != nil {
-		return res, err
+		return
 	}
 	return
 }

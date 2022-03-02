@@ -14,7 +14,6 @@ import (
 )
 
 // AdultResult represents a document of a detected adult image result.
-// If the soft or adult score of an image is high, it is likely to be nudity or porn images. (normal + soft + adult = 1.0)
 type AdultResult struct {
 	Normal float64 `json:"normal"`
 	Soft   float64 `json:"soft"`
@@ -59,7 +58,6 @@ func AdultImageDetect() *AdultImageDetectInitializer {
 
 // WithFile sets image path to @filename.
 func (ai *AdultImageDetectInitializer) WithFile(filename string) *AdultImageDetectInitializer {
-
 	switch format := strings.Split(filename, "."); format[len(format)-1] {
 	case "jpg", "png":
 	default:
@@ -88,7 +86,6 @@ func (ai *AdultImageDetectInitializer) AuthorizeWith(key string) *AdultImageDete
 
 // Collect returns the adult image detection result.
 func (ai *AdultImageDetectInitializer) Collect() (res AdultImageDetectResult, err error) {
-	client := &http.Client{}
 	var req *http.Request
 
 	if ai.withFile {
@@ -138,15 +135,15 @@ func (ai *AdultImageDetectInitializer) Collect() (res AdultImageDetectResult, er
 	req.Close = true
 
 	req.Header.Add(common.Authorization, ai.AuthKey)
-
+	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
-		return res, err
+		return
 	}
 	defer resp.Body.Close()
 
 	if err = json.NewDecoder(resp.Body).Decode(&res); err != nil {
-		return res, err
+		return
 	}
 	return
 }

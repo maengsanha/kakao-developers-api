@@ -85,8 +85,8 @@ func (mi *MultiTagCreateInitializer) AuthorizeWith(key string) *MultiTagCreateIn
 
 // Collect returns the Multi-tag creation result.
 func (mi *MultiTagCreateInitializer) Collect() (res MultiTagCreateResult, err error) {
-	client := &http.Client{}
 	var req *http.Request
+
 	if mi.withFile {
 
 		file, err := os.Open(mi.Filename)
@@ -101,7 +101,6 @@ func (mi *MultiTagCreateInitializer) Collect() (res MultiTagCreateResult, err er
 
 		body := &bytes.Buffer{}
 		writer := multipart.NewWriter(body)
-
 		part, err := writer.CreateFormFile("image", mi.Filename)
 		if err != nil {
 			return res, err
@@ -127,21 +126,21 @@ func (mi *MultiTagCreateInitializer) Collect() (res MultiTagCreateResult, err er
 		}
 	}
 	if err != nil {
-		return res, err
+		return
 	}
 
 	req.Close = true
 
 	req.Header.Add(common.Authorization, mi.AuthKey)
-
+	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
-		return res, err
+		return
 	}
 	defer resp.Body.Close()
 
 	if err = json.NewDecoder(resp.Body).Decode(&res); err != nil {
-		return res, err
+		return
 	}
 	return
 }
