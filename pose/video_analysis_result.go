@@ -24,9 +24,7 @@ func (cr CheckVideoResult) String() string { return common.String(cr) }
 // SaveAs saves cr to @filename.
 //
 // The file extension could be .json.
-func (cr CheckVideoResult) SaveAs(filename string) error {
-	return common.SaveAsJSONorXML(cr, filename)
-}
+func (cr CheckVideoResult) SaveAs(filename string) error { return common.SaveAsJSONorXML(cr, filename) }
 
 // Annotation containing the coordinates and score of the key points detected in each frame,
 // as an array with the size of the number of frames.
@@ -97,14 +95,13 @@ func (ci *CheckVideoInitializer) AuthorizeWith(key string) *CheckVideoInitialize
 // Collect returns the check video result.
 func (ci *CheckVideoInitializer) Collect() (res CheckVideoResult, err error) {
 	client := &http.Client{}
-	req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("%s/job/%s", prefix, ci.JobId), nil)
 
+	req, err := http.NewRequest(http.MethodGet, fmt.Sprintf("%s/job/%s", prefix, ci.JobId), nil)
 	if err != nil {
 		return
 	}
 
 	req.Close = true
-
 	req.Header.Set(common.Authorization, ci.AuthKey)
 
 	resp, err := client.Do(req)
@@ -113,6 +110,7 @@ func (ci *CheckVideoInitializer) Collect() (res CheckVideoResult, err error) {
 	}
 
 	defer resp.Body.Close()
+
 	if err = json.NewDecoder(resp.Body).Decode(&res); err != nil {
 		return
 	}

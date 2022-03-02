@@ -32,7 +32,7 @@ type ProductResult struct {
 
 // ProductDetectResult represents a Product Detection result.
 type ProductDetectResult struct {
-	RID    string        `json:"rid"`
+	RId    string        `json:"rid"`
 	Result ProductResult `json:"result"`
 }
 
@@ -60,8 +60,6 @@ type ProductDetectInitializer struct {
 func ProductDetect() *ProductDetectInitializer {
 	return &ProductDetectInitializer{
 		AuthKey:   common.KeyPrefix,
-		Filename:  "",
-		ImageURL:  "",
 		Threshold: 0.8,
 	}
 }
@@ -118,7 +116,10 @@ func (pi *ProductDetectInitializer) Collect() (res ProductDetectResult, err erro
 		if err != nil {
 			return res, err
 		}
-		if stat, _ := file.Stat(); 2*1024*1024 < stat.Size() {
+
+		if stat, err := file.Stat(); err != nil {
+			return res, err
+		} else if 2*1024*1024 < stat.Size() {
 			return res, common.ErrTooLargeFile
 		}
 		defer file.Close()
@@ -126,14 +127,17 @@ func (pi *ProductDetectInitializer) Collect() (res ProductDetectResult, err erro
 		body := &bytes.Buffer{}
 		writer := multipart.NewWriter(body)
 		writer.WriteField("threshold", fmt.Sprintf("%f", pi.Threshold))
+
 		part, err := writer.CreateFormFile("image", pi.Filename)
 		if err != nil {
 			return res, err
 		}
+
 		_, err = io.Copy(part, file)
 		if err != nil {
 			return res, err
 		}
+
 		writer.Close()
 
 		req, err = http.NewRequest(http.MethodPost, fmt.Sprintf("%s/product/detect", prefix), body)
@@ -147,11 +151,10 @@ func (pi *ProductDetectInitializer) Collect() (res ProductDetectResult, err erro
 			return
 		}
 	}
-	if err != nil {
-		return
-	}
+
 	req.Close = true
 	req.Header.Add(common.Authorization, pi.AuthKey)
+
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
@@ -162,5 +165,6 @@ func (pi *ProductDetectInitializer) Collect() (res ProductDetectResult, err erro
 	if err = json.NewDecoder(resp.Body).Decode(&res); err != nil {
 		return
 	}
+
 	return
 }

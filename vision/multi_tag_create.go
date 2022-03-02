@@ -21,7 +21,7 @@ type MultiTagResult struct {
 
 // MultiTagCreateResult represents a Multi-tag creation result.
 type MultiTagCreateResult struct {
-	RID    string         `json:"rid"`
+	RId    string         `json:"rid"`
 	Result MultiTagResult `json:"result"`
 }
 
@@ -31,9 +31,7 @@ func (mr MultiTagCreateResult) String() string { return common.String(mr) }
 // SaveAs saves mr to @filename.
 //
 // The file extension must be .json.
-func (mr MultiTagCreateResult) SaveAs(filename string) error {
-	return common.SaveAsJSON(mr, filename)
-}
+func (mr MultiTagCreateResult) SaveAs(filename string) error { return common.SaveAsJSON(mr, filename) }
 
 // MultiTagCreateInitializer is a lazy Multi-tag creator.
 type MultiTagCreateInitializer struct {
@@ -49,9 +47,7 @@ type MultiTagCreateInitializer struct {
 // Refer to https://developers.kakao.com/docs/latest/ko/vision/dev-guide#create-multi-tag for more details.
 func MultiTagCreate() *MultiTagCreateInitializer {
 	return &MultiTagCreateInitializer{
-		AuthKey:  common.KeyPrefix,
-		Filename: "",
-		ImageURL: "",
+		AuthKey: common.KeyPrefix,
 	}
 }
 
@@ -88,12 +84,13 @@ func (mi *MultiTagCreateInitializer) Collect() (res MultiTagCreateResult, err er
 	var req *http.Request
 
 	if mi.withFile {
-
 		file, err := os.Open(mi.Filename)
 		if err != nil {
 			return res, err
 		}
-		if stat, _ := file.Stat(); 2*1024*1024 < stat.Size() {
+		if stat, err := file.Stat(); err != nil {
+			return res, err
+		} else if 2*1024*1024 < stat.Size() {
 			return res, common.ErrTooLargeFile
 		}
 
@@ -118,20 +115,16 @@ func (mi *MultiTagCreateInitializer) Collect() (res MultiTagCreateResult, err er
 			return res, err
 		}
 		req.Header.Add("Content-Type", writer.FormDataContentType())
-
 	} else {
 		req, err = http.NewRequest(http.MethodPost, fmt.Sprintf("%s/multitag/generate?image_url=%s", prefix, mi.ImageURL), nil)
 		if err != nil {
 			return res, err
 		}
 	}
-	if err != nil {
-		return
-	}
 
 	req.Close = true
-
 	req.Header.Add(common.Authorization, mi.AuthKey)
+
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
@@ -142,5 +135,6 @@ func (mi *MultiTagCreateInitializer) Collect() (res MultiTagCreateResult, err er
 	if err = json.NewDecoder(resp.Body).Decode(&res); err != nil {
 		return
 	}
+
 	return
 }

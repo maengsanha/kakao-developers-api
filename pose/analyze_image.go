@@ -77,7 +77,9 @@ func (ai *AnalyzeImageInitializer) Collect() (res AnalyzeImageResult, err error)
 			return res, err
 		}
 
-		if stat, _ := file.Stat(); 2*1024*1024 < stat.Size() {
+		if stat, err := file.Stat(); err != nil {
+			return res, err
+		} else if 2*1024*1024 < stat.Size() {
 			return res, common.ErrTooLargeFile
 		}
 
@@ -85,6 +87,7 @@ func (ai *AnalyzeImageInitializer) Collect() (res AnalyzeImageResult, err error)
 
 		body := &bytes.Buffer{}
 		writer := multipart.NewWriter(body)
+
 		part, err := writer.CreateFormFile("file", ai.Filename)
 		if err != nil {
 			return res, err
@@ -109,12 +112,8 @@ func (ai *AnalyzeImageInitializer) Collect() (res AnalyzeImageResult, err error)
 			return res, err
 		}
 	}
-	if err != nil {
-		return
-	}
 
 	req.Close = true
-
 	req.Header.Add(common.Authorization, ai.AuthKey)
 
 	client := &http.Client{}

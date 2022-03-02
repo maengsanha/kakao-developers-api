@@ -30,7 +30,7 @@ type ThumbnailResult struct {
 
 // ThumbnailDetectResult represents a Thumbnail Detection result.
 type ThumbnailDetectResult struct {
-	RID    string          `json:"rid"`
+	RId    string          `json:"rid"`
 	Result ThumbnailResult `json:"result"`
 }
 
@@ -40,9 +40,7 @@ func (tr ThumbnailDetectResult) String() string { return common.String(tr) }
 // SaveAs saves tr to @filename.
 //
 // The file extension must be .json.
-func (tr ThumbnailDetectResult) SaveAs(filename string) error {
-	return common.SaveAsJSON(tr, filename)
-}
+func (tr ThumbnailDetectResult) SaveAs(filename string) error { return common.SaveAsJSON(tr, filename) }
 
 // ThumbnailDetectIniailizer is a lazy thumbnail detector.
 type ThumbnailDetectInitializer struct {
@@ -60,11 +58,9 @@ type ThumbnailDetectInitializer struct {
 // Refer to https://developers.kakao.com/docs/latest/ko/vision/dev-guide#extract-thumbnail for more details.
 func ThumbnailDetect() *ThumbnailDetectInitializer {
 	return &ThumbnailDetectInitializer{
-		AuthKey:  common.KeyPrefix,
-		ImageURL: "",
-		Filename: "",
-		Width:    0,
-		Height:   0,
+		AuthKey: common.KeyPrefix,
+		Width:   0,
+		Height:  0,
 	}
 }
 
@@ -113,13 +109,14 @@ func (ti *ThumbnailDetectInitializer) Collect() (res ThumbnailDetectResult, err 
 	var req *http.Request
 
 	if ti.withFile {
-
 		file, err := os.Open(ti.Filename)
 		if err != nil {
 			return res, err
 		}
 
-		if stat, _ := file.Stat(); 2*1024*1024 < stat.Size() {
+		if stat, err := file.Stat(); err != nil {
+			return res, err
+		} else if 2*1024*1024 < stat.Size() {
 			return res, common.ErrTooLargeFile
 		}
 
@@ -129,33 +126,36 @@ func (ti *ThumbnailDetectInitializer) Collect() (res ThumbnailDetectResult, err 
 		writer := multipart.NewWriter(body)
 		writer.WriteField("width", fmt.Sprintf("%d", ti.Width))
 		writer.WriteField("height", fmt.Sprintf("%d", ti.Height))
+
 		part, err := writer.CreateFormFile("image", ti.Filename)
 		if err != nil {
 			return res, err
 		}
-		io.Copy(part, file)
+
+		_, err = io.Copy(part, file)
+		if err != nil {
+			return res, err
+		}
 
 		writer.Close()
-		req, err = http.NewRequest(http.MethodPost, fmt.Sprintf("%s/thumbnail/detect",
-			prefix), body)
+
+		req, err = http.NewRequest(http.MethodPost, fmt.Sprintf("%s/thumbnail/detect", prefix), body)
 		if err != nil {
 			return res, err
 		}
 		req.Header.Add("Content-Type", writer.FormDataContentType())
-
 	} else {
-		req, err = http.NewRequest(http.MethodPost, fmt.Sprintf("%s/thumbnail/detect?image_url=%s&width=%d&height=%d",
-			prefix, ti.ImageURL, ti.Width, ti.Height), nil)
+		req, err = http.NewRequest(http.MethodPost,
+			fmt.Sprintf("%s/thumbnail/detect?image_url=%s&width=%d&height=%d",
+				prefix, ti.ImageURL, ti.Width, ti.Height), nil)
 		if err != nil {
 			return res, err
 		}
 	}
-	if err != nil {
-		return
-	}
 
 	req.Close = true
 	req.Header.Add(common.Authorization, ti.AuthKey)
+
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
@@ -167,5 +167,6 @@ func (ti *ThumbnailDetectInitializer) Collect() (res ThumbnailDetectResult, err 
 	if err = json.NewDecoder(resp.Body).Decode(&res); err != nil {
 		return
 	}
+
 	return
 }

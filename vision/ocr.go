@@ -73,13 +73,19 @@ func (oi *OCRInitializer) Collect() (res OCRResult, err error) {
 
 	defer file.Close()
 
-	if stat, _ := file.Stat(); 2*1024*1024 < stat.Size() {
+	if stat, err := file.Stat(); err != nil {
+		return res, err
+	} else if 2*1024*1024 < stat.Size() {
 		return res, common.ErrTooLargeFile
 	}
 
 	body := &bytes.Buffer{}
 	writer := multipart.NewWriter(body)
-	part, _ := writer.CreateFormFile("image", oi.Filename)
+	part, err := writer.CreateFormFile("image", oi.Filename)
+	if err != nil {
+		return
+	}
+
 	_, err = io.Copy(part, file)
 	if err != nil {
 		return

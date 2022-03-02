@@ -8,10 +8,10 @@ import (
 )
 
 func TestVideoAnalyzeWithURL(t *testing.T) {
-	video_url := "https://raw.githubusercontent.com/intel-iot-devkit/sample-videos/master/face-demographics-walking.mp4"
+	url := "https://raw.githubusercontent.com/intel-iot-devkit/sample-videos/master/face-demographics-walking.mp4"
 
 	if vr, err := pose.AnalyzeVideo().
-		WithURL(video_url).
+		WithURL(url).
 		AuthorizeWith(common.REST_API_KEY).
 		Collect(); err != nil {
 		t.Error(err)

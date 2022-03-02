@@ -41,9 +41,8 @@ func (ar AnalyzeVideoResult) SaveAs(filename string) error {
 // For more details visit https://developers.kakao.com/docs/latest/en/pose/dev-guide#job-submit.
 func AnalyzeVideo() *AnalyzeVideoInitializer {
 	return &AnalyzeVideoInitializer{
-		AuthKey:     common.KeyPrefix,
-		Smoothing:   true,
-		CallbackURL: "",
+		AuthKey:   common.KeyPrefix,
+		Smoothing: true,
 	}
 }
 
@@ -88,7 +87,9 @@ func (ai *AnalyzeVideoInitializer) Collect() (res AnalyzeVideoResult, err error)
 			return res, err
 		}
 
-		if stat, _ := file.Stat(); 50*1024*1024 < stat.Size() {
+		if stat, err := file.Stat(); err != nil {
+			return res, err
+		} else if 50*1024*1024 < stat.Size() {
 			return res, common.ErrTooLargeFile
 		}
 
@@ -96,6 +97,7 @@ func (ai *AnalyzeVideoInitializer) Collect() (res AnalyzeVideoResult, err error)
 
 		body := &bytes.Buffer{}
 		writer := multipart.NewWriter(body)
+
 		part, err := writer.CreateFormFile("file", ai.Filename)
 		if err != nil {
 			return res, err
@@ -123,7 +125,6 @@ func (ai *AnalyzeVideoInitializer) Collect() (res AnalyzeVideoResult, err error)
 	}
 
 	req.Close = true
-
 	req.Header.Add(common.Authorization, ai.AuthKey)
 
 	client := &http.Client{}

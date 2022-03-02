@@ -70,7 +70,6 @@ func (di *DetectInitializer) Collect() (res DetectResult, err error) {
 	}
 
 	req.Close = true
-
 	req.Header.Set(common.Authorization, di.Authkey)
 
 	resp, err := client.Do(req)

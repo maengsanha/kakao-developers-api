@@ -61,7 +61,7 @@ type FaceResult struct {
 
 // FaceDetectResult represents a Face Detection result.
 type FaceDetectResult struct {
-	RID    string     `json:"rid"`
+	RId    string     `json:"rid"`
 	Result FaceResult `json:"result"`
 }
 
@@ -89,11 +89,8 @@ type FaceDetectInitializer struct {
 func FaceDetect() *FaceDetectInitializer {
 	return &FaceDetectInitializer{
 		AuthKey:   common.KeyPrefix,
-		ImageURL:  "",
-		Filename:  "",
 		Threshold: 0.7,
 	}
-
 }
 
 // WithURL sets url to @url.
@@ -144,13 +141,14 @@ func (fi *FaceDetectInitializer) Collect() (res FaceDetectResult, err error) {
 	var req *http.Request
 
 	if fi.withFile {
-
 		file, err := os.Open(fi.Filename)
 		if err != nil {
 			return res, err
 		}
 
-		if stat, _ := file.Stat(); 2*1024*1024 < stat.Size() {
+		if stat, err := file.Stat(); err != nil {
+			return res, err
+		} else if 2*1024*1024 < stat.Size() {
 			return res, common.ErrTooLargeFile
 		}
 
@@ -159,8 +157,8 @@ func (fi *FaceDetectInitializer) Collect() (res FaceDetectResult, err error) {
 		body := &bytes.Buffer{}
 		writer := multipart.NewWriter(body)
 		writer.WriteField("threshold", fmt.Sprintf("%f", fi.Threshold))
-		part, err := writer.CreateFormFile("image", fi.Filename)
 
+		part, err := writer.CreateFormFile("image", fi.Filename)
 		if err != nil {
 			return res, err
 		}
@@ -185,8 +183,8 @@ func (fi *FaceDetectInitializer) Collect() (res FaceDetectResult, err error) {
 	}
 
 	req.Close = true
-
 	req.Header.Add(common.Authorization, fi.AuthKey)
+
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
@@ -198,6 +196,6 @@ func (fi *FaceDetectInitializer) Collect() (res FaceDetectResult, err error) {
 	if err = json.NewDecoder(resp.Body).Decode(&res); err != nil {
 		return
 	}
-	return
 
+	return
 }

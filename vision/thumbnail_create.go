@@ -42,11 +42,9 @@ func (tr ThumbnailCreateResult) SaveAs(filename string) error { return common.Sa
 // Refer to https://developers.kakao.com/docs/latest/ko/vision/dev-guide#create-thumbnail for more details.
 func ThumbnailCreate() *ThumbnailCreateInitializer {
 	return &ThumbnailCreateInitializer{
-		AuthKey:  common.KeyPrefix,
-		Filename: "",
-		ImageURL: "",
-		Width:    0,
-		Height:   0,
+		AuthKey: common.KeyPrefix,
+		Width:   0,
+		Height:  0,
 	}
 }
 
@@ -101,7 +99,9 @@ func (ti *ThumbnailCreateInitializer) Collect() (res ThumbnailCreateResult, err 
 			return res, err
 		}
 
-		if stat, _ := file.Stat(); 2*1024*1024 < stat.Size() {
+		if stat, err := file.Stat(); err != nil {
+			return res, err
+		} else if 2*1024*1024 < stat.Size() {
 			return res, common.ErrTooLargeFile
 		}
 
@@ -111,8 +111,8 @@ func (ti *ThumbnailCreateInitializer) Collect() (res ThumbnailCreateResult, err 
 		writer := multipart.NewWriter(body)
 		writer.WriteField("width", fmt.Sprintf("%d", ti.Width))
 		writer.WriteField("height", fmt.Sprintf("%d", ti.Height))
-		part, err := writer.CreateFormFile("image", ti.Filename)
 
+		part, err := writer.CreateFormFile("image", ti.Filename)
 		if err != nil {
 			return res, err
 		}
@@ -122,13 +122,12 @@ func (ti *ThumbnailCreateInitializer) Collect() (res ThumbnailCreateResult, err 
 		}
 
 		writer.Close()
-		req, err = http.NewRequest(http.MethodPost, fmt.Sprintf("%s/thumbnail/crop",
-			prefix), body)
+
+		req, err = http.NewRequest(http.MethodPost, fmt.Sprintf("%s/thumbnail/crop", prefix), body)
 		if err != nil {
 			return res, err
 		}
 		req.Header.Add("Content-Type", writer.FormDataContentType())
-
 	} else {
 		req, err = http.NewRequest(http.MethodPost, fmt.Sprintf("%s/thumbnail/crop?image_url=%s&width=%d&height=%d",
 			prefix, ti.ImageURL, ti.Width, ti.Height), nil)
@@ -151,6 +150,6 @@ func (ti *ThumbnailCreateInitializer) Collect() (res ThumbnailCreateResult, err 
 	if err = json.NewDecoder(resp.Body).Decode(&res); err != nil {
 		return res, err
 	}
-	return
 
+	return
 }

@@ -8,9 +8,9 @@ import (
 )
 
 func TestVideoAnalyzeResult(t *testing.T) {
-	job_id := "9524567f-887b-474f-9e33-a3d480b400c1"
+	id := "9524567f-887b-474f-9e33-a3d480b400c1"
 
-	if cr, err := pose.CheckVideo(job_id).
+	if cr, err := pose.CheckVideo(id).
 		AuthorizeWith(common.REST_API_KEY).
 		Collect(); err != nil {
 		t.Error(err)
@@ -20,9 +20,9 @@ func TestVideoAnalyzeResult(t *testing.T) {
 }
 
 func TestVideoAnalyzeResultSaveAsJSON(t *testing.T) {
-	job_id := "9524567f-887b-474f-9e33-a3d480b400c1"
+	id := "9524567f-887b-474f-9e33-a3d480b400c1"
 
-	if cr, err := pose.CheckVideo(job_id).
+	if cr, err := pose.CheckVideo(id).
 		AuthorizeWith(common.REST_API_KEY).
 		Collect(); err != nil {
 		t.Error(err)

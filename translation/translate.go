@@ -182,7 +182,6 @@ func (ti *TranslateInitializer) Collect() (res TranslateResult, err error) {
 	}
 
 	req.Close = true
-
 	req.Header.Set(common.Authorization, ti.AuthKey)
 
 	resp, err := client.Do(req)

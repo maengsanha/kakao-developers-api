@@ -22,7 +22,7 @@ type AdultResult struct {
 
 // AdultImageDetectResult represents an Adult Image Detection result.
 type AdultImageDetectResult struct {
-	RID    string      `json:"rid"`
+	RId    string      `json:"rid"`
 	Result AdultResult `json:"result"`
 }
 
@@ -50,9 +50,7 @@ type AdultImageDetectInitializer struct {
 // Refer to https://developers.kakao.com/docs/latest/ko/vision/dev-guide#recog-adult-content for more details.
 func AdultImageDetect() *AdultImageDetectInitializer {
 	return &AdultImageDetectInitializer{
-		AuthKey:  common.KeyPrefix,
-		Filename: "",
-		ImageURL: "",
+		AuthKey: common.KeyPrefix,
 	}
 }
 
@@ -89,13 +87,14 @@ func (ai *AdultImageDetectInitializer) Collect() (res AdultImageDetectResult, er
 	var req *http.Request
 
 	if ai.withFile {
-
 		file, err := os.Open(ai.Filename)
 		if err != nil {
 			return res, err
 		}
 
-		if stat, _ := file.Stat(); 2*1024*1024 < stat.Size() {
+		if stat, err := file.Stat(); err != nil {
+			return res, err
+		} else if 2*1024*1024 < stat.Size() {
 			return res, common.ErrTooLargeFile
 		}
 
@@ -126,15 +125,11 @@ func (ai *AdultImageDetectInitializer) Collect() (res AdultImageDetectResult, er
 		if err != nil {
 			return res, err
 		}
-
-	}
-	if err != nil {
-		return
 	}
 
 	req.Close = true
-
 	req.Header.Add(common.Authorization, ai.AuthKey)
+
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
@@ -145,5 +140,6 @@ func (ai *AdultImageDetectInitializer) Collect() (res AdultImageDetectResult, er
 	if err = json.NewDecoder(resp.Body).Decode(&res); err != nil {
 		return
 	}
+
 	return
 }
