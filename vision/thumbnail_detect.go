@@ -6,10 +6,11 @@ import (
 	"fmt"
 	"internal/common"
 	"io"
+	"log"
 	"mime/multipart"
 	"net/http"
 	"os"
-	"path/filepath"
+	"strings"
 )
 
 // Thumbnail represents coordinates of the point starting the thumbnail image and its width, height.
@@ -46,10 +47,11 @@ func (tr ThumbnailDetectResult) SaveAs(filename string) error {
 // ThumbnailDetectIniailizer is a lazy thumbnail detector.
 type ThumbnailDetectInitializer struct {
 	AuthKey  string
-	Image    *os.File
+	Filename string
 	ImageURL string
 	Width    int
 	Height   int
+	withFile bool
 }
 
 // ThumbnailDetect helps to create a thumbnail image by detecting the representative area out of the given image.
@@ -60,21 +62,31 @@ func ThumbnailDetect() *ThumbnailDetectInitializer {
 	return &ThumbnailDetectInitializer{
 		AuthKey:  common.KeyPrefix,
 		ImageURL: "",
-		Image:    nil,
+		Filename: "",
 		Width:    0,
 		Height:   0,
 	}
 }
 
-// WithFile sets the file to request on @filepath.
-func (ti *ThumbnailDetectInitializer) WithFile(filepath string) *ThumbnailDetectInitializer {
-	ti.Image = OpenFile(filepath)
+// WithFile sets image path to @filename.
+func (ti *ThumbnailDetectInitializer) WithFile(filename string) *ThumbnailDetectInitializer {
+	switch format := strings.Split(filename, "."); format[len(format)-1] {
+	case "jpg", "png":
+	default:
+		panic(common.ErrUnsupportedFormat)
+	}
+	if r := recover(); r != nil {
+		log.Panicln(r)
+	}
+	ti.Filename = filename
+	ti.withFile = true
 	return ti
 }
 
-// WithURL sets the URL to request to @url.
+// WithURL sets url to @url.
 func (ti *ThumbnailDetectInitializer) WithURL(url string) *ThumbnailDetectInitializer {
 	ti.ImageURL = url
+	ti.withFile = false
 	return ti
 }
 
@@ -98,45 +110,62 @@ func (ti *ThumbnailDetectInitializer) HeightTo(ratio int) *ThumbnailDetectInitia
 
 // Collect returns the thumbnail detection result.
 func (ti *ThumbnailDetectInitializer) Collect() (res ThumbnailDetectResult, err error) {
-	client := &http.Client{}
-	body := new(bytes.Buffer)
-	writer := multipart.NewWriter(body)
+	var req *http.Request
 
-	if ti.Image != nil {
-		writer.WriteField("width", fmt.Sprintf("%d", ti.Width))
-		writer.WriteField("height", fmt.Sprintf("%d", ti.Height))
-		part, err := writer.CreateFormFile("image", filepath.Base(ti.Image.Name()))
+	if ti.withFile {
+
+		file, err := os.Open(ti.Filename)
 		if err != nil {
 			return res, err
 		}
-		io.Copy(part, ti.Image)
-	}
-	defer writer.Close()
 
-	req, err := http.NewRequest(http.MethodPost, fmt.Sprintf("%s/thumbnail/detect?image_url=%s&width=%d&height=%d",
-		prefix, ti.ImageURL, ti.Width, ti.Height), body)
-	if err != nil {
-		return res, err
-	}
-	req.Close = true
-	req.Header.Set(common.Authorization, ti.AuthKey)
+		if stat, _ := file.Stat(); 2*1024*1024 < stat.Size() {
+			return res, common.ErrTooLargeFile
+		}
 
-	if ti.Image != nil {
-		req.Header.Set("Content-Type", writer.FormDataContentType())
+		defer file.Close()
+
+		body := new(bytes.Buffer)
+		writer := multipart.NewWriter(body)
+		writer.WriteField("width", fmt.Sprintf("%d", ti.Width))
+		writer.WriteField("height", fmt.Sprintf("%d", ti.Height))
+		part, err := writer.CreateFormFile("image", ti.Filename)
+		if err != nil {
+			return res, err
+		}
+		io.Copy(part, file)
+
+		writer.Close()
+		req, err = http.NewRequest(http.MethodPost, fmt.Sprintf("%s/thumbnail/detect",
+			prefix), body)
+		if err != nil {
+			return res, err
+		}
+		req.Header.Add("Content-Type", writer.FormDataContentType())
+
 	} else {
-		req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+		req, err = http.NewRequest(http.MethodPost, fmt.Sprintf("%s/thumbnail/detect?image_url=%s&width=%d&height=%d",
+			prefix, ti.ImageURL, ti.Width, ti.Height), nil)
+		if err != nil {
+			return res, err
+		}
 	}
-	defer ti.Image.Close()
+	if err != nil {
+		return
+	}
 
+	req.Close = true
+	req.Header.Add(common.Authorization, ti.AuthKey)
+	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
-		return res, err
+		return
 	}
 
 	defer resp.Body.Close()
 
 	if err = json.NewDecoder(resp.Body).Decode(&res); err != nil {
-		return res, err
+		return
 	}
 	return
 }

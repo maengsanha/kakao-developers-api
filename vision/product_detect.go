@@ -11,7 +11,7 @@ import (
 	"mime/multipart"
 	"net/http"
 	"os"
-	"path/filepath"
+	"strings"
 )
 
 // Product represents coordinates of the detected product area box.
@@ -47,9 +47,10 @@ func (pr ProductDetectResult) SaveAs(filename string) error { return common.Save
 // ProductDetectInitializer is a lazy product detector.
 type ProductDetectInitializer struct {
 	AuthKey   string
-	Image     *os.File
+	Filename  string
 	ImageURL  string
 	Threshold float64
+	withFile  bool
 }
 
 // ProductDetect detects the position and type of products within the given image.
@@ -59,21 +60,31 @@ type ProductDetectInitializer struct {
 func ProductDetect() *ProductDetectInitializer {
 	return &ProductDetectInitializer{
 		AuthKey:   common.KeyPrefix,
-		Image:     nil,
+		Filename:  "",
 		ImageURL:  "",
 		Threshold: 0.8,
 	}
 }
 
-// WithFile sets the file to request on @filepath.
-func (pi *ProductDetectInitializer) WithFile(filepath string) *ProductDetectInitializer {
-	pi.Image = OpenFile(filepath)
+// WithFile sets image path to @filename.
+func (pi *ProductDetectInitializer) WithFile(filename string) *ProductDetectInitializer {
+	switch format := strings.Split(filename, "."); format[len(format)-1] {
+	case "jpg", "png":
+	default:
+		panic(common.ErrUnsupportedFormat)
+	}
+	if r := recover(); r != nil {
+		log.Panicln(r)
+	}
+	pi.Filename = filename
+	pi.withFile = true
 	return pi
 }
 
-// WithURL sets the URL to request to @url.
+// WithURL sets url to @url.
 func (pi *ProductDetectInitializer) WithURL(url string) *ProductDetectInitializer {
 	pi.ImageURL = url
+	pi.withFile = false
 	return pi
 }
 
@@ -100,42 +111,56 @@ func (pi *ProductDetectInitializer) ThresholdAt(val float64) *ProductDetectIniti
 
 // Collect returns the product detection result.
 func (pi *ProductDetectInitializer) Collect() (res ProductDetectResult, err error) {
-	client := &http.Client{}
-	body := new(bytes.Buffer)
-	writer := multipart.NewWriter(body)
-	if pi.Image != nil {
-		writer.WriteField("threshold", fmt.Sprintf("%f", pi.Threshold))
-		part, err := writer.CreateFormFile("image", filepath.Base(pi.Image.Name()))
+	var req *http.Request
+
+	if pi.withFile {
+		file, err := os.Open(pi.Filename)
 		if err != nil {
 			return res, err
 		}
-		io.Copy(part, pi.Image)
-	}
-	defer writer.Close()
+		if stat, _ := file.Stat(); 2*1024*1024 < stat.Size() {
+			return res, common.ErrTooLargeFile
+		}
+		defer file.Close()
 
-	req, err := http.NewRequest(http.MethodPost, fmt.Sprintf("%s/product/detect?threshold=%f&image_url=%s", prefix, pi.Threshold, pi.ImageURL), body)
+		body := &bytes.Buffer{}
+		writer := multipart.NewWriter(body)
+		writer.WriteField("threshold", fmt.Sprintf("%f", pi.Threshold))
+		part, err := writer.CreateFormFile("image", pi.Filename)
+		if err != nil {
+			return res, err
+		}
+		_, err = io.Copy(part, file)
+		if err != nil {
+			return res, err
+		}
+		writer.Close()
+
+		req, err = http.NewRequest(http.MethodPost, fmt.Sprintf("%s/product/detect", prefix), body)
+		if err != nil {
+			return res, err
+		}
+		req.Header.Add("Content-Type", writer.FormDataContentType())
+	} else {
+		req, err = http.NewRequest(http.MethodPost, fmt.Sprintf("%s/product/detect?threshold=%f&image_url=%s", prefix, pi.Threshold, pi.ImageURL), nil)
+		if err != nil {
+			return
+		}
+	}
 	if err != nil {
-		return res, err
+		return
 	}
 	req.Close = true
-
-	req.Header.Set(common.Authorization, pi.AuthKey)
-	if pi.Image != nil {
-		req.Header.Set("Content-Type", writer.FormDataContentType())
-	} else {
-		req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-	}
-	defer pi.Image.Close()
-
+	req.Header.Add(common.Authorization, pi.AuthKey)
+	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
-		return res, err
+		return
 	}
-
 	defer resp.Body.Close()
 
 	if err = json.NewDecoder(resp.Body).Decode(&res); err != nil {
-		return res, err
+		return
 	}
 	return
 }

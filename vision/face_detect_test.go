@@ -34,10 +34,10 @@ func TestFaceDetectWithURLSaveAsJSON(t *testing.T) {
 }
 
 func TestFaceDetectWithFile(t *testing.T) {
-	filepath := "/home/js/test.jpg"
+	filename := "test.jpg"
 
 	if fr, err := vision.FaceDetect().
-		WithFile(filepath).
+		WithFile(filename).
 		AuthorizeWith(common.REST_API_KEY).
 		ThresholdAt(0.9).
 		Collect(); err != nil {
@@ -48,10 +48,10 @@ func TestFaceDetectWithFile(t *testing.T) {
 }
 
 func TestFaceDetectWithFileSaveAsJSON(t *testing.T) {
-	filepath := "/home/js/test.jpg"
+	filename := "test.jpg"
 
 	if fr, err := vision.FaceDetect().
-		WithFile(filepath).
+		WithFile(filename).
 		AuthorizeWith(common.REST_API_KEY).
 		ThresholdAt(0.9).
 		Collect(); err != nil {

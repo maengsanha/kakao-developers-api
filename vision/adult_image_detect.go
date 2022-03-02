@@ -6,14 +6,14 @@ import (
 	"fmt"
 	"internal/common"
 	"io"
+	"log"
 	"mime/multipart"
 	"net/http"
 	"os"
-	"path/filepath"
+	"strings"
 )
 
 // AdultResult represents a document of a detected adult image result.
-// If the soft or adult score of an image is high, it is likely to be nudity or porn images. (normal + soft + adult = 1.0)
 type AdultResult struct {
 	Normal float64 `json:"normal"`
 	Soft   float64 `json:"soft"`
@@ -39,8 +39,9 @@ func (ar AdultImageDetectResult) SaveAs(filename string) error {
 // AdultImageDetectInitializer is a lazy adult image detector.
 type AdultImageDetectInitializer struct {
 	AuthKey  string
-	Image    *os.File
+	Filename string
 	ImageURL string
+	withFile bool
 }
 
 // AdultImageDetect determines the level of nudity or adult content in the given image.
@@ -50,20 +51,30 @@ type AdultImageDetectInitializer struct {
 func AdultImageDetect() *AdultImageDetectInitializer {
 	return &AdultImageDetectInitializer{
 		AuthKey:  common.KeyPrefix,
-		Image:    nil,
+		Filename: "",
 		ImageURL: "",
 	}
 }
 
-// WithFile sets the file to request on @filepath.
-func (ai *AdultImageDetectInitializer) WithFile(filepath string) *AdultImageDetectInitializer {
-	ai.Image = OpenFile(filepath)
+// WithFile sets image path to @filename.
+func (ai *AdultImageDetectInitializer) WithFile(filename string) *AdultImageDetectInitializer {
+	switch format := strings.Split(filename, "."); format[len(format)-1] {
+	case "jpg", "png":
+	default:
+		panic(common.ErrUnsupportedFormat)
+	}
+	if r := recover(); r != nil {
+		log.Panicln(r)
+	}
+	ai.Filename = filename
+	ai.withFile = true
 	return ai
 }
 
-// WithURL sets the URL to request to @url.
+// WithURL sets url to @url.
 func (ai *AdultImageDetectInitializer) WithURL(url string) *AdultImageDetectInitializer {
 	ai.ImageURL = url
+	ai.withFile = false
 	return ai
 }
 
@@ -75,41 +86,64 @@ func (ai *AdultImageDetectInitializer) AuthorizeWith(key string) *AdultImageDete
 
 // Collect returns the adult image detection result.
 func (ai *AdultImageDetectInitializer) Collect() (res AdultImageDetectResult, err error) {
-	client := &http.Client{}
-	body := new(bytes.Buffer)
-	writer := multipart.NewWriter(body)
+	var req *http.Request
 
-	if ai.Image != nil {
-		part, err := writer.CreateFormFile("image", filepath.Base(ai.Image.Name()))
+	if ai.withFile {
+
+		file, err := os.Open(ai.Filename)
 		if err != nil {
 			return res, err
 		}
-		io.Copy(part, ai.Image)
-	}
-	defer writer.Close()
 
-	req, err := http.NewRequest(http.MethodPost, fmt.Sprintf("%s/adult/detect?image_url=%s", prefix, ai.ImageURL), body)
-	if err != nil {
-		return res, err
+		if stat, _ := file.Stat(); 2*1024*1024 < stat.Size() {
+			return res, common.ErrTooLargeFile
+		}
+
+		defer file.Close()
+
+		body := &bytes.Buffer{}
+		writer := multipart.NewWriter(body)
+		part, err := writer.CreateFormFile("image", ai.Filename)
+		if err != nil {
+			return res, err
+		}
+
+		_, err = io.Copy(part, file)
+		if err != nil {
+			return res, err
+		}
+
+		writer.Close()
+
+		req, err = http.NewRequest(http.MethodPost, fmt.Sprintf("%s/adult/detect", prefix), body)
+		if err != nil {
+			return res, err
+		}
+
+		req.Header.Add("Content-Type", writer.FormDataContentType())
+	} else {
+		req, err = http.NewRequest(http.MethodPost, fmt.Sprintf("%s/adult/detect?image_url=%s", prefix, ai.ImageURL), nil)
+		if err != nil {
+			return res, err
+		}
+
 	}
+	if err != nil {
+		return
+	}
+
 	req.Close = true
 
-	req.Header.Set(common.Authorization, ai.AuthKey)
-	if ai.Image != nil {
-		req.Header.Set("Content-Type", writer.FormDataContentType())
-	} else {
-		req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-	}
-	defer ai.Image.Close()
-
+	req.Header.Add(common.Authorization, ai.AuthKey)
+	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
-		return res, err
+		return
 	}
 	defer resp.Body.Close()
 
 	if err = json.NewDecoder(resp.Body).Decode(&res); err != nil {
-		return res, err
+		return
 	}
 	return
 }

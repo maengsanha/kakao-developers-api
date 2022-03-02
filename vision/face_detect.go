@@ -11,7 +11,7 @@ import (
 	"mime/multipart"
 	"net/http"
 	"os"
-	"path/filepath"
+	"strings"
 )
 
 // Face represents data of the detected face.
@@ -76,9 +76,10 @@ func (fr FaceDetectResult) SaveAs(filename string) error { return common.SaveAsJ
 // FaceDetectInitializer is a lazy face detector.
 type FaceDetectInitializer struct {
 	AuthKey   string
-	Image     *os.File
+	Filename  string
 	ImageURL  string
 	Threshold float64
+	withFile  bool
 }
 
 // FaceDetect detects a face in the given image.
@@ -89,21 +90,31 @@ func FaceDetect() *FaceDetectInitializer {
 	return &FaceDetectInitializer{
 		AuthKey:   common.KeyPrefix,
 		ImageURL:  "",
-		Image:     nil,
+		Filename:  "",
 		Threshold: 0.7,
 	}
 
 }
 
-// WithURL sets the URL to request to @url.
+// WithURL sets url to @url.
 func (fi *FaceDetectInitializer) WithURL(url string) *FaceDetectInitializer {
 	fi.ImageURL = url
+	fi.withFile = false
 	return fi
 }
 
-// WithFile sets the file to request on @filepath.
-func (fi *FaceDetectInitializer) WithFile(filepath string) *FaceDetectInitializer {
-	fi.Image = OpenFile(filepath)
+// WithFile sets image path to @filename.
+func (fi *FaceDetectInitializer) WithFile(filename string) *FaceDetectInitializer {
+	switch format := strings.Split(filename, "."); format[len(format)-1] {
+	case "jpg", "png":
+	default:
+		panic(common.ErrUnsupportedFormat)
+	}
+	if r := recover(); r != nil {
+		log.Panicln(r)
+	}
+	fi.Filename = filename
+	fi.withFile = true
 	return fi
 }
 
@@ -116,8 +127,6 @@ func (fi *FaceDetectInitializer) AuthorizeWith(key string) *FaceDetectInitialize
 // ThresholdAt sets the Threshold to @val. (a value between 0 and 1.0)
 //
 // Threshold is a reference value to detect as a face.
-// If @val is set too high, some faces may not be able to be detected as a face.
-// If @val is set too low, other area can be detected as a face.
 func (fi *FaceDetectInitializer) ThresholdAt(val float64) *FaceDetectInitializer {
 	if 0.1 <= val && val <= 1.0 {
 		fi.Threshold = val
@@ -132,47 +141,62 @@ func (fi *FaceDetectInitializer) ThresholdAt(val float64) *FaceDetectInitializer
 
 // Collect returns the face detection result.
 func (fi *FaceDetectInitializer) Collect() (res FaceDetectResult, err error) {
-	client := &http.Client{}
+	var req *http.Request
 
-	body := new(bytes.Buffer)
-	writer := multipart.NewWriter(body)
+	if fi.withFile {
 
-	if fi.Image != nil {
+		file, err := os.Open(fi.Filename)
+		if err != nil {
+			return res, err
+		}
+
+		if stat, _ := file.Stat(); 2*1024*1024 < stat.Size() {
+			return res, common.ErrTooLargeFile
+		}
+
+		defer file.Close()
+
+		body := &bytes.Buffer{}
+		writer := multipart.NewWriter(body)
 		writer.WriteField("threshold", fmt.Sprintf("%f", fi.Threshold))
-		part, err := writer.CreateFormFile("image", filepath.Base(fi.Image.Name()))
+		part, err := writer.CreateFormFile("image", fi.Filename)
 
 		if err != nil {
 			return res, err
 		}
 
-		io.Copy(part, fi.Image)
+		_, err = io.Copy(part, file)
+		if err != nil {
+			return res, err
+		}
+		writer.Close()
+
+		req, err = http.NewRequest(http.MethodPost, fmt.Sprintf("%s/face/detect", prefix), body)
+		if err != nil {
+			return res, err
+		}
+		req.Header.Add("Content-Type", writer.FormDataContentType())
+
+	} else {
+		req, err = http.NewRequest(http.MethodPost, fmt.Sprintf("%s/face/detect?threshold=%f&image_url=%s", prefix, fi.Threshold, fi.ImageURL), nil)
+		if err != nil {
+			return
+		}
 	}
 
-	defer writer.Close()
-
-	req, err := http.NewRequest(http.MethodPost, fmt.Sprintf("%s/face/detect?threshold=%f&image_url=%s", prefix, fi.Threshold, fi.ImageURL), body)
-	if err != nil {
-		return res, err
-	}
 	req.Close = true
 
-	req.Header.Set(common.Authorization, fi.AuthKey)
-	if fi.Image != nil {
-		req.Header.Set("Content-Type", writer.FormDataContentType())
-	} else {
-		req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-	}
-	defer fi.Image.Close()
-
+	req.Header.Add(common.Authorization, fi.AuthKey)
+	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
-		return res, err
+		return
 	}
 
 	defer resp.Body.Close()
 
 	if err = json.NewDecoder(resp.Body).Decode(&res); err != nil {
-		return res, err
+		return
 	}
 	return
 
