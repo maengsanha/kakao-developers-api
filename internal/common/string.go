@@ -16,7 +16,8 @@ package common
 
 import (
 	"bytes"
-	"encoding/json"
+
+	"github.com/goccy/go-json"
 )
 
 // String implements fmt.Stringer.

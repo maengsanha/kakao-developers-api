@@ -15,7 +15,6 @@
 package translation
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
 	"internal/common"
@@ -23,6 +22,8 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
+
+	"github.com/goccy/go-json"
 )
 
 // TranslateResult represents a translation result.

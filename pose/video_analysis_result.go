@@ -15,10 +15,11 @@
 package pose
 
 import (
-	"encoding/json"
 	"fmt"
 	"internal/common"
 	"net/http"
+
+	"github.com/goccy/go-json"
 )
 
 // CheckVideoResult represents the result of CheckVideo.

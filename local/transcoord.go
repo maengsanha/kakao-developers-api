@@ -15,7 +15,6 @@
 package local
 
 import (
-	"encoding/json"
 	"encoding/xml"
 	"errors"
 	"fmt"
@@ -23,6 +22,8 @@ import (
 	"log"
 	"net/http"
 	"strconv"
+
+	"github.com/goccy/go-json"
 )
 
 // Coord represents a document of coordinate transformation result.

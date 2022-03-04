@@ -15,7 +15,6 @@
 package daum
 
 import (
-	"encoding/json"
 	"fmt"
 	"internal/common"
 	"log"
@@ -23,6 +22,8 @@ import (
 	"net/url"
 	"strings"
 	"sync"
+
+	"github.com/goccy/go-json"
 )
 
 // CafeResult represents a document of a Daum Cafe search result.

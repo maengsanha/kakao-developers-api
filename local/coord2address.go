@@ -15,13 +15,14 @@
 package local
 
 import (
-	"encoding/json"
 	"encoding/xml"
 	"errors"
 	"fmt"
 	"internal/common"
 	"log"
 	"net/http"
+
+	"github.com/goccy/go-json"
 )
 
 // TotalAddress represents a document of CoordToAddressResult.

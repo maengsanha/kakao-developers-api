@@ -15,7 +15,6 @@
 package local
 
 import (
-	"encoding/json"
 	"encoding/xml"
 	"fmt"
 	"internal/common"
@@ -24,6 +23,8 @@ import (
 	"strconv"
 	"strings"
 	"sync"
+
+	"github.com/goccy/go-json"
 )
 
 // CategorySearchIterator is a lazy category search iterator.

@@ -16,7 +16,6 @@ package vision
 
 import (
 	"bytes"
-	"encoding/json"
 	"fmt"
 	"internal/common"
 	"io"
@@ -25,6 +24,8 @@ import (
 	"net/http"
 	"os"
 	"strings"
+
+	"github.com/goccy/go-json"
 )
 
 // AdultResult represents a document of a detected adult image result.

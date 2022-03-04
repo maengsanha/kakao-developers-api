@@ -15,7 +15,6 @@
 package local
 
 import (
-	"encoding/json"
 	"encoding/xml"
 	"errors"
 	"fmt"
@@ -25,6 +24,8 @@ import (
 	"net/url"
 	"strings"
 	"sync"
+
+	"github.com/goccy/go-json"
 )
 
 // ComplexAddress represents a document of an address search result.

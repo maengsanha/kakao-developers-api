@@ -15,7 +15,6 @@
 package daum
 
 import (
-	"encoding/json"
 	"errors"
 	"fmt"
 	"internal/common"
@@ -24,6 +23,8 @@ import (
 	"net/url"
 	"strings"
 	"sync"
+
+	"github.com/goccy/go-json"
 )
 
 // BookResult represents a document of a Daum Book search result.

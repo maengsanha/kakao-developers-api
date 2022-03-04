@@ -16,10 +16,11 @@ package common
 
 import (
 	"bytes"
-	"encoding/json"
 	"encoding/xml"
 	"io/ioutil"
 	"strings"
+
+	"github.com/goccy/go-json"
 )
 
 // SaveAsJSON saves @data to @filename.

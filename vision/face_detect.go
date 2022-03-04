@@ -16,7 +16,6 @@ package vision
 
 import (
 	"bytes"
-	"encoding/json"
 	"errors"
 	"fmt"
 	"internal/common"
@@ -26,6 +25,8 @@ import (
 	"net/http"
 	"os"
 	"strings"
+
+	"github.com/goccy/go-json"
 )
 
 // Face represents data of the detected face.

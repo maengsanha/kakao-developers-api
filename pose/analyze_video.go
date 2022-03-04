@@ -16,13 +16,14 @@ package pose
 
 import (
 	"bytes"
-	"encoding/json"
 	"fmt"
 	"internal/common"
 	"io"
 	"mime/multipart"
 	"net/http"
 	"os"
+
+	"github.com/goccy/go-json"
 )
 
 // AnalyzeVideoResult returns the result code of analyze video.
